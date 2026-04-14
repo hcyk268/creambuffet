@@ -1,0 +1,100 @@
+[gd_scene format=3 uid="uid://cn42rsu8hxfby"]
+
+[ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="1_o1atq"]
+[ext_resource type="Script" uid="uid://cecq7n0tjknaq" path="res://scripts/menu/lobby.gd" id="1_pc087"]
+[ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="2_5gu6x"]
+[ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="2_q60fs"]
+
+[sub_resource type="Theme" id="Theme_q60fs"]
+resource_local_to_scene = true
+default_font = ExtResource("2_q60fs")
+default_font_size = 40
+
+[node name="Lobby" type="Control" unique_id=750436234]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_pc087")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1415062526]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("1_o1atq")
+
+[node name="TextureRect2" type="TextureRect" parent="." unique_id=1818590753]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -440.0
+offset_right = 800.0
+offset_bottom = 440.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_o1atq")
+
+[node name="MarginContainer" type="MarginContainer" parent="TextureRect2" unique_id=623118012]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -440.0
+offset_right = 800.0
+offset_bottom = 440.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer" unique_id=735576400]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=227637597]
+layout_mode = 2
+theme = SubResource("Theme_q60fs")
+theme_override_fonts/font = ExtResource("2_5gu6x")
+theme_override_font_sizes/font_size = 80
+text = "LOBBY"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=1540216876]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/ScrollContainer" unique_id=887868550]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=923088428]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="RefreshButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=980697777]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_q60fs")
+theme_override_font_sizes/font_size = 70
+text = "Refresh
+"
+
+[node name="BackButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=971004202]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_q60fs")
+theme_override_font_sizes/font_size = 70
+text = "Back
+"
+
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/RefreshButt" to="." method="_on_refresh_butt_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/BackButt" to="." method="_on_back_butt_pressed"]
