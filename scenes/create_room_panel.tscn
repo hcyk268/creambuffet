@@ -1,0 +1,233 @@
+[gd_scene format=3 uid="uid://csu721evltu26"]
+
+[ext_resource type="Script" uid="uid://bvs4waboks03p" path="res://scripts/menu/create_room_panel.gd" id="1_47e64"]
+[ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="1_ktflg"]
+[ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="2_dpg5c"]
+[ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="3_iql5w"]
+[ext_resource type="Texture2D" uid="uid://ccno1wl24vq40" path="res://assets/sprites/Testbutton-sheet.png" id="5_5o1f4"]
+
+[sub_resource type="Theme" id="Theme_47e64"]
+default_font = ExtResource("2_dpg5c")
+
+[sub_resource type="Theme" id="Theme_5o1f4"]
+default_font = ExtResource("2_dpg5c")
+
+[sub_resource type="Theme" id="Theme_0yhlc"]
+resource_local_to_scene = true
+default_font = ExtResource("2_dpg5c")
+default_font_size = 40
+
+[sub_resource type="Theme" id="Theme_7yisg"]
+default_font = ExtResource("2_dpg5c")
+default_font_size = 70
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7yisg"]
+atlas = ExtResource("5_5o1f4")
+region = Rect2(276, 164, 7, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lemdk"]
+atlas = ExtResource("5_5o1f4")
+region = Rect2(276, 164, 7, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_21tnj"]
+atlas = ExtResource("5_5o1f4")
+region = Rect2(263, 164, 7, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p6q2y"]
+atlas = ExtResource("5_5o1f4")
+region = Rect2(292, 166, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5o1f4"]
+atlas = ExtResource("5_5o1f4")
+region = Rect2(307, 166, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_04shl"]
+atlas = ExtResource("5_5o1f4")
+region = Rect2(307, 166, 8, 8)
+
+[node name="CreateRoomPanel" type="Control" unique_id=1249862867]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_47e64")
+
+[node name="TextureRect2" type="TextureRect" parent="." unique_id=2027307792]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -440.0
+offset_right = 800.0
+offset_bottom = 440.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_ktflg")
+
+[node name="MarginContainer" type="MarginContainer" parent="TextureRect2" unique_id=1454627778]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -440.0
+offset_right = 800.0
+offset_bottom = 440.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_47e64")
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer" unique_id=914139624]
+layout_mode = 2
+theme = SubResource("Theme_5o1f4")
+theme_override_constants/separation = 40
+
+[node name="Label" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=39915991]
+layout_mode = 2
+size_flags_vertical = 1
+theme = SubResource("Theme_0yhlc")
+theme_override_fonts/font = ExtResource("3_iql5w")
+theme_override_font_sizes/font_size = 80
+text = "Create room"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Grid" type="GridContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=36591474]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+theme = SubResource("Theme_7yisg")
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 70
+columns = 2
+
+[node name="PlayerLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=2142642124]
+layout_mode = 2
+text = "Players"
+
+[node name="HBox1" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1834774050]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="PlayerLineEdit" type="LineEdit" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1" unique_id=486050604]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+text = "1"
+alignment = 1
+editable = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1" unique_id=609353023]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="UpButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer" unique_id=1357337454]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_7yisg")
+texture_pressed = SubResource("AtlasTexture_lemdk")
+texture_hover = SubResource("AtlasTexture_21tnj")
+stretch_mode = 1
+
+[node name="DownButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer" unique_id=1136576910]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_7yisg")
+texture_pressed = SubResource("AtlasTexture_lemdk")
+texture_hover = SubResource("AtlasTexture_21tnj")
+stretch_mode = 1
+flip_v = true
+
+[node name="WorldLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=44432266]
+layout_mode = 2
+text = "Worlds"
+
+[node name="HBox2" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1571439104]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="WorldLineEdit" type="LineEdit" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2" unique_id=362918139]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+text = "1"
+alignment = 1
+editable = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2" unique_id=648024437]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="UpButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/VBoxContainer" unique_id=724803694]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_7yisg")
+texture_pressed = SubResource("AtlasTexture_lemdk")
+texture_hover = SubResource("AtlasTexture_21tnj")
+stretch_mode = 1
+
+[node name="DownButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/VBoxContainer" unique_id=797757675]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_7yisg")
+texture_pressed = SubResource("AtlasTexture_lemdk")
+texture_hover = SubResource("AtlasTexture_21tnj")
+stretch_mode = 1
+flip_v = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2" unique_id=1902175689]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="RandButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/HBoxContainer" unique_id=1367275199]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+toggle_mode = true
+texture_normal = SubResource("AtlasTexture_p6q2y")
+texture_pressed = SubResource("AtlasTexture_5o1f4")
+texture_hover = SubResource("AtlasTexture_04shl")
+stretch_mode = 1
+
+[node name="Label2" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/HBoxContainer" unique_id=297316470]
+layout_mode = 2
+text = "Randomized"
+horizontal_alignment = 1
+vertical_alignment = 1
+justification_flags = 35
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=2119153605]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="CreateButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1528177450]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_dpg5c")
+theme_override_font_sizes/font_size = 70
+text = "Create
+"
+
+[node name="BackButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1282203379]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_dpg5c")
+theme_override_font_sizes/font_size = 70
+text = "Back
+"
+
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer/UpButt" to="." method="_on_player_up_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer/DownButt" to="." method="_on_player_down_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/VBoxContainer/UpButt" to="." method="_on_world_up_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/VBoxContainer/DownButt" to="." method="_on_world_down_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/CreateButt" to="." method="_on_create_butt_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/BackButt" to="." method="_on_back_butt_pressed"]

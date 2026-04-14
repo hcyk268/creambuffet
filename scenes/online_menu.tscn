@@ -1,0 +1,117 @@
+[gd_scene format=3 uid="uid://dkkwoq1bfk4ph"]
+
+[ext_resource type="Script" uid="uid://cqtlfovksy6s" path="res://scripts/menu/online_menu.gd" id="1_61shv"]
+[ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="1_q7r3x"]
+[ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="2_61shv"]
+[ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="3_68iuo"]
+[ext_resource type="PackedScene" uid="uid://bpkr43uwjfrn7" path="res://scenes/enter_id_panel.tscn" id="5_68iuo"]
+[ext_resource type="PackedScene" uid="uid://csu721evltu26" path="res://scenes/create_room_panel.tscn" id="6_jgvkh"]
+
+[sub_resource type="Theme" id="Theme_jgvkh"]
+default_font = ExtResource("2_61shv")
+default_font_size = 100
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8lf63"]
+texture = ExtResource("3_68iuo")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ornuy"]
+texture = ExtResource("3_68iuo")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ru88j"]
+texture = ExtResource("3_68iuo")
+region_rect = Rect2(16, 36, 32, 16)
+
+[node name="OnlineMenu" type="Control" unique_id=872292142]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_61shv")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1450902166]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("1_q7r3x")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=976098616]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -440.0
+offset_right = 800.0
+offset_bottom = 440.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 80
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 80
+
+[node name="GridContainer" type="GridContainer" parent="MarginContainer" unique_id=2009975243]
+layout_mode = 2
+theme = SubResource("Theme_jgvkh")
+theme_override_constants/h_separation = 80
+theme_override_constants/v_separation = 40
+columns = 2
+
+[node name="PublicButt" type="Button" parent="MarginContainer/GridContainer" unique_id=1298556893]
+custom_minimum_size = Vector2(600, 300)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/normal = SubResource("StyleBoxTexture_8lf63")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_ornuy")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ru88j")
+text = "Public"
+
+[node name="PrivateButt" type="Button" parent="MarginContainer/GridContainer" unique_id=1361079087]
+custom_minimum_size = Vector2(600, 300)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/normal = SubResource("StyleBoxTexture_8lf63")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_ornuy")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ru88j")
+text = "Private"
+
+[node name="HostButt" type="Button" parent="MarginContainer/GridContainer" unique_id=452628099]
+custom_minimum_size = Vector2(600, 300)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/normal = SubResource("StyleBoxTexture_8lf63")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_ornuy")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ru88j")
+text = "Host"
+
+[node name="OptionButt" type="Button" parent="MarginContainer/GridContainer" unique_id=686395123]
+custom_minimum_size = Vector2(600, 300)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/normal = SubResource("StyleBoxTexture_8lf63")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_ornuy")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ru88j")
+text = "Option"
+
+[node name="EnterIdPanel" parent="." unique_id=754246975 instance=ExtResource("5_68iuo")]
+visible = false
+layout_mode = 1
+
+[node name="CreateRoomPanel" parent="." unique_id=1249862867 instance=ExtResource("6_jgvkh")]
+visible = false
+layout_mode = 1
+
+[connection signal="pressed" from="MarginContainer/GridContainer/PublicButt" to="." method="_on_public_butt_pressed"]
+[connection signal="pressed" from="MarginContainer/GridContainer/PrivateButt" to="." method="_on_private_butt_pressed"]
+[connection signal="pressed" from="MarginContainer/GridContainer/HostButt" to="." method="_on_host_butt_pressed"]
+[connection signal="pressed" from="MarginContainer/GridContainer/OptionButt" to="." method="_on_option_butt_pressed"]

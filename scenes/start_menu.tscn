@@ -1,0 +1,67 @@
+[gd_scene format=3 uid="uid://bxn8god0m4o7j"]
+
+[ext_resource type="Script" uid="uid://c344f6jss188c" path="res://scripts/menu/menu.gd" id="1_h61rw"]
+[ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="2_fcv5n"]
+[ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="3_4v6gu"]
+[ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="4_nxjfj"]
+
+[sub_resource type="Theme" id="Theme_mhnvy"]
+
+[sub_resource type="Theme" id="Theme_4ytvr"]
+
+[node name="Menu" type="Control" unique_id=1301062844]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_h61rw")
+
+[node name="Background" type="TextureRect" parent="." unique_id=1400120778]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("2_fcv5n")
+
+[node name="Title" type="Label" parent="." unique_id=2104518089]
+layout_mode = 0
+offset_top = 175.0
+offset_right = 1920.0
+offset_bottom = 675.0
+theme_override_fonts/font = ExtResource("3_4v6gu")
+theme_override_font_sizes/font_size = 200
+text = "Euclidean
+"
+horizontal_alignment = 1
+vertical_alignment = 2
+uppercase = true
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=986813198]
+layout_mode = 0
+offset_top = 426.0
+offset_right = 1920.0
+offset_bottom = 1006.0
+theme = SubResource("Theme_mhnvy")
+
+[node name="MainButtons" type="VBoxContainer" parent="CenterContainer" unique_id=1817206213]
+layout_mode = 2
+theme = SubResource("Theme_4ytvr")
+theme_override_constants/separation = 8
+
+[node name="StartButt" type="Button" parent="CenterContainer/MainButtons" unique_id=277141550]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 70
+text = "Start
+"
+
+[node name="QuitButt" type="Button" parent="CenterContainer/MainButtons" unique_id=500722691]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 70
+text = "Quit
+"
+
+[connection signal="pressed" from="CenterContainer/MainButtons/StartButt" to="." method="_on_start_butt_pressed"]
+[connection signal="pressed" from="CenterContainer/MainButtons/QuitButt" to="." method="_on_quit_butt_pressed"]
