@@ -1,7 +1,50 @@
-# Godot 4+ specific ignores
-game/.godot/
-game/android/
+# Godot cache & metadata
+.godot/
+.import/
+export.cfg
+export_presets.cfg
 
-# OS generated files
+# Imported assets (re-generated automatically)
+*.import
+
+# Mono / C# (nếu dùng)
+.mono/
+data_*/
+*.csproj
+*.sln
+*.user
+*.mdb
+*.pdb
+
+# Build / export
+bin/
+build/
+export/
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+
+# Backup files
+*~
+*.bak
+
+# Editor settings (local machine)
+.editor/
+.editor_settings-*.tres
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains (IntelliJ, Rider)
+.idea/
+
+# Godot temporary files
+*.tmp
+*.temp
+
+# Debug / crash
+crash.log
