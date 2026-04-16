@@ -1,0 +1,53 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" uid="uid://c7aike7ymbsfy" path="res://assets/sprites/IconPackage1.png" id="1_hom6m"]
+[ext_resource type="Script" path="res://scripts/door.gd" id="2_6ej7u"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_door_closed"]
+atlas = ExtResource("1_hom6m")
+region = Rect2(36, 57, 20, 23)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_door_open"]
+atlas = ExtResource("1_hom6m")
+region = Rect2(72, 57, 20, 23)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_door"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_door_closed")
+}],
+"loop": true,
+"name": &"closed",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_door_open")
+}],
+"loop": true,
+"name": &"open",
+"speed": 1.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(20, 23)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door_detection"]
+size = Vector2(24, 24)
+
+[node name="Door" type="StaticBody2D"]
+script = ExtResource("2_6ej7u")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_door")
+animation = &"closed"
+autoplay = "closed"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="DetectionArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+shape = SubResource("RectangleShape2D_door_detection")
