@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/level_goal.gd" id="1_jwovk"]
+[ext_resource type="Texture2D" uid="uid://c7aike7ymbsfy" path="res://assets/sprites/IconPackage1.png" id="2_edprb"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ruec2"]
+atlas = ExtResource("2_edprb")
+region = Rect2(72, 57, 20, 23)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f47rt"]
+size = Vector2(20, 23)
+
+[node name="LevelGoal" type="Area2D"]
+script = ExtResource("1_jwovk")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("AtlasTexture_ruec2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_f47rt")

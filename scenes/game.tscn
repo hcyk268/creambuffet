@@ -1,19 +1,27 @@
 [gd_scene format=3 uid="uid://p4mc3xaq0yoh"]
 
-[ext_resource type="PackedScene" uid="uid://di1ooitfh1the" path="res://scenes/player_soda.tscn" id="1_uwrxv"]
-
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_uwrxv"]
+[ext_resource type="Script" path="res://scripts/game.gd" id="1_5latr"]
+[ext_resource type="PackedScene" uid="uid://di1ooitfh1the" path="res://scenes/player_soda.tscn" id="2_uwrxv"]
+[ext_resource type="PackedScene" path="res://scenes/levels/level_01.tscn" id="3_u1byv"]
+[ext_resource type="PackedScene" path="res://scenes/levels/level_02.tscn" id="4_pii8w"]
 
 [node name="Game" type="Node2D" unique_id=255461949]
+script = ExtResource("1_5latr")
+levels = Array[PackedScene]([ExtResource("3_u1byv"), ExtResource("4_pii8w")])
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=442079125]
+[node name="LevelContainer" type="Node2D" parent="."]
+
+[node name="Player" parent="." unique_id=1419475106 instance=ExtResource("2_uwrxv")]
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=442079125]
 position = Vector2(0, -32)
 zoom = Vector2(3, 3)
 
-[node name="Player" parent="." unique_id=1419475106 instance=ExtResource("1_uwrxv")]
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=811153251]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=195719324]
-position = Vector2(-1, 60)
-shape = SubResource("WorldBoundaryShape2D_uwrxv")
+[node name="LevelLabel" type="Label" parent="CanvasLayer"]
+offset_left = 10.0
+offset_top = 8.0
+offset_right = 226.0
+offset_bottom = 31.0
+text = "Level"

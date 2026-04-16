@@ -11,6 +11,7 @@ var is_open := false
 
 
 func _ready() -> void:
+	add_to_group("level_door")
 	detection_area.body_entered.connect(_on_detection_area_body_entered)
 	_apply_state()
 
@@ -46,5 +47,6 @@ func _on_detection_area_body_entered(body: Node) -> void:
 
 func _apply_state() -> void:
 	animated_sprite.play("open" if is_open else "closed")
-	collision_shape.disabled = is_open
-	detection_area.monitoring = not is_open
+	# body_entered signals can run during physics query flushing, so defer shape toggles.
+	collision_shape.set_deferred("disabled", is_open)
+	detection_area.set_deferred("monitoring", not is_open)
