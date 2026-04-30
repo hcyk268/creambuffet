@@ -1,0 +1,12 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: creambuffet-server
+    container_name: creambuffet-server
+    env_file:
+      - .env
+    ports:
+      - "${CREAMBUFFET_SERVER_PORT:-7000}:${CREAMBUFFET_SERVER_PORT:-7000}/udp"
+    restart: unless-stopped

@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="GameONL"
-run/main_scene="uid://p4mc3xaq0yoh"
+run/main_scene="uid://bxn8god0m4o7j"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+NetworkClient="*res://scripts/network/network_client.gd"
 
 [display]
 

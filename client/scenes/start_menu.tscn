@@ -53,7 +53,14 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_nxjfj")
 theme_override_font_sizes/font_size = 70
-text = "Start
+text = "Online
+"
+
+[node name="OfflineButt" type="Button" parent="CenterContainer/MainButtons"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 70
+text = "Offline
 "
 
 [node name="QuitButt" type="Button" parent="CenterContainer/MainButtons" unique_id=500722691]
@@ -64,4 +71,5 @@ text = "Quit
 "
 
 [connection signal="pressed" from="CenterContainer/MainButtons/StartButt" to="." method="_on_start_butt_pressed"]
+[connection signal="pressed" from="CenterContainer/MainButtons/OfflineButt" to="." method="_on_offline_butt_pressed"]
 [connection signal="pressed" from="CenterContainer/MainButtons/QuitButt" to="." method="_on_quit_butt_pressed"]
