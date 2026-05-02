@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/parallax_background.gd" id="1_hdb2s"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/level_001_parallax/LevelBackground01_Sky.png" id="2_hb1jq"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/level_001_parallax/LevelBackground01_FarCaves.png" id="3_x0r4f"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/level_001_parallax/LevelBackground01_MidRocks.png" id="4_lwgpn"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/level_001_parallax/LevelBackground01_Fog.png" id="5_f148m"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/level_001_parallax/LevelBackground01_Ceiling.png" id="6_s1glw"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/level_001_parallax/LevelBackground01_Foreground.png" id="7_nkopj"]
+
+[node name="Level001ParallaxBackground" type="Node2D"]
+z_index = -100
+script = ExtResource("1_hdb2s")
+layers = Array[NodePath]([NodePath("Sky"), NodePath("FarCaves"), NodePath("MidRocks"), NodePath("Fog"), NodePath("Ceiling"), NodePath("Foreground")])
+motion_scales = Array[Vector2]([Vector2(0.04, 0.02), Vector2(0.08, 0.03), Vector2(0.14, 0.05), Vector2(0.2, 0.04), Vector2(0.06, 0.02), Vector2(0.28, 0.06)])
+drift_speeds = Array[Vector2]([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(-3, 0), Vector2(0, 0), Vector2(0, 0)])
+
+[node name="Sky" type="Sprite2D" parent="."]
+z_index = -100
+position = Vector2(150, 30)
+scale = Vector2(4.4, 4.4)
+texture = ExtResource("2_hb1jq")
+
+[node name="FarCaves" type="Sprite2D" parent="."]
+z_index = -99
+position = Vector2(150, 30)
+scale = Vector2(4.4, 4.4)
+texture = ExtResource("3_x0r4f")
+
+[node name="MidRocks" type="Sprite2D" parent="."]
+z_index = -98
+position = Vector2(150, 30)
+scale = Vector2(4.4, 4.4)
+texture = ExtResource("4_lwgpn")
+
+[node name="Fog" type="Sprite2D" parent="."]
+z_index = -97
+position = Vector2(150, 30)
+scale = Vector2(4.4, 4.4)
+texture = ExtResource("5_f148m")
+
+[node name="Ceiling" type="Sprite2D" parent="."]
+z_index = -96
+position = Vector2(150, 30)
+scale = Vector2(4.4, 4.4)
+texture = ExtResource("6_s1glw")
+
+[node name="Foreground" type="Sprite2D" parent="."]
+z_index = -95
+position = Vector2(150, 30)
+scale = Vector2(4.4, 4.4)
+texture = ExtResource("7_nkopj")

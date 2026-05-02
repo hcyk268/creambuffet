@@ -214,7 +214,7 @@ func _maybe_enter_match(room: Dictionary) -> void:
 
 
 func _change_to_game_scene() -> void:
-	get_tree().change_scene_to_file("res://scenes/game.tscn")
+	get_tree().change_scene_to_file("res://scenes/online/online_game.tscn")
 
 
 func _room_summary(room: Dictionary) -> String:

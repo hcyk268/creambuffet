@@ -41,8 +41,13 @@ func _on_detection_area_body_entered(body: Node) -> void:
 	if is_open or not body.is_in_group("player"):
 		return
 
-	if body.has_method("has_key") and body.has_key():
-		open()
+	if not (body.has_method("has_key") and body.has_key()):
+		return
+
+	if body.has_method("use_key"):
+		body.use_key()
+
+	open()
 
 
 func _apply_state() -> void:

@@ -1,0 +1,85 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_rx8b2"]
+[ext_resource type="FontFile" path="res://assets/fonts/editundo.ttf" id="2_7lsra"]
+[ext_resource type="FontFile" path="res://assets/fonts/EXEPixelPerfect.ttf" id="3_l3c51"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.12, 0.1, 0.08, 0.92)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.87, 0.76, 0.46, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="PauseMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 20
+script = ExtResource("1_rx8b2")
+
+[node name="Overlay" type="ColorRect" parent="."]
+visible = false
+process_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.58)
+
+[node name="CenterContainer" type="CenterContainer" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MenuPanel" type="PanelContainer" parent="Overlay/CenterContainer"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="Overlay/CenterContainer/MenuPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Overlay/CenterContainer/MenuPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="Overlay/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_7lsra")
+theme_override_font_sizes/font_size = 58
+theme_override_colors/font_color = Color(1, 0.91, 0.62, 1)
+text = "Paused"
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="Overlay/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_l3c51")
+theme_override_font_sizes/font_size = 34
+text = "Resume"
+
+[node name="RestartButton" type="Button" parent="Overlay/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_l3c51")
+theme_override_font_sizes/font_size = 34
+text = "Restart"
+
+[node name="MainMenuButton" type="Button" parent="Overlay/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_l3c51")
+theme_override_font_sizes/font_size = 34
+text = "Main Menu"

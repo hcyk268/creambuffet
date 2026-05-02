@@ -6,7 +6,7 @@ func _ready() -> void:
 
 
 func _on_offline_butt_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/game.tscn")
+	get_tree().change_scene_to_file("res://scenes/offline/offline_game.tscn")
 
 
 func _on_start_butt_pressed() -> void:

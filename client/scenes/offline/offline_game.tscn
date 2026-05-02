@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/offline/offline_game.gd" id="1_q3jwk"]
+[ext_resource type="PackedScene" path="res://scenes/player_soda.tscn" id="2_w5dja"]
+[ext_resource type="PackedScene" path="res://scenes/offline/levels/offline_level_001.tscn" id="3_jfj5x"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="4_rssm6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/completion_screen.tscn" id="5_yb37t"]
+
+[node name="OfflineGame" type="Node2D"]
+script = ExtResource("1_q3jwk")
+levels = Array[PackedScene]([ExtResource("3_jfj5x")])
+
+[node name="LevelContainer" type="Node2D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("2_w5dja")]
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position = Vector2(0, -32)
+zoom = Vector2(3, 3)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="LevelLabel" type="Label" parent="CanvasLayer"]
+offset_left = 10.0
+offset_top = 8.0
+offset_right = 330.0
+offset_bottom = 31.0
+text = "Offline Level"
+
+[node name="PauseMenu" parent="." instance=ExtResource("4_rssm6")]
+
+[node name="CompletionScreen" parent="." instance=ExtResource("5_yb37t")]

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ndowmvi0t40t" path="res://scripts/player_soda.gd" id="1_0uk0a"]
 [ext_resource type="Texture2D" uid="uid://dmfcd2takxaxd" path="res://assets/sprites/Player-Soda.png" id="1_uw6r1"]
+[ext_resource type="Texture2D" uid="uid://c7aike7ymbsfy" path="res://assets/sprites/IconPackage1.png" id="2_keyicon"]
 [ext_resource type="Script" uid="uid://dqitemhmwuaox" path="res://scripts/states/state_machine.gd" id="3_aiy33"]
 [ext_resource type="Script" uid="uid://deyoy86v8lc52" path="res://scripts/states/playerIdle.gd" id="4_3cfqc"]
 [ext_resource type="Script" uid="uid://qfkctxlmf7qv" path="res://scripts/states/playerJump.gd" id="5_uog8w"]
@@ -180,6 +181,10 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_c5fq3"]
 radius = 5.0
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_carried_key"]
+atlas = ExtResource("2_keyicon")
+region = Rect2(18, 65, 8, 15)
+
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_uog8w"]
 load_path = "res://.godot/imported/Player-Soda.png-366adaf88143a13846c19a7522f70e2e.ctex"
 
@@ -315,6 +320,13 @@ texture = SubResource("CompressedTexture2D_uog8w")
 hframes = 5
 vframes = 6
 frame = 1
+
+[node name="CarriedKey" type="Sprite2D" parent="."]
+visible = false
+z_index = 4
+position = Vector2(0, -46)
+scale = Vector2(0.85, 0.85)
+texture = SubResource("AtlasTexture_carried_key")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1664139593]
 root_node = NodePath("../Sprite2D")
