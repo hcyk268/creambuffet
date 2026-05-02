@@ -1,18 +1,39 @@
 extends CharacterBody2D
 
+signal died
+
 @export var SPEED := 150.0
 @export var JUMP_VELOCITY := -300.0
+@export var carried_key_offset := Vector2(0, -46)
+@export var carried_key_bob_amplitude := 2.0
+@export var carried_key_bob_speed := 5.0
+
+@onready var carried_key_sprite: Sprite2D = get_node_or_null("CarriedKey") as Sprite2D
 
 var spawn_position: Vector2
 var key_count := 0
 var network_peer_id := 0
 var display_name := ""
 var is_remote_player := false
+var input_enabled := true
+var _carried_key_bob_time := 0.0
 
 
 func _ready() -> void:
 	_apply_network_control_mode()
+	_update_key_indicator()
 	spawn_position = global_position
+
+
+func _process(delta: float) -> void:
+	if carried_key_sprite == null or not carried_key_sprite.visible:
+		return
+
+	_carried_key_bob_time += delta
+	carried_key_sprite.position = carried_key_offset + Vector2(
+		0,
+		sin(_carried_key_bob_time * carried_key_bob_speed) * carried_key_bob_amplitude
+	)
 
 
 func set_network_identity(peer_id: int, player_name: String = "") -> void:
@@ -25,7 +46,13 @@ func set_network_remote(remote: bool) -> void:
 	_apply_network_control_mode()
 
 
+func set_input_enabled(enabled: bool) -> void:
+	input_enabled = enabled
+	_apply_network_control_mode()
+
+
 func die() -> void:
+	died.emit()
 	respawn()
 
 
@@ -34,8 +61,14 @@ func respawn() -> void:
 	velocity = Vector2.ZERO
 
 
+func set_key_count(value: int) -> void:
+	key_count = max(value, 0)
+	_update_key_indicator()
+
+
 func collect_key(amount: int = 1) -> void:
 	key_count += amount
+	_update_key_indicator()
 
 
 func has_key() -> bool:
@@ -47,6 +80,7 @@ func use_key(amount: int = 1) -> bool:
 		return false
 
 	key_count -= amount
+	_update_key_indicator()
 	return true
 
 
@@ -69,6 +103,7 @@ func get_network_state(level_index: int) -> Dictionary:
 		"velocity": _vector_to_packet(velocity),
 		"animation": animation,
 		"flip_h": flip_h,
+		"key_count": key_count,
 	}
 
 
@@ -86,6 +121,9 @@ func apply_network_state(state: Dictionary) -> void:
 		if anim_player.current_animation != animation:
 			anim_player.play(animation)
 
+	key_count = int(state.get("key_count", key_count))
+	_update_key_indicator()
+
 
 func _apply_network_control_mode() -> void:
 	if is_remote_player:
@@ -96,10 +134,11 @@ func _apply_network_control_mode() -> void:
 		add_to_group("player")
 
 	var state_machine := get_node_or_null("StateMachine")
+	var controls_enabled := not is_remote_player and input_enabled
 	if state_machine != null:
-		state_machine.set_process(not is_remote_player)
-		state_machine.set_physics_process(not is_remote_player)
-		state_machine.set_process_unhandled_input(not is_remote_player)
+		state_machine.set_process(controls_enabled)
+		state_machine.set_physics_process(controls_enabled)
+		state_machine.set_process_unhandled_input(controls_enabled)
 
 	var collision_shape := get_node_or_null("CollisionShape2D") as CollisionShape2D
 	if collision_shape != null:
@@ -113,6 +152,20 @@ func _apply_network_control_mode() -> void:
 		collision_layer = 1
 		collision_mask = 1
 		modulate = Color.WHITE
+
+
+func _update_key_indicator() -> void:
+	if carried_key_sprite == null:
+		return
+
+	var should_show := key_count > 0
+	if should_show and not carried_key_sprite.visible:
+		_carried_key_bob_time = 0.0
+		carried_key_sprite.position = carried_key_offset
+
+	carried_key_sprite.visible = should_show
+	if not should_show:
+		carried_key_sprite.position = carried_key_offset
 
 
 func _vector_to_packet(value: Vector2) -> Dictionary:

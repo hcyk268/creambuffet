@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/online/online_game.gd" id="1_xeoup"]
+[ext_resource type="PackedScene" path="res://scenes/player_soda.tscn" id="2_dvv1u"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_01.tscn" id="3_r8y6r"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_02.tscn" id="4_qb0pa"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="5_4f5g8"]
+
+[node name="OnlineGame" type="Node2D"]
+script = ExtResource("1_xeoup")
+levels = Array[PackedScene]([ExtResource("3_r8y6r"), ExtResource("4_qb0pa")])
+
+[node name="LevelContainer" type="Node2D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("2_dvv1u")]
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position = Vector2(0, -32)
+zoom = Vector2(3, 3)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="LevelLabel" type="Label" parent="CanvasLayer"]
+offset_left = 10.0
+offset_top = 8.0
+offset_right = 226.0
+offset_bottom = 31.0
+text = "Level"
+
+[node name="PauseMenu" parent="." instance=ExtResource("5_4f5g8")]
+pause_tree_on_open = false
+allow_restart = false

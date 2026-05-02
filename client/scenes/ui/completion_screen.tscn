@@ -1,0 +1,135 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/completion_screen.gd" id="1_bqh3p"]
+[ext_resource type="FontFile" path="res://assets/fonts/editundo.ttf" id="2_twif7"]
+[ext_resource type="FontFile" path="res://assets/fonts/EXEPixelPerfect.ttf" id="3_jxm7j"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.08, 0.09, 0.12, 0.94)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(1, 0.82, 0.35, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
+bg_color = Color(0.88, 0.34, 0.24, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="CompletionScreen" type="CanvasLayer"]
+process_mode = 3
+layer = 30
+script = ExtResource("1_bqh3p")
+
+[node name="Overlay" type="ColorRect" parent="."]
+visible = false
+process_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.025, 0.035, 0.68)
+
+[node name="TopBand" type="ColorRect" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 72.0
+grow_horizontal = 2
+color = Color(1, 0.82, 0.35, 0.18)
+
+[node name="BottomBand" type="ColorRect" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -72.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0.88, 0.34, 0.24, 0.2)
+
+[node name="CenterContainer" type="CenterContainer" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Overlay/CenterContainer"]
+custom_minimum_size = Vector2(760, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="Overlay/CenterContainer/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 42
+theme_override_constants/margin_top = 34
+theme_override_constants/margin_right = 42
+theme_override_constants/margin_bottom = 38
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Overlay/CenterContainer/Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Badge" type="PanelContainer" parent="Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="BadgeLabel" type="Label" parent="Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer/Badge"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_jxm7j")
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 0.94, 0.78, 1)
+text = "STAGE COMPLETE"
+horizontal_alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_twif7")
+theme_override_font_sizes/font_size = 86
+theme_override_colors/font_color = Color(1, 0.88, 0.36, 1)
+text = "Level Clear!"
+horizontal_alignment = 1
+
+[node name="MessageLabel" type="Label" parent="Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_jxm7j")
+theme_override_font_sizes/font_size = 34
+theme_override_colors/font_color = Color(0.92, 0.9, 0.82, 1)
+text = "You reached the end."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Divider" type="ColorRect" parent="Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+color = Color(1, 0.82, 0.35, 0.65)
+
+[node name="ButtonRow" type="HBoxContainer" parent="Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="ReplayButton" type="Button" parent="Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer/ButtonRow"]
+custom_minimum_size = Vector2(220, 62)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_jxm7j")
+theme_override_font_sizes/font_size = 34
+text = "Replay"
+
+[node name="MainMenuButton" type="Button" parent="Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer/ButtonRow"]
+custom_minimum_size = Vector2(260, 62)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_jxm7j")
+theme_override_font_sizes/font_size = 34
+text = "Main Menu"
