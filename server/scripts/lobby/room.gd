@@ -2,6 +2,7 @@ extends RefCounted
 class_name Room
 
 const PlayerSession = preload("res://scripts/lobby/player_session.gd")
+const MatchState = preload("res://scripts/match/match_state.gd")
 
 const STATUS_LOBBY := "lobby"
 const STATUS_PLAYING := "playing"
@@ -16,6 +17,7 @@ var randomized := false
 var status := STATUS_LOBBY
 var current_level_index := 0
 var players: Dictionary = {}
+var match_state: MatchState
 
 
 func _init(
@@ -59,6 +61,8 @@ func try_add_player(session: PlayerSession) -> Error:
 
 	players[session.peer_id] = session
 	session.attach_room(room_id)
+	if match_state != null:
+		match_state.add_player(session.peer_id)
 
 	if host_peer_id == 0:
 		host_peer_id = session.peer_id
@@ -75,6 +79,8 @@ func remove_player(peer_id: int) -> bool:
 		session.detach_room()
 
 	players.erase(peer_id)
+	if match_state != null:
+		match_state.remove_player(peer_id)
 
 	if host_peer_id == peer_id:
 		host_peer_id = 0
@@ -113,12 +119,15 @@ func player_snapshots() -> Array[Dictionary]:
 func start_match() -> void:
 	status = STATUS_PLAYING
 	current_level_index = 0
+	match_state = MatchState.new(player_ids(), current_level_index)
 
 
 func set_level_index(level_index: int) -> void:
 	current_level_index = 0 if level_index < 0 else level_index
 	if status != STATUS_COMPLETE:
 		status = STATUS_PLAYING
+	if match_state != null:
+		match_state.set_level(current_level_index)
 
 
 func mark_complete() -> void:
@@ -137,4 +146,5 @@ func snapshot() -> Dictionary:
 		"current_level_index": current_level_index,
 		"player_count": players.size(),
 		"players": player_snapshots(),
+		"match_state": match_state.snapshot() if match_state != null else {},
 	}
