@@ -168,9 +168,11 @@ func send_level_complete() -> void:
 
 func send_world_event(event: Dictionary) -> void:
 	if connection_state != STATE_CONNECTED:
+		print("[client world_event_request] skip send (not connected) state=%s event=%s" % [connection_state, JSON.stringify(event)])
 		return
 
-	_send_packet("world_event", event)
+	print("[client world_event_request] send event=%s" % JSON.stringify(event))
+	_send_packet("world_event_request", event)
 
 
 func _bind_multiplayer_signals() -> void:

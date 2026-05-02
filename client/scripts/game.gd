@@ -368,7 +368,7 @@ func _on_key_collected(_body: Node, key_node: Node) -> void:
 		return
 
 	_network_client.send_world_event({
-		"kind": "key_collected",
+		"kind": "key_collect",
 		"level_index": _current_level_index,
 		"node_name": key_node.name,
 	})
@@ -379,7 +379,7 @@ func _on_door_opened(door_node: Node) -> void:
 		return
 
 	_network_client.send_world_event({
-		"kind": "door_opened",
+		"kind": "door_open",
 		"level_index": _current_level_index,
 		"node_name": door_node.name,
 	})
