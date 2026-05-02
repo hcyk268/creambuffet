@@ -108,6 +108,8 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			_handle_level_complete(peer_id, request_id)
 		"world_event":
 			_handle_world_event(peer_id, payload)
+		"world_event_request":
+			_handle_world_event_request(peer_id, request_id, payload)
 		_:
 			_send_error(peer_id, "unsupported_type", "Unsupported message type: %s" % message_type, request_id)
 
@@ -257,6 +259,85 @@ func _handle_world_event(peer_id: int, payload: Dictionary) -> void:
 	_send_room_message(room, "world_event", {
 		"event": event,
 	}, peer_id)
+
+
+func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) -> void:
+	var room := _room_manager.get_room_for_peer(peer_id)
+	if room == null or not room.has_player(peer_id) or not room.is_playing():
+		print("[world_event_request] reject peer=%d action=- reason=not_in_playing_room" % peer_id)
+		_send_error(peer_id, "not_in_playing_room", "Peer must be in a playing room before sending world event requests.", request_id)
+		return
+
+	if room.match_state == null:
+		print("[world_event_request] reject peer=%d action=- room=%s reason=missing_match_state" % [peer_id, room.room_id])
+		_send_error(peer_id, "missing_match_state", "Room has no active match state.", request_id)
+		return
+
+	var requested_level_index := int(payload.get("level_index", room.current_level_index))
+	if requested_level_index != room.current_level_index:
+		print("[world_event_request] reject peer=%d action=- room=%s reason=stale_level req=%d room=%d" % [peer_id, room.room_id, requested_level_index, room.current_level_index])
+		_send_error(
+			peer_id,
+			"stale_level_request",
+			"World event request was sent for a different level.",
+			request_id
+		)
+		return
+
+	var action := String(payload.get("action", payload.get("kind", ""))).strip_edges().to_lower()
+	if action.is_empty():
+		print("[world_event_request] reject peer=%d action=- room=%s reason=missing_world_action" % [peer_id, room.room_id])
+		_send_error(peer_id, "missing_world_action", "World event request is missing an action.", request_id)
+		return
+
+	var accepted := false
+	var broadcast_kind := ""
+	match action:
+		"key_collect":
+			accepted = room.match_state.collect_key(peer_id)
+			broadcast_kind = "key_collected"
+		"door_open":
+			accepted = room.match_state.open_door(peer_id)
+			broadcast_kind = "door_opened"
+		"goal_enter":
+			accepted = room.match_state.set_goal(peer_id, true)
+			broadcast_kind = "goal_entered"
+		"goal_exit":
+			accepted = room.match_state.set_goal(peer_id, false)
+			broadcast_kind = "goal_exited"
+		"player_death":
+			accepted = room.match_state.set_player_alive(peer_id, false)
+			broadcast_kind = "player_died"
+		_:
+			print("[world_event_request] reject peer=%d action=%s room=%s reason=unsupported_world_action" % [peer_id, action, room.room_id])
+			_send_error(peer_id, "unsupported_world_action", "Unsupported world event action: %s" % action, request_id)
+			return
+
+	if not accepted:
+		print("[world_event_request] reject peer=%d action=%s room=%s reason=world_action_rejected" % [peer_id, action, room.room_id])
+		_send_error(peer_id, "world_action_rejected", "World event request rejected by server state.", request_id)
+		return
+
+	var event := {
+		"kind": broadcast_kind,
+		"request_action": action,
+		"peer_id": peer_id,
+		"level_index": room.current_level_index,
+	}
+
+	if payload.has("node_name"):
+		event["node_name"] = String(payload.get("node_name", ""))
+
+	print("[world_event_request] accept peer=%d action=%s room=%s event=%s level=%d" % [
+		peer_id,
+		action,
+		room.room_id,
+		broadcast_kind,
+		room.current_level_index
+	])
+	_send_room_message(room, "world_event", {
+		"event": event,
+	})
 
 
 func _publish_room_change(result: Dictionary) -> void:

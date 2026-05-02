@@ -365,10 +365,12 @@ func _connect_world_event_nodes(node: Node) -> void:
 
 func _on_key_collected(_body: Node, key_node: Node) -> void:
 	if not _is_online_session or _applying_remote_world_event:
+		print("[online_game] ignore key_collected online=%s applying_remote=%s node=%s" % [_is_online_session, _applying_remote_world_event, key_node.name])
 		return
 
+	print("[online_game] key_collected node=%s level=%d" % [key_node.name, _current_level_index])
 	_network_client.send_world_event({
-		"kind": "key_collected",
+		"kind": "key_collect",
 		"level_index": _current_level_index,
 		"node_name": key_node.name,
 	})
@@ -376,10 +378,12 @@ func _on_key_collected(_body: Node, key_node: Node) -> void:
 
 func _on_door_opened(door_node: Node) -> void:
 	if not _is_online_session or _applying_remote_world_event:
+		print("[online_game] ignore door_opened online=%s applying_remote=%s node=%s" % [_is_online_session, _applying_remote_world_event, door_node.name])
 		return
 
+	print("[online_game] door_opened node=%s level=%d" % [door_node.name, _current_level_index])
 	_network_client.send_world_event({
-		"kind": "door_opened",
+		"kind": "door_open",
 		"level_index": _current_level_index,
 		"node_name": door_node.name,
 	})
