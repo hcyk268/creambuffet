@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="3_68iuo"]
 [ext_resource type="PackedScene" uid="uid://bpkr43uwjfrn7" path="res://scenes/enter_id_panel.tscn" id="5_68iuo"]
 [ext_resource type="PackedScene" uid="uid://csu721evltu26" path="res://scenes/create_room_panel.tscn" id="6_jgvkh"]
+[ext_resource type="PackedScene" uid="uid://f4fvuapk8vsy" path="res://scenes/option_panel.tscn" id="7_8lf63"]
 
 [sub_resource type="Theme" id="Theme_jgvkh"]
 default_font = ExtResource("2_61shv")
@@ -108,6 +109,10 @@ visible = false
 layout_mode = 1
 
 [node name="CreateRoomPanel" parent="." unique_id=1249862867 instance=ExtResource("6_jgvkh")]
+visible = false
+layout_mode = 1
+
+[node name="OptionPanel" parent="." unique_id=423534981 instance=ExtResource("7_8lf63")]
 visible = false
 layout_mode = 1
 

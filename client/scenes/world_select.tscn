@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://dnm054cgkoib7"]
+
+[ext_resource type="Script" uid="uid://b10xj6iajxba" path="res://scripts/menu/world_select.gd" id="1_ws"]
+[ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="2_bg"]
+[ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="3_font"]
+[ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="4_titlefont"]
+[ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="5_btn"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_btn_normal"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_btn_pressed"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_btn_hover"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 36, 32, 16)
+
+[node name="WorldSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ws")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("2_bg")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 60
+
+[node name="Vbox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="Title" type="Label" parent="Margin/Vbox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_titlefont")
+theme_override_font_sizes/font_size = 110
+text = "SELECT LEVEL"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/Vbox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 3
+
+[node name="Worlds" type="VBoxContainer" parent="Margin/Vbox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 50
+
+[node name="Bottom" type="HBoxContainer" parent="Margin/Vbox"]
+layout_mode = 2
+alignment = 1
+
+[node name="BackButt" type="Button" parent="Margin/Vbox/Bottom"]
+custom_minimum_size = Vector2(240, 120)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 60
+theme_override_styles/normal = SubResource("StyleBox_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBox_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBox_btn_hover")
+text = "Back"
+
+[connection signal="pressed" from="Margin/Vbox/Bottom/BackButt" to="." method="_on_back_butt_pressed"]

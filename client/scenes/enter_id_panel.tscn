@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="1_y23hf"]
 [ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="2_esw6r"]
 [ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="3_pgbk0"]
+[ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="4_btn"]
 
 [sub_resource type="Theme" id="Theme_esw6r"]
 default_font = ExtResource("2_esw6r")
@@ -12,6 +13,18 @@ default_font = ExtResource("2_esw6r")
 resource_local_to_scene = true
 default_font = ExtResource("2_esw6r")
 default_font_size = 40
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
+texture = ExtResource("4_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
+texture = ExtResource("4_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
+texture = ExtResource("4_btn")
+region_rect = Rect2(16, 36, 32, 16)
 
 [node name="EnterIdPanel" type="Control" unique_id=754246975]
 layout_mode = 3
@@ -84,17 +97,25 @@ theme_override_constants/separation = 30
 alignment = 1
 
 [node name="JoinButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=700785021]
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_esw6r")
 theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Join
 
 "
 
 [node name="BackButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=98917776]
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_esw6r")
 theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Back
 "
 

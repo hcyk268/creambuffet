@@ -1,0 +1,188 @@
+[gd_scene format=3 uid="uid://b2b4u4gdinlst"]
+
+[ext_resource type="Script" uid="uid://cxiwi6qrr1ph3" path="res://scripts/menu/room.gd" id="1_room"]
+[ext_resource type="PackedScene" uid="uid://di1ooitfh1the" path="res://scenes/player_soda.tscn" id="2_player"]
+[ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="3_bg"]
+[ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="4_font"]
+[ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="4_title_font"]
+[ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="5_btn"]
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_floor"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 36, 32, 16)
+
+[node name="Room" type="Node2D" unique_id=1453555618]
+process_mode = 3
+script = ExtResource("1_room")
+is_host = false
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=404458591]
+layer = -10
+
+[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=201926852]
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("3_bg")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1376450684]
+position = Vector2(0, 50)
+zoom = Vector2(2, 2)
+
+[node name="Floor" type="StaticBody2D" parent="." unique_id=1034082694]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=658512151]
+position = Vector2(0, 60)
+shape = SubResource("WorldBoundaryShape2D_floor")
+
+[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=1019078892]
+
+[node name="Player" parent="." unique_id=1624461997 instance=ExtResource("2_player")]
+process_mode = 1
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=709634053]
+layer = 10
+
+[node name="TopBar" type="HBoxContainer" parent="HUD" unique_id=2097401882]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 60.0
+offset_top = 40.0
+offset_right = -60.0
+offset_bottom = 140.0
+grow_horizontal = 2
+theme_override_constants/separation = 80
+alignment = 1
+
+[node name="RoomTitle" type="Label" parent="HUD/TopBar" unique_id=264899306]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_title_font")
+theme_override_font_sizes/font_size = 70
+text = "ROOM"
+
+[node name="PlayerCount" type="Label" parent="HUD/TopBar" unique_id=1041349351]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 70
+text = "1/4"
+
+[node name="HostBanner" type="Label" parent="HUD" unique_id=1700953670]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -560.0
+offset_top = -200.0
+offset_right = 560.0
+offset_bottom = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 50
+text = "[ Press ENTER to select world ]"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PausePanel" type="CanvasLayer" parent="." unique_id=519452682]
+layer = 20
+visible = false
+
+[node name="Dim" type="ColorRect" parent="PausePanel" unique_id=115260866]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="Panel" type="PanelContainer" parent="PausePanel" unique_id=225948383]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -480.0
+offset_top = -320.0
+offset_right = 480.0
+offset_bottom = 320.0
+
+[node name="TextureRect" type="TextureRect" parent="PausePanel/Panel" unique_id=1776070573]
+layout_mode = 2
+texture = ExtResource("3_bg")
+
+[node name="MarginContainer" type="MarginContainer" parent="PausePanel/Panel" unique_id=706521490]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PausePanel/Panel/MarginContainer" unique_id=1482619751]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="Title" type="Label" parent="PausePanel/Panel/MarginContainer/VBoxContainer" unique_id=1009421663]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 70
+text = "MEMBERS"
+horizontal_alignment = 1
+
+[node name="MemberList" type="VBoxContainer" parent="PausePanel/Panel/MarginContainer/VBoxContainer" unique_id=785499155]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="Member1" type="Label" parent="PausePanel/Panel/MarginContainer/VBoxContainer/MemberList" unique_id=1579827404]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 36
+text = "Player1     32 ms     Host"
+
+[node name="Member2" type="Label" parent="PausePanel/Panel/MarginContainer/VBoxContainer/MemberList" unique_id=501242195]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 36
+text = "Player2     54 ms     Ready"
+
+[node name="Member3" type="Label" parent="PausePanel/Panel/MarginContainer/VBoxContainer/MemberList" unique_id=2037064985]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 36
+text = "Player3     78 ms     Ready"
+
+[node name="Buttons" type="HBoxContainer" parent="PausePanel/Panel/MarginContainer/VBoxContainer" unique_id=359067439]
+layout_mode = 2
+theme_override_constants/separation = 60
+alignment = 1
+
+[node name="ExitButt" type="Button" parent="PausePanel/Panel/MarginContainer/VBoxContainer/Buttons" unique_id=1690747431]
+custom_minimum_size = Vector2(240, 120)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Exit"
+
+[node name="CancelButt" type="Button" parent="PausePanel/Panel/MarginContainer/VBoxContainer/Buttons" unique_id=1827581732]
+custom_minimum_size = Vector2(240, 120)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Cancel"
+
+[connection signal="pressed" from="PausePanel/Panel/MarginContainer/VBoxContainer/Buttons/ExitButt" to="." method="_on_exit_butt_pressed"]
+[connection signal="pressed" from="PausePanel/Panel/MarginContainer/VBoxContainer/Buttons/CancelButt" to="." method="_on_cancel_butt_pressed"]
