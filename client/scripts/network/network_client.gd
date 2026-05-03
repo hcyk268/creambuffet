@@ -8,6 +8,7 @@ signal match_started(room)
 signal remote_player_state(peer_id, state)
 signal level_changed(level_index, room)
 signal level_complete(room)
+signal level_transition(from_level_index, to_level_index, match_complete, room)
 signal world_event_received(event)
 
 const STATE_DISCONNECTED := "disconnected"
@@ -168,10 +169,8 @@ func send_level_complete() -> void:
 
 func send_world_event(event: Dictionary) -> void:
 	if connection_state != STATE_CONNECTED:
-		print("[client world_event_request] skip send (not connected) state=%s event=%s" % [connection_state, JSON.stringify(event)])
 		return
 
-	print("[client world_event_request] send event=%s" % JSON.stringify(event))
 	_send_packet("world_event_request", event)
 
 
@@ -245,6 +244,8 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			_handle_level_changed(payload)
 		"level_complete":
 			_handle_level_complete(payload)
+		"level_transition":
+			_handle_level_transition(payload)
 		"world_event":
 			_handle_world_event(payload)
 		"error":
@@ -299,6 +300,17 @@ func _handle_level_complete(payload: Dictionary) -> void:
 		_set_current_room(room)
 
 	level_complete.emit(get_current_room())
+
+
+func _handle_level_transition(payload: Dictionary) -> void:
+	var room = payload.get("room", {})
+	if typeof(room) == TYPE_DICTIONARY:
+		_set_current_room(room)
+
+	var from_level_index := int(payload.get("from_level_index", _current_room.get("current_level_index", 0)))
+	var to_level_index := int(payload.get("to_level_index", from_level_index))
+	var match_complete := bool(payload.get("match_complete", false))
+	level_transition.emit(from_level_index, to_level_index, match_complete, get_current_room())
 
 
 func _handle_world_event(payload: Dictionary) -> void:
