@@ -254,11 +254,12 @@ func _handle_world_event(peer_id: int, payload: Dictionary) -> void:
 	if room == null or not room.has_player(peer_id) or not room.is_playing():
 		return
 
-	var event := payload.duplicate(true)
-	event["peer_id"] = peer_id
-	_send_room_message(room, "world_event", {
-		"event": event,
-	}, peer_id)
+	push_warning(
+		"Ignored legacy world_event from peer %d in room %s. Use world_event_request instead." % [
+			peer_id,
+			room.room_id
+		]
+	)
 
 
 func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) -> void:
