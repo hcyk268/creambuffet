@@ -4,6 +4,7 @@ const STATUS_FONT = preload("res://assets/fonts/EXEPixelPerfect.ttf")
 
 @onready var enter_id_panel = $EnterIdPanel
 @onready var create_room_panel = $CreateRoomPanel
+@onready var option_panel = $OptionPanel
 
 var _status_label: Label
 
@@ -34,7 +35,7 @@ func _on_host_butt_pressed() -> void:
 
 
 func _on_option_butt_pressed() -> void:
-	_set_status("Options are not wired yet. Server endpoint: %s" % _network_client().get_server_endpoint())
+	option_panel.show()
 
 
 func _bind_network_signals() -> void:

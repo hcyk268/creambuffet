@@ -4,11 +4,24 @@
 [ext_resource type="Script" uid="uid://cecq7n0tjknaq" path="res://scripts/menu/lobby.gd" id="1_pc087"]
 [ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="2_5gu6x"]
 [ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="2_q60fs"]
+[ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="3_btn"]
 
 [sub_resource type="Theme" id="Theme_q60fs"]
 resource_local_to_scene = true
 default_font = ExtResource("2_q60fs")
-default_font_size = 40
+default_font_size = 80
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
+texture = ExtResource("3_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
+texture = ExtResource("3_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
+texture = ExtResource("3_btn")
+region_rect = Rect2(16, 36, 32, 16)
 
 [node name="Lobby" type="Control" unique_id=750436234]
 layout_mode = 3
@@ -83,16 +96,24 @@ theme_override_constants/separation = 30
 alignment = 1
 
 [node name="RefreshButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=980697777]
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_q60fs")
 theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Refresh
 "
 
 [node name="BackButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=971004202]
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_q60fs")
 theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Back
 "
 

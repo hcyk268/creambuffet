@@ -1,0 +1,316 @@
+[gd_scene format=3 uid="uid://f4fvuapk8vsy"]
+
+[ext_resource type="Script" uid="uid://y0psmgra1oeb" path="res://scripts/menu/option_panel.gd" id="1_gdlog"]
+[ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="1_vu216"]
+[ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="2_4lof6"]
+[ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="3_rappi"]
+[ext_resource type="Texture2D" uid="uid://ccno1wl24vq40" path="res://assets/sprites/Testbutton-sheet.png" id="4_8dp2i"]
+[ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="5_btn"]
+
+[sub_resource type="Theme" id="Theme_a7rhy"]
+default_font = ExtResource("2_4lof6")
+
+[sub_resource type="Theme" id="Theme_7acw6"]
+default_font = ExtResource("2_4lof6")
+
+[sub_resource type="Theme" id="Theme_m00q8"]
+resource_local_to_scene = true
+default_font = ExtResource("2_4lof6")
+default_font_size = 40
+
+[sub_resource type="Theme" id="Theme_cj54m"]
+default_font = ExtResource("2_4lof6")
+default_font_size = 70
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l320k"]
+atlas = ExtResource("4_8dp2i")
+region = Rect2(276, 164, 7, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2fppi"]
+atlas = ExtResource("4_8dp2i")
+region = Rect2(276, 164, 7, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_26u3n"]
+atlas = ExtResource("4_8dp2i")
+region = Rect2(263, 164, 7, 4)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ihoia"]
+atlas = ExtResource("4_8dp2i")
+region = Rect2(292, 166, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_elagk"]
+atlas = ExtResource("4_8dp2i")
+region = Rect2(307, 166, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_re1wm"]
+atlas = ExtResource("4_8dp2i")
+region = Rect2(307, 166, 8, 8)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 36, 32, 16)
+
+[node name="OptionPanel" type="Control" unique_id=423534981]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gdlog")
+
+[node name="TextureRect2" type="TextureRect" parent="." unique_id=2142294388]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -440.0
+offset_right = 800.0
+offset_bottom = 440.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_vu216")
+
+[node name="MarginContainer" type="MarginContainer" parent="TextureRect2" unique_id=1853454698]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -440.0
+offset_right = 800.0
+offset_bottom = 440.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_a7rhy")
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer" unique_id=700364336]
+layout_mode = 2
+theme = SubResource("Theme_7acw6")
+theme_override_constants/separation = 40
+
+[node name="Label" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=1945909511]
+layout_mode = 2
+size_flags_vertical = 1
+theme = SubResource("Theme_m00q8")
+theme_override_fonts/font = ExtResource("3_rappi")
+theme_override_font_sizes/font_size = 80
+text = "Options"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Grid" type="GridContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=574304256]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+theme = SubResource("Theme_cj54m")
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 70
+columns = 2
+
+[node name="MusicLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=491554248]
+layout_mode = 2
+text = "Music:"
+
+[node name="HBox1" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1215714300]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="PlayerLineEdit" type="LineEdit" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1" unique_id=1750374578]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+text = "1"
+alignment = 1
+editable = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1" unique_id=913296946]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="UpButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer" unique_id=421042376]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+
+[node name="DownButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer" unique_id=197125836]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+flip_v = true
+
+[node name="SFXLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=976336779]
+layout_mode = 2
+text = "SFX"
+
+[node name="HBox2" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1305375539]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="WorldLineEdit" type="LineEdit" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2" unique_id=1235238742]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+text = "Private"
+alignment = 1
+editable = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2" unique_id=1650667439]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="UpButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/VBoxContainer" unique_id=271874337]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+
+[node name="DownButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/VBoxContainer" unique_id=1277239071]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+flip_v = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2" unique_id=1621577349]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="RandButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/HBoxContainer" unique_id=2008196438]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+toggle_mode = true
+texture_normal = SubResource("AtlasTexture_ihoia")
+texture_pressed = SubResource("AtlasTexture_elagk")
+texture_hover = SubResource("AtlasTexture_re1wm")
+stretch_mode = 1
+
+[node name="Label2" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/HBoxContainer" unique_id=592998424]
+layout_mode = 2
+text = "Randomized"
+horizontal_alignment = 1
+vertical_alignment = 1
+justification_flags = 35
+
+[node name="JoinInProgressLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=610744451]
+layout_mode = 2
+text = "Window mode"
+
+[node name="HBox3" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=901740049]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="WorldLineEdit" type="LineEdit" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3" unique_id=2045287902]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+text = "Windowed"
+alignment = 1
+editable = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3" unique_id=1780279598]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="UpButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3/VBoxContainer" unique_id=1941385663]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+
+[node name="DownButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3/VBoxContainer" unique_id=1529146078]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+flip_v = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3" unique_id=1518519132]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="RandButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3/HBoxContainer" unique_id=643523117]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+toggle_mode = true
+texture_normal = SubResource("AtlasTexture_ihoia")
+texture_pressed = SubResource("AtlasTexture_elagk")
+texture_hover = SubResource("AtlasTexture_re1wm")
+stretch_mode = 1
+
+[node name="Label2" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3/HBoxContainer" unique_id=1075036120]
+layout_mode = 2
+text = "Randomized"
+horizontal_alignment = 1
+vertical_alignment = 1
+justification_flags = 35
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=1309884379]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="ApplyButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1339939738]
+custom_minimum_size = Vector2(240, 120)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_4lof6")
+theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Apply
+"
+
+[node name="BackButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=629571703]
+custom_minimum_size = Vector2(240, 120)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_4lof6")
+theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Back
+"
+
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer/UpButt" to="." method="_on_music_up_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer/DownButt" to="." method="_on_music_down_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/VBoxContainer/UpButt" to="." method="_on_sfx_up_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/VBoxContainer/DownButt" to="." method="_on_sfx_down_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3/VBoxContainer/UpButt" to="." method="_on_join_up_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3/VBoxContainer/DownButt" to="." method="_on_join_down_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/ApplyButt" to="." method="_on_apply_butt_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/BackButt" to="." method="_on_back_butt_pressed"]

@@ -4,10 +4,23 @@
 [ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="2_fcv5n"]
 [ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="3_4v6gu"]
 [ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="4_nxjfj"]
+[ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="5_btn"]
 
 [sub_resource type="Theme" id="Theme_mhnvy"]
 
 [sub_resource type="Theme" id="Theme_4ytvr"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 36, 32, 16)
 
 [node name="Menu" type="Control" unique_id=1301062844]
 layout_mode = 3
@@ -47,26 +60,38 @@ theme = SubResource("Theme_mhnvy")
 [node name="MainButtons" type="VBoxContainer" parent="CenterContainer" unique_id=1817206213]
 layout_mode = 2
 theme = SubResource("Theme_4ytvr")
-theme_override_constants/separation = 8
+theme_override_constants/separation = 30
 
 [node name="StartButt" type="Button" parent="CenterContainer/MainButtons" unique_id=277141550]
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_nxjfj")
 theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Online
 "
 
 [node name="OfflineButt" type="Button" parent="CenterContainer/MainButtons"]
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_nxjfj")
 theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Offline
 "
 
 [node name="QuitButt" type="Button" parent="CenterContainer/MainButtons" unique_id=500722691]
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_nxjfj")
 theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Quit
 "
 
