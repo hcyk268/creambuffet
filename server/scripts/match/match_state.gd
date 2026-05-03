@@ -18,6 +18,14 @@ func has_player(peer_id: int) -> bool:
 	return players.has(peer_id)
 
 
+func is_player_alive(peer_id: int) -> bool:
+	if not has_player(peer_id):
+		return false
+
+	var player_state: Dictionary = players[peer_id]
+	return bool(player_state.get("alive", true))
+
+
 func collect_key(peer_id: int) -> bool:
 	if not has_player(peer_id):
 		return false

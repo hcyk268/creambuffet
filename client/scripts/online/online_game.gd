@@ -175,14 +175,6 @@ func _bind_network_signals() -> void:
 	if not _network_client.current_room_changed.is_connected(on_room):
 		_network_client.current_room_changed.connect(on_room)
 
-	var on_level := Callable(self, "_on_level_changed")
-	if not _network_client.level_changed.is_connected(on_level):
-		_network_client.level_changed.connect(on_level)
-
-	var on_complete := Callable(self, "_on_level_complete")
-	if not _network_client.level_complete.is_connected(on_complete):
-		_network_client.level_complete.connect(on_complete)
-
 	var on_transition := Callable(self, "_on_level_transition")
 	if not _network_client.level_transition.is_connected(on_transition):
 		_network_client.level_transition.connect(on_transition)
@@ -203,14 +195,6 @@ func _unbind_network_signals() -> void:
 	var on_room := Callable(self, "_on_current_room_changed")
 	if _network_client.current_room_changed.is_connected(on_room):
 		_network_client.current_room_changed.disconnect(on_room)
-
-	var on_level := Callable(self, "_on_level_changed")
-	if _network_client.level_changed.is_connected(on_level):
-		_network_client.level_changed.disconnect(on_level)
-
-	var on_complete := Callable(self, "_on_level_complete")
-	if _network_client.level_complete.is_connected(on_complete):
-		_network_client.level_complete.disconnect(on_complete)
 
 	var on_transition := Callable(self, "_on_level_transition")
 	if _network_client.level_transition.is_connected(on_transition):
@@ -320,19 +304,6 @@ func _on_current_room_changed(room: Dictionary) -> void:
 
 	_sync_remote_roster(room)
 	_update_level_label(_match_complete)
-
-
-func _on_level_changed(level_index: int, room: Dictionary) -> void:
-	if level_index != _current_level_index:
-		load_level(level_index)
-
-	_sync_remote_roster(room)
-
-
-func _on_level_complete(room: Dictionary) -> void:
-	_match_complete = true
-	_sync_remote_roster(room)
-	_update_level_label(true)
 
 
 func _on_level_transition(_from_level_index: int, to_level_index: int, match_complete: bool, room: Dictionary) -> void:

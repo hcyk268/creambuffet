@@ -106,8 +106,6 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			_handle_level_changed(peer_id, request_id, payload)
 		"level_complete":
 			_handle_level_complete(peer_id, request_id)
-		"world_event":
-			_handle_world_event(peer_id, payload)
 		"world_event_request":
 			_handle_world_event_request(peer_id, request_id, payload)
 		_:
@@ -243,19 +241,6 @@ func _handle_level_complete(peer_id: int, request_id) -> void:
 	_send_error(peer_id, "level_complete_blocked", "Client-driven level completion is disabled.", request_id)
 
 
-func _handle_world_event(peer_id: int, payload: Dictionary) -> void:
-	var room := _room_manager.get_room_for_peer(peer_id)
-	if room == null or not room.has_player(peer_id) or not room.is_playing():
-		return
-
-	push_warning(
-		"Ignored legacy world_event from peer %d in room %s. Use world_event_request instead." % [
-			peer_id,
-			room.room_id
-		]
-	)
-
-
 func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) -> void:
 	var room := _room_manager.get_room_for_peer(peer_id)
 	if room == null or not room.has_player(peer_id) or not room.is_playing():
@@ -295,9 +280,21 @@ func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) 
 			accepted = room.match_state.open_door(peer_id)
 			broadcast_kind = "door_opened"
 		"goal_enter":
+			if not room.match_state.door_opened:
+				print("[world_event_request] reject peer=%d action=%s room=%s reason=door_not_opened" % [peer_id, action, room.room_id])
+				_send_error(peer_id, "goal_blocked", "Goal cannot be entered before the door is opened.", request_id)
+				return
+			if not room.match_state.is_player_alive(peer_id):
+				print("[world_event_request] reject peer=%d action=%s room=%s reason=player_not_alive" % [peer_id, action, room.room_id])
+				_send_error(peer_id, "goal_blocked", "Dead players cannot enter goal.", request_id)
+				return
 			accepted = room.match_state.set_goal(peer_id, true)
 			broadcast_kind = "goal_entered"
 		"goal_exit":
+			if not room.match_state.is_player_alive(peer_id):
+				print("[world_event_request] reject peer=%d action=%s room=%s reason=player_not_alive" % [peer_id, action, room.room_id])
+				_send_error(peer_id, "goal_blocked", "Dead players cannot exit goal.", request_id)
+				return
 			accepted = room.match_state.set_goal(peer_id, false)
 			broadcast_kind = "goal_exited"
 		"player_death":

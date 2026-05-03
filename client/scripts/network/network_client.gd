@@ -6,8 +6,6 @@ signal current_room_changed(room)
 signal error_received(code, message)
 signal match_started(room)
 signal remote_player_state(peer_id, state)
-signal level_changed(level_index, room)
-signal level_complete(room)
 signal level_transition(from_level_index, to_level_index, match_complete, room)
 signal world_event_received(event)
 
@@ -157,16 +155,6 @@ func send_player_state(state: Dictionary) -> void:
 	_send_packet("player_state", state, "", MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED)
 
 
-func send_level_changed(level_index: int) -> void:
-	_queue_or_send("level_changed", {
-		"level_index": level_index,
-	})
-
-
-func send_level_complete() -> void:
-	_queue_or_send("level_complete", {})
-
-
 func send_world_event(event: Dictionary) -> void:
 	if connection_state != STATE_CONNECTED:
 		return
@@ -240,10 +228,6 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			_handle_match_started(payload)
 		"player_state":
 			_handle_player_state(payload)
-		"level_changed":
-			_handle_level_changed(payload)
-		"level_complete":
-			_handle_level_complete(payload)
 		"level_transition":
 			_handle_level_transition(payload)
 		"world_event":
@@ -283,23 +267,6 @@ func _handle_player_state(payload: Dictionary) -> void:
 		return
 
 	remote_player_state.emit(peer_id, state_dict.duplicate(true))
-
-
-func _handle_level_changed(payload: Dictionary) -> void:
-	var room = payload.get("room", {})
-	if typeof(room) == TYPE_DICTIONARY:
-		_set_current_room(room)
-
-	var level_index := int(payload.get("level_index", _current_room.get("current_level_index", 0)))
-	level_changed.emit(level_index, get_current_room())
-
-
-func _handle_level_complete(payload: Dictionary) -> void:
-	var room = payload.get("room", {})
-	if typeof(room) == TYPE_DICTIONARY:
-		_set_current_room(room)
-
-	level_complete.emit(get_current_room())
 
 
 func _handle_level_transition(payload: Dictionary) -> void:
