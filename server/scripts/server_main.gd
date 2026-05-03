@@ -214,39 +214,33 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 
 
 func _handle_level_changed(peer_id: int, request_id, payload: Dictionary) -> void:
-	var level_index := int(payload.get("level_index", 0))
-	var result := _room_manager.set_room_level(peer_id, level_index)
-	if not bool(result.get("ok", false)):
-		_send_error(peer_id, String(result.get("code", "level_change_failed")), String(result.get("message", "Level change failed.")), request_id)
-		return
+	var room := _room_manager.get_room_for_peer(peer_id)
+	if room != null:
+		push_warning(
+			"Ignored client level_changed from peer %d in room %s. Level transition is server-authoritative." % [
+				peer_id,
+				room.room_id
+			]
+		)
+	else:
+		push_warning("Ignored client level_changed from peer %d (not in room)." % peer_id)
 
-	var room := result.get("room") as Room
-	if room == null:
-		_send_error(peer_id, "level_change_failed", "Level change returned no room object.", request_id)
-		return
-
-	_send_room_message(room, "level_changed", {
-		"level_index": int(result.get("level_index", level_index)),
-		"room": room.snapshot(),
-	}, -1, request_id)
-	_publish_room_snapshot(room)
+	_send_error(peer_id, "level_change_blocked", "Client-driven level changes are disabled.", request_id)
 
 
 func _handle_level_complete(peer_id: int, request_id) -> void:
-	var result := _room_manager.mark_room_complete(peer_id)
-	if not bool(result.get("ok", false)):
-		_send_error(peer_id, String(result.get("code", "level_complete_failed")), String(result.get("message", "Level completion failed.")), request_id)
-		return
+	var room := _room_manager.get_room_for_peer(peer_id)
+	if room != null:
+		push_warning(
+			"Ignored client level_complete from peer %d in room %s. Completion is server-authoritative." % [
+				peer_id,
+				room.room_id
+			]
+		)
+	else:
+		push_warning("Ignored client level_complete from peer %d (not in room)." % peer_id)
 
-	var room := result.get("room") as Room
-	if room == null:
-		_send_error(peer_id, "level_complete_failed", "Level completion returned no room object.", request_id)
-		return
-
-	_send_room_message(room, "level_complete", {
-		"room": room.snapshot(),
-	}, -1, request_id)
-	_publish_room_snapshot(room)
+	_send_error(peer_id, "level_complete_blocked", "Client-driven level completion is disabled.", request_id)
 
 
 func _handle_world_event(peer_id: int, payload: Dictionary) -> void:
@@ -339,6 +333,33 @@ func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) 
 	_send_room_message(room, "world_event", {
 		"event": event,
 	})
+
+	_try_level_transition(room)
+
+
+func _try_level_transition(room: Room) -> void:
+	if room == null or room.match_state == null:
+		return
+
+	if not room.match_state.can_complete_level():
+		return
+
+	var from_level_index := room.current_level_index
+	var next_level_index := from_level_index + 1
+	var match_complete := next_level_index >= room.world_count
+	if match_complete:
+		next_level_index = from_level_index
+		room.mark_complete()
+	else:
+		room.set_level_index(next_level_index)
+
+	_send_room_message(room, "level_transition", {
+		"from_level_index": from_level_index,
+		"to_level_index": next_level_index,
+		"match_complete": match_complete,
+		"room": room.snapshot(),
+	})
+	_publish_room_snapshot(room)
 
 
 func _publish_room_change(result: Dictionary) -> void:

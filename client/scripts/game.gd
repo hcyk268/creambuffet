@@ -67,7 +67,7 @@ func _physics_process(delta: float) -> void:
 		_network_client.send_player_state(state)
 
 
-func load_level(index: int, broadcast_change := false) -> void:
+func load_level(index: int) -> void:
 	if index < 0 or index >= levels.size():
 		push_warning("Invalid level index: %d" % index)
 		return
@@ -85,21 +85,6 @@ func load_level(index: int, broadcast_change := false) -> void:
 	_connect_level_goals(_current_level)
 	_connect_world_events(_current_level)
 	_update_level_label(false)
-
-	if broadcast_change and _is_online_session:
-		_network_client.send_level_changed(index)
-
-
-func next_level() -> void:
-	if _current_level_index + 1 >= levels.size():
-		_match_complete = true
-		_update_level_label(true)
-		if _is_online_session:
-			_network_client.send_level_complete()
-		return
-
-	load_level(_current_level_index + 1, _is_online_session)
-
 
 func restart_level() -> void:
 	if _current_level_index < 0:
@@ -124,10 +109,13 @@ func _setup_player_spawn(level_root: Node) -> void:
 
 
 func _connect_level_goals(level_root: Node) -> void:
-	var callback := Callable(self, "_on_goal_reached")
+	var on_reached := Callable(self, "_on_goal_reached")
+	var on_left := Callable(self, "_on_goal_left")
 	for node in _find_nodes_in_group(level_root, "level_goal"):
-		if node.has_signal("goal_reached") and not node.is_connected("goal_reached", callback):
-			node.connect("goal_reached", callback)
+		if node.has_signal("goal_reached") and not node.is_connected("goal_reached", on_reached):
+			node.connect("goal_reached", on_reached)
+		if node.has_signal("goal_left") and not node.is_connected("goal_left", on_left):
+			node.connect("goal_left", on_left)
 
 
 func _find_nodes_in_group(root: Node, group_name: StringName) -> Array[Node]:
@@ -145,11 +133,24 @@ func _collect_group_nodes(node: Node, group_name: StringName, out_nodes: Array[N
 			_collect_group_nodes(child, group_name, out_nodes)
 
 
-func _on_goal_reached(_body: Node) -> void:
-	if _match_complete:
+func _on_goal_reached(body: Node) -> void:
+	if _match_complete or not _is_online_session or body != player:
 		return
 
-	next_level()
+	_network_client.send_world_event({
+		"kind": "goal_enter",
+		"level_index": _current_level_index,
+	})
+
+
+func _on_goal_left(body: Node) -> void:
+	if _match_complete or not _is_online_session or body != player:
+		return
+
+	_network_client.send_world_event({
+		"kind": "goal_exit",
+		"level_index": _current_level_index,
+	})
 
 
 func _update_level_label(game_complete: bool) -> void:
@@ -182,6 +183,10 @@ func _bind_network_signals() -> void:
 	if not _network_client.level_complete.is_connected(on_complete):
 		_network_client.level_complete.connect(on_complete)
 
+	var on_transition := Callable(self, "_on_level_transition")
+	if not _network_client.level_transition.is_connected(on_transition):
+		_network_client.level_transition.connect(on_transition)
+
 	var on_world_event := Callable(self, "_on_world_event_received")
 	if not _network_client.world_event_received.is_connected(on_world_event):
 		_network_client.world_event_received.connect(on_world_event)
@@ -206,6 +211,10 @@ func _unbind_network_signals() -> void:
 	var on_complete := Callable(self, "_on_level_complete")
 	if _network_client.level_complete.is_connected(on_complete):
 		_network_client.level_complete.disconnect(on_complete)
+
+	var on_transition := Callable(self, "_on_level_transition")
+	if _network_client.level_transition.is_connected(on_transition):
+		_network_client.level_transition.disconnect(on_transition)
 
 	var on_world_event := Callable(self, "_on_world_event_received")
 	if _network_client.world_event_received.is_connected(on_world_event):
@@ -324,6 +333,19 @@ func _on_level_complete(room: Dictionary) -> void:
 	_match_complete = true
 	_sync_remote_roster(room)
 	_update_level_label(true)
+
+
+func _on_level_transition(_from_level_index: int, to_level_index: int, match_complete: bool, room: Dictionary) -> void:
+	if match_complete:
+		_match_complete = true
+		_sync_remote_roster(room)
+		_update_level_label(true)
+		return
+
+	if to_level_index != _current_level_index:
+		load_level(to_level_index)
+
+	_sync_remote_roster(room)
 
 
 func _player_name_for_peer(peer_id: int) -> String:
