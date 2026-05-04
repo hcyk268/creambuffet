@@ -418,11 +418,10 @@ func _on_world_event_received(event: Dictionary) -> void:
 			_apply_door_opened(String(event.get("sync_id", "")))
 		"player_died":
 			_apply_player_died(int(event.get("peer_id", -1)))
-		"goal_enter":
+		"goal_entered":
 			_apply_goal_enter(String(event.get("sync_id", "")),int(event.get("peer_id", -1)))
-		"goal_exit":
-			_apply_goal_exit(String(event.get("sync_id", "")),int(event.get("peer_id", -1))
-	)
+		"goal_exited":
+			_apply_goal_exit(String(event.get("sync_id", "")),int(event.get("peer_id", -1)))
 	_applying_remote_world_event = false
 
 func _find_node_by_sync_id(sync_id: String) -> Node:
