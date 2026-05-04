@@ -310,27 +310,39 @@ func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) 
 		_send_error(peer_id, "world_action_rejected", "World event request rejected by server state.", request_id)
 		return
 
-	var event := {
-		"kind": broadcast_kind,
+	var events_to_broadcast: Array[Dictionary] = []
+	var base_event := {
 		"request_action": action,
 		"peer_id": peer_id,
 		"level_index": room.current_level_index,
 	}
-
 	if payload.has("sync_id"):
-		event["sync_id"] = String(payload.get("sync_id", ""))
+		base_event["sync_id"] = String(payload.get("sync_id", ""))
 
-	print("[world_event_request] accept peer=%d action=%s room=%s event=%s level=%d sync_id=%s" % [
-		peer_id,
-		action,
-		room.room_id,
-		broadcast_kind,
-		room.current_level_index,
-		String(event.get("sync_id", ""))
-	])
-	_send_room_message(room, "world_event", {
-		"event": event,
-	})
+	var primary_event := base_event.duplicate(true)
+	primary_event["kind"] = broadcast_kind
+	events_to_broadcast.append(primary_event)
+
+	if action == "player_death":
+		if room.match_state.respawn_player(peer_id):
+			var respawn_event := base_event.duplicate(true)
+			respawn_event["kind"] = "player_respawned"
+			events_to_broadcast.append(respawn_event)
+		else:
+			push_warning("Respawn failed for peer %d in room %s after death event." % [peer_id, room.room_id])
+
+	for event in events_to_broadcast:
+		print("[world_event_request] accept peer=%d action=%s room=%s event=%s level=%d sync_id=%s" % [
+			peer_id,
+			action,
+			room.room_id,
+			String(event.get("kind", "")),
+			room.current_level_index,
+			String(event.get("sync_id", ""))
+		])
+		_send_room_message(room, "world_event", {
+			"event": event,
+		})
 
 	_try_level_transition(room)
 

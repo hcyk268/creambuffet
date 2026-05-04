@@ -312,6 +312,7 @@ func _on_current_room_changed(room: Dictionary) -> void:
 		return
 
 	_sync_remote_roster(room)
+	_apply_match_state_snapshot(room)
 	_update_level_label(_match_complete)
 
 
@@ -319,6 +320,7 @@ func _on_level_transition(_from_level_index: int, to_level_index: int, match_com
 	if match_complete:
 		_match_complete = true
 		_sync_remote_roster(room)
+		_apply_match_state_snapshot(room)
 		_update_level_label(true)
 		return
 
@@ -326,6 +328,7 @@ func _on_level_transition(_from_level_index: int, to_level_index: int, match_com
 		load_level(to_level_index)
 
 	_sync_remote_roster(room)
+	_apply_match_state_snapshot(room)
 
 
 func _player_name_for_peer(peer_id: int) -> String:
@@ -378,6 +381,10 @@ func _on_key_collected(body: Node, key_node: Node) -> void:
 	if body != player:
 		return
 
+	if not ("sync_id" in key_node) or String(key_node.sync_id).is_empty():
+		push_warning("Ignoring key_collect request because key sync_id is missing.")
+		return
+
 	_network_client.send_world_event({
 		"kind": "key_collect",
 		"level_index": _current_level_index,
@@ -415,9 +422,11 @@ func _on_world_event_received(event: Dictionary) -> void:
 		"key_collected":
 			_apply_key_collected(String(event.get("sync_id", "")),int(event.get("peer_id", -1)))
 		"door_opened":
-			_apply_door_opened(String(event.get("sync_id", "")))
+			_apply_door_opened(String(event.get("sync_id", "")), int(event.get("peer_id", -1)))
 		"player_died":
 			_apply_player_died(int(event.get("peer_id", -1)))
+		"player_respawned":
+			_apply_player_respawned(int(event.get("peer_id", -1)))
 		"goal_entered":
 			_apply_goal_enter(String(event.get("sync_id", "")),int(event.get("peer_id", -1)))
 		"goal_exited":
@@ -455,21 +464,26 @@ func _apply_key_collected(sync_id: String, peer_id: int) -> void:
 		if player.has_method("collect_key"):
 			player.collect_key()
 
-func _apply_door_opened(sync_id: String) -> void:
+func _apply_door_opened(sync_id: String, event_peer_id: int) -> void:
 	var door_node := _find_node_by_sync_id(sync_id)
 	if door_node != null and door_node.has_method("open"):
 		door_node.open()
 		
-	if player.has_method("use_key"):
+	if event_peer_id == _network_client.get_local_peer_id() and player.has_method("use_key"):
 		player.use_key()
 
 func _apply_player_died(event_peer_id: int) -> void:
+	# Respawn is now server-confirmed via player_respawned.
 	if event_peer_id == _network_client.get_local_peer_id():
-		if player.has_method("die"):
-			player.die()
-		else:
-			if player.has_method("respawn"):
-				player.respawn()
+		print("Local player death acknowledged by server; waiting for respawn event.")
+
+func _apply_player_respawned(event_peer_id: int) -> void:
+	var target_player := _player_for_peer(event_peer_id)
+	if target_player == null:
+		return
+
+	if target_player.has_method("respawn"):
+		target_player.respawn()
 
 func _apply_goal_enter(sync_id: String, peer_id: int) -> void:
 	if peer_id != _network_client.get_local_peer_id():
@@ -480,6 +494,43 @@ func _apply_goal_exit(sync_id: String, peer_id: int) -> void:
 	if peer_id != _network_client.get_local_peer_id():
 		return
 	print("You left goal %s", sync_id)
+
+func _apply_match_state_snapshot(room: Dictionary) -> void:
+	if room.is_empty() or not is_instance_valid(_current_level):
+		return
+
+	var match_state_raw = room.get("match_state", {})
+	if typeof(match_state_raw) != TYPE_DICTIONARY:
+		return
+
+	var match_state: Dictionary = match_state_raw
+	_applying_remote_world_event = true
+	var is_door_opened := bool(match_state.get("door_opened", false))
+	for node in _find_nodes_in_group(_current_level, "level_door"):
+		if not node.has_method("set_open"):
+			continue
+		node.set_open(is_door_opened)
+
+	if bool(match_state.get("key_collected", false)):
+		for node in _find_nodes_in_group(_current_level, "level_key"):
+			if is_instance_valid(node):
+				node.queue_free()
+
+	var players_raw = match_state.get("players", {})
+	if typeof(players_raw) == TYPE_DICTIONARY:
+		var players_state: Dictionary = players_raw
+		var local_peer_id = int(_network_client.get_local_peer_id())
+		var local_state: Variant = players_state.get(local_peer_id, players_state.get(str(local_peer_id), {}))
+		if typeof(local_state) == TYPE_DICTIONARY:
+			var local_state_dict: Dictionary = local_state
+			if player.has_method("set_key_count"):
+				player.set_key_count(int(local_state_dict.get("key_count", 0)))
+	_applying_remote_world_event = false
+
+func _player_for_peer(peer_id: int) -> CharacterBody2D:
+	if peer_id == _network_client.get_local_peer_id():
+		return player
+	return _remote_players.get(peer_id) as CharacterBody2D
 
 func _collect_pushable_states() -> Array[Dictionary]:
 	var states: Array[Dictionary] = []

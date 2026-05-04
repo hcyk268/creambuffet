@@ -230,10 +230,10 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			_handle_player_state(payload)
 		"level_transition":
 			_handle_level_transition(payload)
+		# Sprint 1 restores world state through room snapshots in room/match messages.
+		# There is intentionally no dedicated world_snapshot message flow on the client.
 		"world_event":
 			_handle_world_event(payload)
-		"world_snapshot":
-			_handle_world_snapshot(payload)
 		"error":
 			_handle_server_error(payload)
 		_:
@@ -288,16 +288,6 @@ func _handle_world_event(payload: Dictionary) -> void:
 		return
 
 	world_event_received.emit(Dictionary(event).duplicate(true))
-
-func _handle_world_snapshot(payload: Dictionary) -> void:
-	var snapshot = payload.get("snapshot", {})
-	if typeof(snapshot) != TYPE_DICTIONARY:
-		return
-
-	world_event_received.emit({
-		"type": "snapshot",
-		"data": Dictionary(snapshot).duplicate(true)
-	})
 	
 func _handle_server_error(payload: Dictionary) -> void:
 	var code := String(payload.get("code", "server_error"))

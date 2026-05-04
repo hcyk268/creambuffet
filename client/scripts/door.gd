@@ -42,7 +42,12 @@ func _on_detection_area_body_entered(body: Node) -> void:
 	if is_open or not body.is_in_group("player"):
 		return
 
-	if not (body.has_method("has_key") and body.has_key()):
+	var network_client: Node = get_node_or_null("/root/NetworkClient")
+	var is_online_session := false
+	if network_client != null and network_client.has_method("get_current_room"):
+		var current_room: Dictionary = network_client.get_current_room()
+		is_online_session = not current_room.is_empty()
+	if not is_online_session and not (body.has_method("has_key") and body.has_key()):
 		return
 
 	door_opened.emit()

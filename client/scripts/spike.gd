@@ -7,4 +7,6 @@ func _ready() -> void:
 
 
 func _on_body_entered(body: Node) -> void:
+	if not body.is_in_group("player"):
+		return
 	player_death.emit()
