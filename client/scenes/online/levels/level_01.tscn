@@ -1,4 +1,4 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://dixrvvl3dcxpe"]
 
 [ext_resource type="PackedScene" uid="uid://c5lxpeg33hiji" path="res://prefabs/key.tscn" id="1_0fdk5"]
 [ext_resource type="PackedScene" path="res://prefabs/door.tscn" id="2_xjeio"]
@@ -12,13 +12,16 @@ position = Vector2(-242, 34)
 
 [node name="Key" parent="." unique_id=104036923 instance=ExtResource("1_0fdk5")]
 position = Vector2(69, -7)
+sync_id = "level01_key_01"
 
 [node name="Door" parent="." unique_id=1645782616 instance=ExtResource("2_xjeio")]
 z_index = 1
 position = Vector2(137, -17)
+sync_id = "level01_door_01"
 
 [node name="Goal" parent="." unique_id=1729077610 instance=ExtResource("3_hn3k0")]
 position = Vector2(168, -17)
+sync_id = "level01_goal_01"
 
 [node name="Terrains" parent="." unique_id=276742102 instance=ExtResource("4_uvc87")]
 position = Vector2(-104, 59)

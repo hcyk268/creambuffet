@@ -109,13 +109,18 @@ func _setup_player_spawn(level_root: Node) -> void:
 
 
 func _connect_level_goals(level_root: Node) -> void:
-	var on_reached := Callable(self, "_on_goal_reached")
-	var on_left := Callable(self, "_on_goal_left")
 	for node in _find_nodes_in_group(level_root, "level_goal"):
-		if node.has_signal("goal_reached") and not node.is_connected("goal_reached", on_reached):
-			node.connect("goal_reached", on_reached)
-		if node.has_signal("goal_left") and not node.is_connected("goal_left", on_left):
-			node.connect("goal_left", on_left)
+		var goal_node := node
+
+		if node.has_signal("goal_reached"):
+			var on_reached := Callable(self, "_on_goal_reached").bind(goal_node)
+			if not node.is_connected("goal_reached", on_reached):
+				node.connect("goal_reached", on_reached)
+
+		if node.has_signal("goal_left"):
+			var on_left := Callable(self, "_on_goal_left").bind(goal_node)
+			if not node.is_connected("goal_left", on_left):
+				node.connect("goal_left", on_left)
 
 
 func _find_nodes_in_group(root: Node, group_name: StringName) -> Array[Node]:
@@ -133,23 +138,27 @@ func _collect_group_nodes(node: Node, group_name: StringName, out_nodes: Array[N
 			_collect_group_nodes(child, group_name, out_nodes)
 
 
-func _on_goal_reached(body: Node) -> void:
+func _on_goal_reached(body: Node, goal_node: Node) -> void:
 	if _match_complete or not _is_online_session or body != player:
 		return
 
 	_network_client.send_world_event({
 		"kind": "goal_enter",
 		"level_index": _current_level_index,
+		"sync_id": goal_node.sync_id,
+		"peer_id": _network_client.get_local_peer_id(),
 	})
 
 
-func _on_goal_left(body: Node) -> void:
+func _on_goal_left(body: Node, goal_node: Node) -> void:
 	if _match_complete or not _is_online_session or body != player:
 		return
 
 	_network_client.send_world_event({
 		"kind": "goal_exit",
 		"level_index": _current_level_index,
+		"sync_id": goal_node.sync_id,
+		"peer_id": _network_client.get_local_peer_id(),
 	})
 
 
@@ -351,19 +360,28 @@ func _connect_world_event_nodes(node: Node) -> void:
 		if not node.is_connected("door_opened", on_door_opened):
 			node.connect("door_opened", on_door_opened)
 
+	if node.has_signal("player_death"):
+		var on_player_death := Callable(self, "_on_player_death").bind(node)
+		if not node.is_connected("player_death", on_player_death):
+			node.connect("player_death", on_player_death)
+
+
 	for child in node.get_children():
 		if child is Node:
 			_connect_world_event_nodes(child)
 
 
-func _on_key_collected(_body: Node, key_node: Node) -> void:
+func _on_key_collected(body: Node, key_node: Node) -> void:
 	if not _is_online_session or _applying_remote_world_event:
+		return
+	
+	if body != player:
 		return
 
 	_network_client.send_world_event({
 		"kind": "key_collect",
 		"level_index": _current_level_index,
-		"node_name": key_node.name,
+		"sync_id": key_node.sync_id,
 	})
 
 
@@ -374,9 +392,19 @@ func _on_door_opened(door_node: Node) -> void:
 	_network_client.send_world_event({
 		"kind": "door_open",
 		"level_index": _current_level_index,
-		"node_name": door_node.name,
+		"sync_id": door_node.sync_id,
 	})
 
+func _on_player_death(spike_node: Node) -> void:
+	if not _is_online_session or _applying_remote_world_event:
+		return
+
+	_network_client.send_world_event({
+		"kind": "player_death",
+		"level_index": _current_level_index,
+		"sync_id": spike_node.sync_id,
+		"peer_id": _network_client.get_local_peer_id()
+	})
 
 func _on_world_event_received(event: Dictionary) -> void:
 	if int(event.get("level_index", _current_level_index)) != _current_level_index:
@@ -385,23 +413,74 @@ func _on_world_event_received(event: Dictionary) -> void:
 	_applying_remote_world_event = true
 	match String(event.get("kind", "")):
 		"key_collected":
-			_apply_key_collected(String(event.get("node_name", "")))
+			_apply_key_collected(String(event.get("sync_id", "")),int(event.get("peer_id", -1)))
 		"door_opened":
-			_apply_door_opened(String(event.get("node_name", "")))
+			_apply_door_opened(String(event.get("sync_id", "")))
+		"player_died":
+			_apply_player_died(int(event.get("peer_id", -1)))
+		"goal_enter":
+			_apply_goal_enter(String(event.get("sync_id", "")),int(event.get("peer_id", -1)))
+		"goal_exit":
+			_apply_goal_exit(String(event.get("sync_id", "")),int(event.get("peer_id", -1))
+	)
 	_applying_remote_world_event = false
 
+func _find_node_by_sync_id(sync_id: String) -> Node:
+	if not is_instance_valid(_current_level) or sync_id.is_empty():
+		return null
 
-func _apply_key_collected(node_name: String) -> void:
-	var key_node := _find_level_node(node_name)
+	for node in _current_level.get_children():
+		var found = _find_node_recursive(node, sync_id)
+		if found != null:
+			return found
+
+	return null
+
+func _find_node_recursive(node: Node, sync_id: String) -> Node:
+	if "sync_id" in node and node.sync_id == sync_id:
+		return node
+
+	for child in node.get_children():
+		var result = _find_node_recursive(child, sync_id)
+		if result != null:
+			return result
+
+	return null
+	
+func _apply_key_collected(sync_id: String, peer_id: int) -> void:
+	var key_node := _find_node_by_sync_id(sync_id)
 	if is_instance_valid(key_node):
 		key_node.queue_free()
+		
+	if peer_id == _network_client.get_local_peer_id():
+		if player.has_method("collect_key"):
+			player.collect_key()
 
-
-func _apply_door_opened(node_name: String) -> void:
-	var door_node := _find_level_node(node_name)
+func _apply_door_opened(sync_id: String) -> void:
+	var door_node := _find_node_by_sync_id(sync_id)
 	if door_node != null and door_node.has_method("open"):
 		door_node.open()
+		
+	if player.has_method("use_key"):
+		player.use_key()
 
+func _apply_player_died(event_peer_id: int) -> void:
+	if event_peer_id == _network_client.get_local_peer_id():
+		if player.has_method("die"):
+			player.die()
+		else:
+			if player.has_method("respawn"):
+				player.respawn()
+
+func _apply_goal_enter(sync_id: String, peer_id: int) -> void:
+	if peer_id != _network_client.get_local_peer_id():
+		return
+	print("You reached goal! %s", sync_id)
+
+func _apply_goal_exit(sync_id: String, peer_id: int) -> void:
+	if peer_id != _network_client.get_local_peer_id():
+		return
+	print("You left goal %s", sync_id)
 
 func _collect_pushable_states() -> Array[Dictionary]:
 	var states: Array[Dictionary] = []

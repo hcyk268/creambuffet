@@ -181,12 +181,12 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_c5fq3"]
 radius = 5.0
 
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_uog8w"]
+load_path = "res://.godot/imported/Player-Soda.png-366adaf88143a13846c19a7522f70e2e.ctex"
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_carried_key"]
 atlas = ExtResource("2_keyicon")
 region = Rect2(18, 65, 8, 15)
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_uog8w"]
-load_path = "res://.godot/imported/Player-Soda.png-366adaf88143a13846c19a7522f70e2e.ctex"
 
 [sub_resource type="Animation" id="Animation_jdqio"]
 length = 0.001
@@ -321,7 +321,7 @@ hframes = 5
 vframes = 6
 frame = 1
 
-[node name="CarriedKey" type="Sprite2D" parent="."]
+[node name="CarriedKey" type="Sprite2D" parent="." unique_id=1492630624]
 visible = false
 z_index = 4
 position = Vector2(0, -46)

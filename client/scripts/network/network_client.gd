@@ -232,6 +232,8 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			_handle_level_transition(payload)
 		"world_event":
 			_handle_world_event(payload)
+		"world_snapshot":
+			_handle_world_snapshot(payload)
 		"error":
 			_handle_server_error(payload)
 		_:
@@ -287,7 +289,16 @@ func _handle_world_event(payload: Dictionary) -> void:
 
 	world_event_received.emit(Dictionary(event).duplicate(true))
 
+func _handle_world_snapshot(payload: Dictionary) -> void:
+	var snapshot = payload.get("snapshot", {})
+	if typeof(snapshot) != TYPE_DICTIONARY:
+		return
 
+	world_event_received.emit({
+		"type": "snapshot",
+		"data": Dictionary(snapshot).duplicate(true)
+	})
+	
 func _handle_server_error(payload: Dictionary) -> void:
 	var code := String(payload.get("code", "server_error"))
 	var message := String(payload.get("message", "The server returned an unknown error."))

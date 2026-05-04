@@ -1,4 +1,4 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://bjrer3ft3jlbv"]
 
 [ext_resource type="PackedScene" uid="uid://dxrnsj00liyue" path="res://prefabs/spike.tscn" id="1_jc5ma"]
 [ext_resource type="PackedScene" path="res://prefabs/level_goal.tscn" id="2_6ahyg"]
@@ -12,6 +12,7 @@ position = Vector2(-170, 30)
 
 [node name="Spike" parent="." unique_id=1940643761 instance=ExtResource("1_jc5ma")]
 position = Vector2(100, 124)
+sync_id = "level0_spike_01"
 
 [node name="PushBox" parent="." unique_id=1080354286 instance=ExtResource("3_opx33")]
 position = Vector2(-94, 119)

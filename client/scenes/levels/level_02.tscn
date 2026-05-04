@@ -12,6 +12,7 @@ position = Vector2(-170, 30)
 
 [node name="Spike" parent="." unique_id=1940643761 instance=ExtResource("1_jc5ma")]
 position = Vector2(100, 124)
+sync_id = "level0_spike_01"
 
 [node name="PushBox" parent="." unique_id=1080354286 instance=ExtResource("3_opx33")]
 position = Vector2(-94, 119)

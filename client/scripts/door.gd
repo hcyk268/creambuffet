@@ -3,6 +3,7 @@ extends StaticBody2D
 signal door_opened
 signal door_closed
 
+@export var sync_id := ""
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var detection_area: Area2D = $DetectionArea
@@ -44,10 +45,7 @@ func _on_detection_area_body_entered(body: Node) -> void:
 	if not (body.has_method("has_key") and body.has_key()):
 		return
 
-	if body.has_method("use_key"):
-		body.use_key()
-
-	open()
+	door_opened.emit()
 
 
 func _apply_state() -> void:

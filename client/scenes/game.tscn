@@ -1,15 +1,15 @@
 [gd_scene format=3 uid="uid://p4mc3xaq0yoh"]
 
-[ext_resource type="Script" path="res://scripts/game.gd" id="1_5latr"]
+[ext_resource type="Script" uid="uid://ct5tc03yjriyh" path="res://scripts/game.gd" id="1_5latr"]
 [ext_resource type="PackedScene" uid="uid://di1ooitfh1the" path="res://scenes/player_soda.tscn" id="2_uwrxv"]
-[ext_resource type="PackedScene" path="res://scenes/levels/level_01.tscn" id="3_u1byv"]
-[ext_resource type="PackedScene" path="res://scenes/levels/level_02.tscn" id="4_pii8w"]
+[ext_resource type="PackedScene" uid="uid://bgh6vjdhbx23u" path="res://scenes/levels/level_01.tscn" id="3_u1byv"]
+[ext_resource type="PackedScene" uid="uid://1jmd37hpgid" path="res://scenes/levels/level_02.tscn" id="4_pii8w"]
 
 [node name="Game" type="Node2D" unique_id=255461949]
 script = ExtResource("1_5latr")
 levels = Array[PackedScene]([ExtResource("3_u1byv"), ExtResource("4_pii8w")])
 
-[node name="LevelContainer" type="Node2D" parent="."]
+[node name="LevelContainer" type="Node2D" parent="." unique_id=216998391]
 
 [node name="Player" parent="." unique_id=1419475106 instance=ExtResource("2_uwrxv")]
 
@@ -17,9 +17,9 @@ levels = Array[PackedScene]([ExtResource("3_u1byv"), ExtResource("4_pii8w")])
 position = Vector2(0, -32)
 zoom = Vector2(3, 3)
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=2085710334]
 
-[node name="LevelLabel" type="Label" parent="CanvasLayer"]
+[node name="LevelLabel" type="Label" parent="CanvasLayer" unique_id=2070262685]
 offset_left = 10.0
 offset_top = 8.0
 offset_right = 226.0

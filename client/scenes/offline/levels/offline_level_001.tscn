@@ -21,6 +21,7 @@ position = Vector2(-360, 64)
 
 [node name="Key" parent="." unique_id=1502359208 instance=ExtResource("1_5supw")]
 position = Vector2(-117, -75)
+sync_id = "level01_key_01"
 
 [node name="Door" parent="." unique_id=693984891 instance=ExtResource("2_d18rt")]
 position = Vector2(835, 16)

@@ -317,15 +317,16 @@ func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) 
 		"level_index": room.current_level_index,
 	}
 
-	if payload.has("node_name"):
-		event["node_name"] = String(payload.get("node_name", ""))
+	if payload.has("sync_id"):
+		event["sync_id"] = String(payload.get("sync_id", ""))
 
-	print("[world_event_request] accept peer=%d action=%s room=%s event=%s level=%d" % [
+	print("[world_event_request] accept peer=%d action=%s room=%s event=%s level=%d sync_id=%s" % [
 		peer_id,
 		action,
 		room.room_id,
 		broadcast_kind,
-		room.current_level_index
+		room.current_level_index,
+		String(event.get("sync_id", ""))
 	])
 	_send_room_message(room, "world_event", {
 		"event": event,

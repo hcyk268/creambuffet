@@ -2,7 +2,7 @@ extends Area2D
 
 signal goal_reached(body: Node)
 signal goal_left(body: Node)
-
+@export var sync_id := ""
 
 func _ready() -> void:
 	add_to_group("level_goal")
