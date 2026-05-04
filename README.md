@@ -111,11 +111,11 @@ client/config/client_network.cfg
 
 For LAN testing, set the client host to the LAN IP of the machine running the server.
 
-## Production CI
+## Production CI/CD
 
-The repository includes a GitHub Actions CI workflow that builds the server image, runs a headless smoke test, and publishes the image to GitHub Container Registry (`ghcr.io`) on successful pushes to `main`.
+The repository includes separate GitHub Actions workflows for CI and CD.
 
-Current CI flow:
+CI flow:
 
 1. Run on `pull_request`, `push` to `main`, or manual `workflow_dispatch`
 2. Build the Docker image
@@ -125,7 +125,12 @@ Current CI flow:
    - `latest`
    - the current commit SHA
 
-The CD workflow can be added separately later to SSH into the VPS and run:
+CD flow:
+
+1. Run automatically after the `CI` workflow succeeds on a `push` to `main`
+2. Can also be run manually with `workflow_dispatch`
+3. SSH into the VPS
+4. Run:
 
 ```bash
 docker compose pull
@@ -153,6 +158,11 @@ services:
     restart: unless-stopped
 ```
 
-No VPS deploy secrets are required for CI-only setup.
+Required GitHub Actions secrets for CD:
 
-If the package is private, the VPS must be logged in to `ghcr.io` with a token that has package read access before a future CD workflow can pull the image.
+- `VPS_HOST`
+- `VPS_USER`
+- `VPS_PORT`
+- `VPS_SSH_KEY`
+
+If the package is private, the VPS must be logged in to `ghcr.io` with a token that has package read access before CD can pull the image.
