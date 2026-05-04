@@ -110,3 +110,49 @@ client/config/client_network.cfg
 ```
 
 For LAN testing, set the client host to the LAN IP of the machine running the server.
+
+## Production CI
+
+The repository includes a GitHub Actions CI workflow that builds the server image, runs a headless smoke test, and publishes the image to GitHub Container Registry (`ghcr.io`) on successful pushes to `main`.
+
+Current CI flow:
+
+1. Run on `pull_request`, `push` to `main`, or manual `workflow_dispatch`
+2. Build the Docker image
+3. Smoke-test the server boot in headless mode
+4. On `main`, push image tags for:
+   - `production`
+   - `latest`
+   - the current commit SHA
+
+The CD workflow can be added separately later to SSH into the VPS and run:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+On the VPS, create `/opt/creambuffet/.env`:
+
+```env
+CREAMBUFFET_SERVER_PORT=7000
+CREAMBUFFET_SERVER_MAX_CLIENTS=8
+```
+
+And `/opt/creambuffet/compose.yaml`:
+
+```yaml
+services:
+  server:
+    image: ghcr.io/<github-owner>/creambuffet-server:production
+    container_name: creambuffet-server
+    env_file:
+      - .env
+    ports:
+      - "${CREAMBUFFET_SERVER_PORT:-7000}:${CREAMBUFFET_SERVER_PORT:-7000}/udp"
+    restart: unless-stopped
+```
+
+No VPS deploy secrets are required for CI-only setup.
+
+If the package is private, the VPS must be logged in to `ghcr.io` with a token that has package read access before a future CD workflow can pull the image.

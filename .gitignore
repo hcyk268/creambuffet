@@ -29,6 +29,8 @@ Thumbs.db
 .env
 .env.local
 *.local.cfg
+creambuffet_deploy_key
+creambuffet_deploy_key.pub
 
 # Backup files
 *~
@@ -50,3 +52,5 @@ Thumbs.db
 
 # Debug / crash
 crash.log
+
+docs/
