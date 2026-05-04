@@ -1,6 +1,6 @@
 extends Area2D
 
-signal collected(body: Node, sync_id: String)
+signal collected(body: Node)
 @export var sync_id := ""
 
 func _ready() -> void:
