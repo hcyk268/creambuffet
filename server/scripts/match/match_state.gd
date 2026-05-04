@@ -33,7 +33,10 @@ func collect_key(peer_id: int) -> bool:
 	if key_collected:
 		return false
 
+	var player_state: Dictionary = players[peer_id]
 	key_collected = true
+	player_state["key_count"] = int(player_state.get("key_count", 0)) + 1
+	players[peer_id] = player_state
 	return true
 
 
@@ -44,9 +47,12 @@ func open_door(peer_id: int) -> bool:
 	if door_opened:
 		return false
 
-	if not key_collected:
+	var player_state: Dictionary = players[peer_id]
+	if int(player_state.get("key_count", 0)) <= 0:
 		return false
 
+	player_state["key_count"] = int(player_state.get("key_count", 0)) - 1
+	players[peer_id] = player_state
 	door_opened = true
 	return true
 
@@ -126,6 +132,7 @@ func set_level(level_index: int) -> void:
 		var player_state: Dictionary = players[peer_id]
 		player_state["alive"] = true
 		player_state["at_goal"] = false
+		player_state["key_count"] = 0
 		players[peer_id] = player_state
 
 
@@ -136,6 +143,7 @@ func add_player(peer_id: int) -> void:
 	players[peer_id] = {
 		"alive": true,
 		"at_goal": false,
+		"key_count": 0,
 	}
 
 
@@ -165,6 +173,7 @@ func _register_players(peer_ids: Array[int]) -> void:
 		players[int(peer_id)] = {
 			"alive": true,
 			"at_goal": false,
+			"key_count": 0,
 		}
 
 
