@@ -5,6 +5,7 @@ var current_level := 0
 var players: Dictionary = {}
 var key_collected := false
 var door_opened := false
+var goal_requires_opened_door := false
 var players_at_goal: Dictionary = {}
 
 
@@ -78,6 +79,10 @@ func set_goal(peer_id: int, inside: bool) -> bool:
 	return true
 
 
+func configure_level_requirements(has_key: bool, has_door: bool) -> void:
+	goal_requires_opened_door = goal_requires_opened_door or (has_key and has_door)
+
+
 func respawn_player(peer_id: int) -> bool:
 	if not has_player(peer_id):
 		return false
@@ -109,7 +114,7 @@ func set_player_alive(peer_id: int, alive: bool) -> bool:
 
 
 func can_complete_level() -> bool:
-	if not door_opened:
+	if goal_requires_opened_door and not door_opened:
 		return false
 
 	if players.is_empty():
@@ -160,6 +165,7 @@ func snapshot() -> Dictionary:
 		"current_level": current_level,
 		"key_collected": key_collected,
 		"door_opened": door_opened,
+		"goal_requires_opened_door": goal_requires_opened_door,
 		"players": players.duplicate(true),
 		"players_at_goal": players_at_goal.keys(),
 		"can_complete_level": can_complete_level(),
@@ -180,4 +186,5 @@ func _register_players(peer_ids: Array[int]) -> void:
 func _reset_level_flags() -> void:
 	key_collected = false
 	door_opened = false
+	goal_requires_opened_door = false
 	players_at_goal.clear()
