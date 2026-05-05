@@ -5,7 +5,7 @@ const STATUS_FONT = preload("res://assets/fonts/EXEPixelPerfect.ttf")
 const MIN_PLAYERS = 1
 const MAX_PLAYERS = 4
 const MIN_WORLDS = 1
-const MAX_WORLDS = 5
+const MAX_WORLDS = 10
 
 @onready var player_input: LineEdit = $TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/PlayerLineEdit
 @onready var world_input: LineEdit = $TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/WorldLineEdit

@@ -16,7 +16,7 @@ const MAX_ROOM_ID_ATTEMPTS := 32
 const MIN_PLAYERS := 1
 const MAX_PLAYERS := 4
 const MIN_WORLDS := 1
-const MAX_WORLDS := 5
+const MAX_WORLDS := 10
 
 var rooms: Dictionary = {}
 var sessions: Dictionary = {}

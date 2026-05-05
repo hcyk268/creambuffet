@@ -5,10 +5,18 @@
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_01.tscn" id="3_r8y6r"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_02.tscn" id="4_qb0pa"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="5_4f5g8"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_03.tscn" id="6_m9dq3"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_04.tscn" id="7_n2lbk"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_05.tscn" id="8_yq2ru"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_06.tscn" id="9_b2swt"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_07.tscn" id="10_ek6uf"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_08.tscn" id="11_h4npa"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_09.tscn" id="12_t8vce"]
+[ext_resource type="PackedScene" path="res://scenes/online/levels/level_10.tscn" id="13_x1mkr"]
 
 [node name="OnlineGame" type="Node2D"]
 script = ExtResource("1_xeoup")
-levels = Array[PackedScene]([ExtResource("3_r8y6r"), ExtResource("4_qb0pa")])
+levels = Array[PackedScene]([ExtResource("3_r8y6r"), ExtResource("4_qb0pa"), ExtResource("6_m9dq3"), ExtResource("7_n2lbk"), ExtResource("8_yq2ru"), ExtResource("9_b2swt"), ExtResource("10_ek6uf"), ExtResource("11_h4npa"), ExtResource("12_t8vce"), ExtResource("13_x1mkr")])
 
 [node name="LevelContainer" type="Node2D" parent="."]
 
