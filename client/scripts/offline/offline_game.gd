@@ -91,6 +91,14 @@ func _connect_keys(level_root: Node) -> void:
 				node.connect("collected", callback)
 
 
+func _connect_keys(level_root: Node) -> void:
+	for node in _find_nodes_in_group(level_root, "level_key"):
+		if node.has_signal("collected"):
+			var callback := Callable(self, "_on_key_collected").bind(node)
+			if not node.is_connected("collected", callback):
+				node.connect("collected", callback)
+
+
 func _find_nodes_in_group(root: Node, group_name: StringName) -> Array[Node]:
 	var result: Array[Node] = []
 	_collect_group_nodes(root, group_name, result)
@@ -111,6 +119,16 @@ func _on_goal_reached(_body: Node) -> void:
 		return
 
 	next_level()
+
+func _on_key_collected(body: Node, key_node: Node) -> void:
+	if _game_complete or body != player:
+		return
+
+	if player.has_method("collect_key"):
+		player.collect_key()
+	if is_instance_valid(key_node):
+		key_node.queue_free()
+
 
 func _on_key_collected(body: Node, key_node: Node) -> void:
 	if _game_complete or body != player:
