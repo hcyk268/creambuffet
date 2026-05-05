@@ -147,6 +147,8 @@ func _on_goal_reached(body: Node, goal_node: Node) -> void:
 		"level_index": _current_level_index,
 		"sync_id": goal_node.sync_id,
 		"peer_id": _network_client.get_local_peer_id(),
+		"level_has_key": _level_has_key(),
+		"level_has_door": _level_has_door(),
 	})
 
 
@@ -159,6 +161,8 @@ func _on_goal_left(body: Node, goal_node: Node) -> void:
 		"level_index": _current_level_index,
 		"sync_id": goal_node.sync_id,
 		"peer_id": _network_client.get_local_peer_id(),
+		"level_has_key": _level_has_key(),
+		"level_has_door": _level_has_door(),
 	})
 
 
@@ -389,6 +393,8 @@ func _on_key_collected(body: Node, key_node: Node) -> void:
 		"kind": "key_collect",
 		"level_index": _current_level_index,
 		"sync_id": key_node.sync_id,
+		"level_has_key": _level_has_key(),
+		"level_has_door": _level_has_door(),
 	})
 
 
@@ -400,6 +406,8 @@ func _on_door_opened(door_node: Node) -> void:
 		"kind": "door_open",
 		"level_index": _current_level_index,
 		"sync_id": door_node.sync_id,
+		"level_has_key": _level_has_key(),
+		"level_has_door": _level_has_door(),
 	})
 
 func _on_player_death(spike_node: Node) -> void:
@@ -596,6 +604,14 @@ func _find_level_node(node_name: String) -> Node:
 		return direct
 
 	return _current_level.find_child(node_name, true, false)
+
+
+func _level_has_key() -> bool:
+	return is_instance_valid(_current_level) and not _find_nodes_in_group(_current_level, "level_key").is_empty()
+
+
+func _level_has_door() -> bool:
+	return is_instance_valid(_current_level) and not _find_nodes_in_group(_current_level, "level_door").is_empty()
 
 
 func _vector_to_packet(value: Vector2) -> Dictionary:

@@ -270,6 +270,11 @@ func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) 
 		_send_error(peer_id, "missing_world_action", "World event request is missing an action.", request_id)
 		return
 
+	room.match_state.configure_level_requirements(
+		bool(payload.get("level_has_key", false)),
+		bool(payload.get("level_has_door", false))
+	)
+
 	var accepted := false
 	var broadcast_kind := ""
 	match action:
@@ -280,7 +285,7 @@ func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) 
 			accepted = room.match_state.open_door(peer_id)
 			broadcast_kind = "door_opened"
 		"goal_enter":
-			if not room.match_state.door_opened:
+			if room.match_state.goal_requires_opened_door and not room.match_state.door_opened:
 				print("[world_event_request] reject peer=%d action=%s room=%s reason=door_not_opened" % [peer_id, action, room.room_id])
 				_send_error(peer_id, "goal_blocked", "Goal cannot be entered before the door is opened.", request_id)
 				return

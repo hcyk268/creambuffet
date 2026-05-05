@@ -49,6 +49,11 @@ func _on_detection_area_body_entered(body: Node) -> void:
 		is_online_session = not current_room.is_empty()
 	if not is_online_session and not (body.has_method("has_key") and body.has_key()):
 		return
+	if not is_online_session:
+		if body.has_method("use_key"):
+			body.use_key()
+		open()
+		return
 
 	door_opened.emit()
 

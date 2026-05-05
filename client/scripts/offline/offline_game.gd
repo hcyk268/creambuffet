@@ -40,7 +40,6 @@ func load_level(index: int) -> void:
 
 	_setup_player_spawn(_current_level)
 	_connect_level_goals(_current_level)
-	_connect_exit_doors(_current_level)
 	_connect_keys(_current_level)
 	_update_level_label(false)
 
@@ -84,13 +83,6 @@ func _connect_level_goals(level_root: Node) -> void:
 			node.connect("goal_reached", callback)
 
 
-func _connect_exit_doors(level_root: Node) -> void:
-	var callback := Callable(self, "_on_exit_door_opened")
-	for node in _find_nodes_in_group(level_root, "level_door"):
-		if node.has_signal("door_opened") and not node.is_connected("door_opened", callback):
-			node.connect("door_opened", callback)
-
-
 func _connect_keys(level_root: Node) -> void:
 	for node in _find_nodes_in_group(level_root, "level_key"):
 		if node.has_signal("collected"):
@@ -119,14 +111,6 @@ func _on_goal_reached(_body: Node) -> void:
 		return
 
 	next_level()
-
-
-func _on_exit_door_opened() -> void:
-	if _game_complete:
-		return
-
-	next_level()
-
 
 func _on_key_collected(body: Node, key_node: Node) -> void:
 	if _game_complete or body != player:
