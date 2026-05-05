@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://c5lxpeg33hiji" path="res://prefabs/key.tscn" id="1_5supw"]
 [ext_resource type="PackedScene" path="res://prefabs/door.tscn" id="2_d18rt"]
+[ext_resource type="PackedScene" path="res://prefabs/level_goal.tscn" id="3_h32x8"]
 [ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="6_hn3q1"]
 [ext_resource type="PackedScene" uid="uid://bteq8q3a66v3o" path="res://Terrain/Terrains.tscn" id="7_xu0px"]
 [ext_resource type="PackedScene" path="res://scenes/offline/backgrounds/level_001_parallax_background.tscn" id="8_s7ns0"]
@@ -25,6 +26,10 @@ sync_id = "level01_key_01"
 
 [node name="Door" parent="." unique_id=693984891 instance=ExtResource("2_d18rt")]
 position = Vector2(835, 16)
+
+[node name="Goal" parent="." unique_id=2110221446 instance=ExtResource("3_h32x8")]
+position = Vector2(866, 16)
+sync_id = "level01_goal_01"
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=73686483]
 position = Vector2(170, 240)
