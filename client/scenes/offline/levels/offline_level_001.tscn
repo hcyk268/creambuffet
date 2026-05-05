@@ -28,7 +28,7 @@ sync_id = "level01_key_01"
 position = Vector2(835, 16)
 
 [node name="Goal" parent="." unique_id=2110221446 instance=ExtResource("3_h32x8")]
-position = Vector2(866, 16)
+position = Vector2(835, 16)
 sync_id = "level01_goal_01"
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=73686483]
