@@ -1,0 +1,73 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" uid="uid://bf47x7pkaddww" path="res://assets/sprites/TileSheet.png" id="1_ah4pd"]
+[ext_resource type="Script" path="res://scripts/moving_platform.gd" id="2_mv0s2"]
+
+[sub_resource type="Animation" id="Animation_mn0pp"]
+resource_name = "Activated"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0009999999),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Rect2(0, 64, 16, 16), Rect2(0, 64, 16, 16)]
+}
+
+[sub_resource type="Animation" id="Animation_wwhl2"]
+resource_name = "Inactivated"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0009999999),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Rect2(0, 48, 16, 16), Rect2(0, 48, 16, 16)]
+}
+
+[sub_resource type="Animation" id="Animation_ve6en"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Rect2(0, 48, 16, 16)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_dnns3"]
+_data = {
+&"Activated": SubResource("Animation_mn0pp"),
+&"Inactivated": SubResource("Animation_wwhl2"),
+&"RESET": SubResource("Animation_ve6en")
+}
+
+[node name="MovingPlatform" type="AnimatableBody2D" unique_id=1025752984]
+script = ExtResource("2_mv0s2")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="." unique_id=1828482662]
+polygon = PackedVector2Array(-8, -8, 8, -8, 8, -6, 6, -6, 6, -5, 3, -5, 3, -4, -3, -4, -3, -5, -6, -5, -6, -6, -8, -6)
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1628500198]
+texture = ExtResource("1_ah4pd")
+region_enabled = true
+region_rect = Rect2(0, 48, 16, 16)
+
+[node name="PlatformState" type="AnimationPlayer" parent="." unique_id=565247500]
+libraries/ = SubResource("AnimationLibrary_dnns3")
+autoplay = &"Inactivated"
