@@ -39,10 +39,9 @@ script = ExtResource("1_gw5sx")
 shape = SubResource("RectangleShape2D_knxqw")
 
 [node name="MovingPlatform" parent="." unique_id=1025752984 instance=ExtResource("6_woqnv")]
-position = Vector2(168, 107.75)
+position = Vector2(169, 94)
 movement_mode = 1
 diameter = 80.0
-activation = true
 
 [node name="PushBox" parent="." unique_id=892294295 instance=ExtResource("4_hh2oi")]
 position = Vector2(-42, 87)
@@ -50,5 +49,7 @@ position = Vector2(-42, 87)
 [node name="PushBox2" parent="." unique_id=603808436 instance=ExtResource("4_hh2oi")]
 position = Vector2(-118, 135)
 
-[node name="Button" parent="." unique_id=651816027 instance=ExtResource("5_qblg5")]
+[node name="Button" parent="." unique_id=651816027 node_paths=PackedStringArray("target_platform") instance=ExtResource("5_qblg5")]
 position = Vector2(95, 205)
+activation_mode = 1
+target_platform = NodePath("../MovingPlatform")
