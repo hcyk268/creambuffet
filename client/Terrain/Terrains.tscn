@@ -17,6 +17,9 @@ tile_data = PackedInt32Array(0, 65536, 0, 65536, 65536, 1, 131072, 65536, 2)
 [sub_resource type="TileMapPattern" id="TileMapPattern_wv8iw"]
 tile_data = PackedInt32Array(0, 0, 5, 1, 131072, 5)
 
+[sub_resource type="TileMapPattern" id="TileMapPattern_t5h8e"]
+tile_data = PackedInt32Array(0, 0, 6, 1, 131072, 6)
+
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6rn2v"]
 texture = ExtResource("1_6woeq")
 0:0/0 = 0
@@ -68,6 +71,7 @@ pattern_1 = SubResource("TileMapPattern_6rn2v")
 pattern_2 = SubResource("TileMapPattern_esna4")
 pattern_3 = SubResource("TileMapPattern_cna1c")
 pattern_4 = SubResource("TileMapPattern_wv8iw")
+pattern_5 = SubResource("TileMapPattern_t5h8e")
 
 [node name="Terrains" type="TileMapLayer" unique_id=320301518]
 tile_set = SubResource("TileSet_esna4")

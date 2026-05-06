@@ -6,7 +6,15 @@ func enter() -> void:
 	anim_sprite.play("idle")
 	parent.velocity.x = 0
 
-func physics_update(_delta: float) -> void:
+func physics_update(delta: float) -> void:
+	if not parent.is_on_floor():
+		parent.velocity += parent.get_gravity() * delta
+	else:
+		parent.velocity.y = 0
+
+	parent.velocity.x = 0
+	parent.move_and_push()
+
 	if not parent.is_on_floor():
 		Transitioned.emit(self, "fall")
 		

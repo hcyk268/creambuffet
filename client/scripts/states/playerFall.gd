@@ -10,7 +10,7 @@ func physics_update(delta: float) -> void:
 
 	var direction = Input.get_axis("left", "right")
 	parent.velocity.x = direction * parent.SPEED
-	parent.move_and_slide()
+	parent.move_and_push()
 	
 	if direction != 0:
 		var sprite = parent.get_node("Sprite2D")

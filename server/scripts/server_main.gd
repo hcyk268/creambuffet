@@ -200,12 +200,29 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 	state["peer_id"] = peer_id
 	state["display_name"] = session.display_name if session != null else "Guest%d" % peer_id
 	state["server_time_unix"] = Time.get_unix_time_from_system()
+	state.erase("push_intents")
+
+	var pushable_controls: Array[Dictionary] = []
+	if room.match_state != null:
+		pushable_controls = room.match_state.apply_push_intents(peer_id, payload.get("push_intents", []))
 
 	_send_room_message(
 		room,
 		"player_state",
 		{"state": state},
 		peer_id,
+		null,
+		MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED
+	)
+
+	_send_room_message(
+		room,
+		"pushable_control",
+		{
+			"level_index": room.current_level_index,
+			"controls": pushable_controls,
+		},
+		-1,
 		null,
 		MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED
 	)

@@ -6,6 +6,7 @@ signal current_room_changed(room)
 signal error_received(code, message)
 signal match_started(room)
 signal remote_player_state(peer_id, state)
+signal pushable_control_received(level_index, controls)
 signal level_transition(from_level_index, to_level_index, match_complete, room)
 signal world_event_received(event)
 
@@ -228,6 +229,8 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			_handle_match_started(payload)
 		"player_state":
 			_handle_player_state(payload)
+		"pushable_control":
+			_handle_pushable_control(payload)
 		"level_transition":
 			_handle_level_transition(payload)
 		# Sprint 1 restores world state through room snapshots in room/match messages.
@@ -269,6 +272,15 @@ func _handle_player_state(payload: Dictionary) -> void:
 		return
 
 	remote_player_state.emit(peer_id, state_dict.duplicate(true))
+
+
+func _handle_pushable_control(payload: Dictionary) -> void:
+	var level_index := int(payload.get("level_index", -1))
+	var controls: Variant = payload.get("controls", [])
+	if typeof(controls) != TYPE_ARRAY:
+		return
+
+	pushable_control_received.emit(level_index, Array(controls).duplicate(true))
 
 
 func _handle_level_transition(payload: Dictionary) -> void:

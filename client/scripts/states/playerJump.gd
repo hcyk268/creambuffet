@@ -19,7 +19,7 @@ func physics_update(delta: float) -> void:
 			sprite.flip_h = false
 		elif direction < 0:
 			sprite.flip_h = true
-	parent.move_and_slide()
+	parent.move_and_push()
 	
 	if parent.velocity.y > 0:
 		Transitioned.emit(self, "fall")

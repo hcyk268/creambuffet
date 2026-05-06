@@ -30,7 +30,7 @@ func physics_update(delta: float) -> void:
 	timer -= delta
 	
 	# 2. CẬP NHẬT VẬT LÝ
-	parent.move_and_slide()
+	parent.move_and_push()
 	
 	# 3. KẾT THÚC LƯỚT KHI HẾT GIỜ
 	if timer <= 0:
