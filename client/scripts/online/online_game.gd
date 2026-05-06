@@ -61,9 +61,10 @@ func _physics_process(delta: float) -> void:
 	_send_timer = 0.0
 	if player.has_method("get_network_state"):
 		var state: Dictionary = player.get_network_state(_current_level_index)
-		var pushable_states := _collect_pushable_states()
-		if not pushable_states.is_empty():
-			state["pushables"] = pushable_states
+		if player.has_method("consume_push_intents"):
+			var push_intents: Array[Dictionary] = player.consume_push_intents()
+			if not push_intents.is_empty():
+				state["push_intents"] = push_intents
 		_network_client.send_player_state(state)
 
 
@@ -84,6 +85,7 @@ func load_level(index: int) -> void:
 	_reset_remote_players_to_spawn()
 	_connect_level_goals(_current_level)
 	_connect_world_events(_current_level)
+	_configure_pushables_for_online(_current_level)
 	_update_level_label(false)
 
 func restart_level() -> void:
@@ -192,6 +194,10 @@ func _bind_network_signals() -> void:
 	if not _network_client.level_transition.is_connected(on_transition):
 		_network_client.level_transition.connect(on_transition)
 
+	var on_pushable_control := Callable(self, "_on_pushable_control_received")
+	if not _network_client.pushable_control_received.is_connected(on_pushable_control):
+		_network_client.pushable_control_received.connect(on_pushable_control)
+
 	var on_world_event := Callable(self, "_on_world_event_received")
 	if not _network_client.world_event_received.is_connected(on_world_event):
 		_network_client.world_event_received.connect(on_world_event)
@@ -212,6 +218,10 @@ func _unbind_network_signals() -> void:
 	var on_transition := Callable(self, "_on_level_transition")
 	if _network_client.level_transition.is_connected(on_transition):
 		_network_client.level_transition.disconnect(on_transition)
+
+	var on_pushable_control := Callable(self, "_on_pushable_control_received")
+	if _network_client.pushable_control_received.is_connected(on_pushable_control):
+		_network_client.pushable_control_received.disconnect(on_pushable_control)
 
 	var on_world_event := Callable(self, "_on_world_event_received")
 	if _network_client.world_event_received.is_connected(on_world_event):
@@ -307,8 +317,6 @@ func _on_remote_player_state(peer_id: int, state: Dictionary) -> void:
 	if remote.has_method("apply_network_state"):
 		remote.apply_network_state(state)
 
-	_apply_pushable_states(state.get("pushables", []))
-
 
 func _on_current_room_changed(room: Dictionary) -> void:
 	if room.is_empty():
@@ -333,6 +341,13 @@ func _on_level_transition(_from_level_index: int, to_level_index: int, match_com
 
 	_sync_remote_roster(room)
 	_apply_match_state_snapshot(room)
+
+
+func _on_pushable_control_received(level_index: int, controls: Array) -> void:
+	if level_index != _current_level_index:
+		return
+
+	_apply_pushable_controls(controls)
 
 
 func _player_name_for_peer(peer_id: int) -> String:
@@ -533,6 +548,10 @@ func _apply_match_state_snapshot(room: Dictionary) -> void:
 			var local_state_dict: Dictionary = local_state
 			if player.has_method("set_key_count"):
 				player.set_key_count(int(local_state_dict.get("key_count", 0)))
+
+	var pushables_raw = match_state.get("pushables", [])
+	if typeof(pushables_raw) == TYPE_ARRAY:
+		_apply_pushable_controls(pushables_raw)
 	_applying_remote_world_event = false
 
 func _player_for_peer(peer_id: int) -> CharacterBody2D:
@@ -540,59 +559,26 @@ func _player_for_peer(peer_id: int) -> CharacterBody2D:
 		return player
 	return _remote_players.get(peer_id) as CharacterBody2D
 
-func _collect_pushable_states() -> Array[Dictionary]:
-	var states: Array[Dictionary] = []
-	if not is_instance_valid(_current_level):
-		return states
-
-	for node in _find_nodes_in_group(_current_level, "pushable"):
-		if not (node is Node2D):
-			continue
-
-		var body := node as Node2D
-		if player.global_position.distance_to(body.global_position) > 96.0:
-			continue
-
-		var state := {
-			"node_name": body.name,
-			"position": _vector_to_packet(body.global_position),
-			"rotation": body.rotation,
-		}
-
-		var rigid_body := body as RigidBody2D
-		if rigid_body != null:
-			state["linear_velocity"] = _vector_to_packet(rigid_body.linear_velocity)
-
-		states.append(state)
-
-	return states
+func _configure_pushables_for_online(level_root: Node) -> void:
+	for node in _find_nodes_in_group(level_root, "pushable"):
+		if node.has_method("set_online_authoritative"):
+			node.set_online_authoritative(true)
 
 
-func _apply_pushable_states(raw_states) -> void:
-	if typeof(raw_states) != TYPE_ARRAY or not is_instance_valid(_current_level):
+func _apply_pushable_controls(raw_controls) -> void:
+	if typeof(raw_controls) != TYPE_ARRAY or not is_instance_valid(_current_level):
 		return
 
-	for raw_state in raw_states:
-		if typeof(raw_state) != TYPE_DICTIONARY:
+	for raw_control in raw_controls:
+		if typeof(raw_control) != TYPE_DICTIONARY:
 			continue
 
-		var state: Dictionary = raw_state
-		var body := _find_level_node(String(state.get("node_name", ""))) as Node2D
-		if body == null:
+		var control: Dictionary = raw_control
+		var body := _find_level_node(String(control.get("node_name", "")))
+		if body == null or not body.has_method("apply_server_push_control"):
 			continue
 
-		if player.global_position.distance_to(body.global_position) <= 96.0:
-			continue
-
-		body.global_position = _packet_to_vector(state.get("position", {}), body.global_position)
-		body.rotation = float(state.get("rotation", body.rotation))
-
-		var rigid_body := body as RigidBody2D
-		if rigid_body != null:
-			rigid_body.linear_velocity = _packet_to_vector(
-				state.get("linear_velocity", {}),
-				rigid_body.linear_velocity
-			)
+		body.apply_server_push_control(float(control.get("drive_x", 0.0)))
 
 
 func _find_level_node(node_name: String) -> Node:

@@ -23,7 +23,7 @@ func physics_update(delta: float) -> void:
 	else:
 		parent.velocity.x = 0
 
-	parent.move_and_slide()
+	parent.move_and_push()
 
 	# Transition between states
 	if Input.is_action_just_pressed("jump"):
