@@ -2,6 +2,13 @@ extends Area2D
 
 signal pressed_state_changed(is_pressed: bool)
 
+enum ActivationMode {
+	PRESS_ONCE,
+	WHILE_HELD,
+}
+
+@export var activation_mode: ActivationMode = ActivationMode.PRESS_ONCE
+@export var target_platform: AnimatableBody2D
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 var is_pressed := false
@@ -46,4 +53,18 @@ func _update_pressed_state() -> void:
 
 	is_pressed = next_pressed
 	animated_sprite.play("pressed" if is_pressed else "released")
+	_update_target_platform_state()
 	pressed_state_changed.emit(is_pressed)
+
+
+func _update_target_platform_state() -> void:
+	if target_platform == null:
+		return
+
+	if target_platform.has_method("set_activation"):
+		match activation_mode:
+			ActivationMode.PRESS_ONCE:
+				if is_pressed:
+					target_platform.set_activation(true)
+			ActivationMode.WHILE_HELD:
+				target_platform.set_activation(is_pressed)
