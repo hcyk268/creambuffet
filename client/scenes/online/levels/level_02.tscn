@@ -35,6 +35,7 @@ tile_map_data = PackedByteArray("AADw//3/AAAAAAAAAADx//3/AAABAAAAAADy//3/AAACAAA
 [node name="FallResetZone" type="Area2D" parent="." unique_id=130341638]
 position = Vector2(22, 224)
 script = ExtResource("6_a3l5x")
+sync_id = "level02_fall_reset_01"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FallResetZone" unique_id=727013834]
 position = Vector2(1, 0)

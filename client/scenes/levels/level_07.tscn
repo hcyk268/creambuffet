@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://cry05uxr78cjc"]
+[gd_scene format=4 uid="uid://u138stqutdsa"]
 
 [ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="1_iemrb"]
 [ext_resource type="PackedScene" path="res://prefabs/level_goal.tscn" id="1_rxvob"]

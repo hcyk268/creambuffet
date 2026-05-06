@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://bgh6vjdhbx23u"]
+[gd_scene format=4 uid="uid://c8l5ovs4t41uw"]
 
 [ext_resource type="PackedScene" uid="uid://c5lxpeg33hiji" path="res://prefabs/key.tscn" id="1_0fdk5"]
 [ext_resource type="PackedScene" path="res://prefabs/door.tscn" id="2_xjeio"]
