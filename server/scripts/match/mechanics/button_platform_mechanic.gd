@@ -8,7 +8,7 @@ func apply_button_state(match_state, peer_id: int, target_id: String, payload: D
 
 	var object_data: Dictionary = object_state["object"]
 	var state: Dictionary = object_data.get("state", {})
-	var pressed := match_state.compute_button_pressed(target_id)
+	var pressed: bool = match_state.compute_button_pressed(target_id)
 	if bool(state.get("pressed", false)) == pressed:
 		var no_events: Array[Dictionary] = []
 		return match_state._ok(no_events)
