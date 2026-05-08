@@ -333,6 +333,12 @@ func _handle_world_action_request(peer_id: int, request_id, payload: Dictionary,
 	normalized_payload["target_id"] = target_id
 	normalized_payload["legacy"] = legacy
 
+	# World action requests for overlap-driven mechanics can arrive before the
+	# next player_state packet. Apply any embedded runtime snapshot first so the
+	# server evaluates the action against the caller's latest known position.
+	if normalized_payload.has("position") or normalized_payload.has("velocity"):
+		room.match_state.update_player_runtime(peer_id, normalized_payload)
+
 	var result := room.match_state.apply_world_action(peer_id, action, target_id, normalized_payload)
 	if not bool(result.get("ok", false)):
 		print("[world_action_request] reject peer=%d action=%s room=%s target=%s reason=%s" % [

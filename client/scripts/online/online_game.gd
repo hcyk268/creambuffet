@@ -429,6 +429,8 @@ func _on_key_collected(body: Node, key_node: Node) -> void:
 		"action": "collect",
 		"level_id": _current_level_id,
 		"target_id": target_id,
+		"position": _vector_to_packet(player.global_position),
+		"velocity": _vector_to_packet(player.velocity),
 	})
 
 
@@ -445,6 +447,8 @@ func _on_door_opened(door_node: Node) -> void:
 		"action": "open",
 		"level_id": _current_level_id,
 		"target_id": target_id,
+		"position": _vector_to_packet(player.global_position),
+		"velocity": _vector_to_packet(player.velocity),
 	})
 
 func _on_player_death(body: Node, spike_node: Node) -> void:
@@ -462,6 +466,8 @@ func _on_player_death(body: Node, spike_node: Node) -> void:
 		"action": "player_death",
 		"level_id": _current_level_id,
 		"target_id": target_id,
+		"position": _vector_to_packet(player.global_position),
+		"velocity": _vector_to_packet(player.velocity),
 	})
 
 
@@ -477,6 +483,8 @@ func _on_button_state_changed(is_pressed: bool, button_node: Node) -> void:
 	_network_client.send_world_action("button_state", target_id, {
 		"level_id": _current_level_id,
 		"pressed": is_pressed,
+		"position": _vector_to_packet(player.global_position),
+		"velocity": _vector_to_packet(player.velocity),
 	})
 
 func _on_world_event_received(event: Dictionary) -> void:
