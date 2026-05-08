@@ -78,6 +78,7 @@
 	"beginner": {
 	  "map_id": "beginner",
 	  "title": "Beginner",
+	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
 	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
 	  "levels": [
 		"beginner_01",
@@ -100,7 +101,7 @@
 	  "index": 0,
 	  "scene_path": "res://scenes/online/levels/level_01.tscn",
 	  "spawn_point": {"x": -242.0, "y": 34.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "moving_platform_v1"],
+	  "extra_rulesets": ["moving_platform_v1"],
 	  "objects": {
 		"level01_key_01": {
 		  "kind": "key",
@@ -140,7 +141,7 @@
 	  "index": 1,
 	  "scene_path": "res://scenes/online/levels/level_02.tscn",
 	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
+	  "extra_rulesets": ["push_box_v1", "button_platform_v1", "moving_platform_v1"],
 	  "objects": {
 		"level02_key_01": {
 		  "kind": "key",
@@ -208,7 +209,6 @@
 	  "index": 2,
 	  "scene_path": "res://scenes/online/levels/level_03.tscn",
 	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
 	  "objects": {
 		"level03_key_01": {
 		  "kind": "key",
@@ -266,7 +266,7 @@
 	  "index": 3,
 	  "scene_path": "res://scenes/online/levels/level_04.tscn",
 	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1"],
+	  "extra_rulesets": ["push_box_v1"],
 	  "objects": {
 		"level04_key_01": {
 		  "kind": "key",
@@ -318,7 +318,7 @@
 	  "index": 4,
 	  "scene_path": "res://scenes/online/levels/level_05.tscn",
 	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1"],
+	  "extra_rulesets": ["push_box_v1"],
 	  "objects": {
 		"level05_key_01": {
 		  "kind": "key",
@@ -364,7 +364,7 @@
 	  "index": 5,
 	  "scene_path": "res://scenes/online/levels/level_06.tscn",
 	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "moving_platform_v1"],
+	  "extra_rulesets": ["moving_platform_v1"],
 	  "objects": {
 		"level06_key_01": {
 		  "kind": "key",
@@ -404,7 +404,7 @@
 	  "index": 6,
 	  "scene_path": "res://scenes/online/levels/level_07.tscn",
 	  "spawn_point": {"x": -272.0, "y": 76.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "moving_platform_v1"],
+	  "extra_rulesets": ["moving_platform_v1"],
 	  "objects": {
 		"level07_key_01": {
 		  "kind": "key",
@@ -444,7 +444,7 @@
 	  "index": 7,
 	  "scene_path": "res://scenes/online/levels/level_08.tscn",
 	  "spawn_point": {"x": -187.0, "y": 92.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "moving_platform_v1"],
+	  "extra_rulesets": ["moving_platform_v1"],
 	  "objects": {
 		"level08_key_01": {
 		  "kind": "key",
@@ -484,7 +484,7 @@
 	  "index": 8,
 	  "scene_path": "res://scenes/online/levels/level_09.tscn",
 	  "spawn_point": {"x": 0.0, "y": 101.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "button_platform_v1", "moving_platform_v1"],
+	  "extra_rulesets": ["button_platform_v1", "moving_platform_v1"],
 	  "objects": {
 		"level09_key_01": {
 		  "kind": "key",
@@ -557,7 +557,7 @@
 	  "index": 9,
 	  "scene_path": "res://scenes/online/levels/level_10.tscn",
 	  "spawn_point": {"x": -176.0, "y": 62.0},
-	  "rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
+	  "extra_rulesets": ["push_box_v1", "button_platform_v1", "moving_platform_v1"],
 	  "objects": {
 		"level10_key_01": {
 		  "kind": "key",

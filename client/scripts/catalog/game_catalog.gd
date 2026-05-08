@@ -37,10 +37,10 @@ static func get_level_ids(map_id: String = DEFAULT_MAP_ID) -> Array[String]:
 
 
 static func get_level(level_id: String) -> Dictionary:
-	var levels := _levels()
-	if not levels.has(level_id):
+	var level := _raw_level(level_id)
+	if level.is_empty():
 		return {}
-	return Dictionary(levels[level_id]).duplicate(true)
+	return _resolve_level_definition(level)
 
 
 static func get_level_by_index(map_id: String, level_index: int) -> Dictionary:
@@ -217,12 +217,70 @@ static func _levels() -> Dictionary:
 	return Dictionary(levels_raw)
 
 
+static func _raw_level(level_id: String) -> Dictionary:
+	var levels := _levels()
+	if not levels.has(level_id):
+		return {}
+	return Dictionary(levels[level_id]).duplicate(true)
+
+
+static func _resolve_level_definition(level: Dictionary) -> Dictionary:
+	if level.is_empty():
+		return {}
+
+	var resolved := level.duplicate(true)
+	resolved["rulesets"] = _merged_rulesets_for_level(level)
+	return resolved
+
+
 static func _level_ruleset_lookup(level: Dictionary) -> Dictionary:
 	var lookup := {}
-	var raw_rulesets: Variant = level.get("rulesets", [])
+	for ruleset_id in _merged_rulesets_for_level(level):
+		lookup[ruleset_id] = true
+	return lookup
+
+
+static func _merged_rulesets_for_level(level: Dictionary) -> Array[String]:
+	var result: Array[String] = []
+	var seen := {}
+	var map_id := normalize_map_id(String(level.get("map_id", DEFAULT_MAP_ID)))
+	var removed_lookup := _string_lookup(level.get("removed_rulesets", []))
+
+	_append_rulesets_unique(result, seen, _map_ruleset_array(map_id, "default_rulesets"), removed_lookup)
+	_append_rulesets_unique(result, seen, level.get("rulesets", []), removed_lookup)
+	_append_rulesets_unique(result, seen, level.get("extra_rulesets", []), removed_lookup)
+	return result
+
+
+static func _map_ruleset_array(map_id: String, field_name: String) -> Array[String]:
+	var map_data := get_map(map_id)
+	var result: Array[String] = []
+	var raw_rulesets: Variant = map_data.get(field_name, [])
 	if typeof(raw_rulesets) == TYPE_ARRAY:
-		for ruleset in raw_rulesets:
-			lookup[String(ruleset)] = true
+		for raw_ruleset in raw_rulesets:
+			result.append(String(raw_ruleset))
+	return result
+
+
+static func _append_rulesets_unique(result: Array[String], seen: Dictionary, raw_rulesets: Variant, removed_lookup: Dictionary) -> void:
+	if typeof(raw_rulesets) != TYPE_ARRAY:
+		return
+
+	for raw_ruleset in raw_rulesets:
+		var ruleset_id := String(raw_ruleset)
+		if ruleset_id.is_empty() or removed_lookup.has(ruleset_id) or seen.has(ruleset_id):
+			continue
+		seen[ruleset_id] = true
+		result.append(ruleset_id)
+
+
+static func _string_lookup(raw_values: Variant) -> Dictionary:
+	var lookup := {}
+	if typeof(raw_values) != TYPE_ARRAY:
+		return lookup
+
+	for raw_value in raw_values:
+		lookup[String(raw_value)] = true
 	return lookup
 
 
