@@ -32,6 +32,7 @@ position = Vector2(223, 13)
 sync_id = "level10_key_01"
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=1054913892]
+sync_id = "level10_fall_reset_01"
 position = Vector2(-6, 302)
 script = ExtResource("1_gw5sx")
 
@@ -42,14 +43,18 @@ shape = SubResource("RectangleShape2D_knxqw")
 position = Vector2(169, 94)
 movement_mode = 1
 diameter = 80.0
+sync_id = "level10_platform_01"
 
 [node name="PushBox" parent="." unique_id=892294295 instance=ExtResource("4_hh2oi")]
 position = Vector2(-42, 87)
+sync_id = "level10_box_01"
 
 [node name="PushBox2" parent="." unique_id=603808436 instance=ExtResource("4_hh2oi")]
 position = Vector2(-118, 135)
+sync_id = "level10_box_02"
 
 [node name="Button" parent="." unique_id=651816027 node_paths=PackedStringArray("target_platform") instance=ExtResource("5_qblg5")]
 position = Vector2(95, 205)
 activation_mode = 1
+sync_id = "level10_button_01"
 target_platform = NodePath("../MovingPlatform")

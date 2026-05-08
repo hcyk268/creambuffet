@@ -4,6 +4,7 @@ const Protocol = preload("res://scripts/network/protocol.gd")
 const PlayerSession = preload("res://scripts/lobby/player_session.gd")
 const Room = preload("res://scripts/lobby/room.gd")
 const RoomManager = preload("res://scripts/lobby/room_manager.gd")
+const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 
 const DEFAULT_PORT := 7000
 const DEFAULT_MAX_CLIENTS := 32
@@ -107,7 +108,9 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 		"level_complete":
 			_handle_level_complete(peer_id, request_id)
 		"world_event_request":
-			_handle_world_event_request(peer_id, request_id, payload)
+			_handle_world_action_request(peer_id, request_id, payload, true)
+		"world_action_request":
+			_handle_world_action_request(peer_id, request_id, payload)
 		_:
 			_send_error(peer_id, "unsupported_type", "Unsupported message type: %s" % message_type, request_id)
 
@@ -197,13 +200,29 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 
 	var session := _room_manager.get_session(peer_id)
 	var state := payload.duplicate(true)
+	if int(state.get("level_index", room.current_level_index)) != room.current_level_index:
+		return
+
+	state.erase("peer_id")
+	state.erase("display_name")
+	state.erase("key_count")
+	state.erase("level_has_key")
+	state.erase("level_has_door")
 	state["peer_id"] = peer_id
 	state["display_name"] = session.display_name if session != null else "Guest%d" % peer_id
 	state["server_time_unix"] = Time.get_unix_time_from_system()
+	state["level_id"] = room.current_level_id
 	state.erase("push_intents")
+	state.erase("pushable_states")
 
 	var pushable_controls: Array[Dictionary] = []
+	var push_box_events: Array[Dictionary] = []
 	if room.match_state != null:
+		room.match_state.update_player_runtime(peer_id, payload)
+		push_box_events = room.match_state.apply_push_box_observations(peer_id, payload.get("pushable_states", []))
+		var server_player_state := room.match_state.get_player_state(peer_id)
+		if not server_player_state.is_empty():
+			state["key_count"] = int(server_player_state.get("key_count", 0))
 		pushable_controls = room.match_state.apply_push_intents(peer_id, payload.get("push_intents", []))
 
 	_send_room_message(
@@ -220,12 +239,25 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 		"pushable_control",
 		{
 			"level_index": room.current_level_index,
+			"level_id": room.current_level_id,
 			"controls": pushable_controls,
 		},
 		-1,
 		null,
 		MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED
 	)
+
+	for event in push_box_events:
+		if typeof(event) != TYPE_DICTIONARY:
+			continue
+		_send_room_message(
+			room,
+			"world_event",
+			{"event": event},
+			-1,
+			null,
+			MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED
+		)
 
 
 func _handle_level_changed(peer_id: int, request_id, payload: Dictionary) -> void:
@@ -258,21 +290,26 @@ func _handle_level_complete(peer_id: int, request_id) -> void:
 	_send_error(peer_id, "level_complete_blocked", "Client-driven level completion is disabled.", request_id)
 
 
-func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) -> void:
+func _handle_world_action_request(peer_id: int, request_id, payload: Dictionary, legacy: bool = false) -> void:
 	var room := _room_manager.get_room_for_peer(peer_id)
 	if room == null or not room.has_player(peer_id) or not room.is_playing():
-		print("[world_event_request] reject peer=%d action=- reason=not_in_playing_room" % peer_id)
-		_send_error(peer_id, "not_in_playing_room", "Peer must be in a playing room before sending world event requests.", request_id)
+		print("[world_action_request] reject peer=%d action=- reason=not_in_playing_room" % peer_id)
+		_send_error(peer_id, "not_in_playing_room", "Peer must be in a playing room before sending world action requests.", request_id)
 		return
 
 	if room.match_state == null:
-		print("[world_event_request] reject peer=%d action=- room=%s reason=missing_match_state" % [peer_id, room.room_id])
+		print("[world_action_request] reject peer=%d action=- room=%s reason=missing_match_state" % [peer_id, room.room_id])
 		_send_error(peer_id, "missing_match_state", "Room has no active match state.", request_id)
 		return
 
-	var requested_level_index := int(payload.get("level_index", room.current_level_index))
-	if requested_level_index != room.current_level_index:
-		print("[world_event_request] reject peer=%d action=- room=%s reason=stale_level req=%d room=%d" % [peer_id, room.room_id, requested_level_index, room.current_level_index])
+	var requested_level_id := String(payload.get("level_id", ""))
+	if requested_level_id.is_empty() and payload.has("level_index"):
+		requested_level_id = GameCatalog.get_level_id_by_index(room.map_id, int(payload.get("level_index", room.current_level_index)))
+	if requested_level_id.is_empty():
+		requested_level_id = room.current_level_id
+
+	if requested_level_id != room.current_level_id:
+		print("[world_action_request] reject peer=%d action=- room=%s reason=stale_level req=%s room=%s" % [peer_id, room.room_id, requested_level_id, room.current_level_id])
 		_send_error(
 			peer_id,
 			"stale_level_request",
@@ -283,90 +320,71 @@ func _handle_world_event_request(peer_id: int, request_id, payload: Dictionary) 
 
 	var action := String(payload.get("action", payload.get("kind", ""))).strip_edges().to_lower()
 	if action.is_empty():
-		print("[world_event_request] reject peer=%d action=- room=%s reason=missing_world_action" % [peer_id, room.room_id])
+		print("[world_action_request] reject peer=%d action=- room=%s reason=missing_world_action" % [peer_id, room.room_id])
 		_send_error(peer_id, "missing_world_action", "World event request is missing an action.", request_id)
 		return
 
-	room.match_state.configure_level_requirements(
-		bool(payload.get("level_has_key", false)),
-		bool(payload.get("level_has_door", false))
-	)
+	var target_id := String(payload.get("target_id", payload.get("sync_id", ""))).strip_edges()
+	if target_id.is_empty() and (legacy or payload.has("node_name")):
+		target_id = _infer_legacy_target_id(room.current_level_id, action)
 
-	var accepted := false
-	var broadcast_kind := ""
-	match action:
-		"key_collect":
-			accepted = room.match_state.collect_key(peer_id)
-			broadcast_kind = "key_collected"
-		"door_open":
-			accepted = room.match_state.open_door(peer_id)
-			broadcast_kind = "door_opened"
-		"goal_enter":
-			if room.match_state.goal_requires_opened_door and not room.match_state.door_opened:
-				print("[world_event_request] reject peer=%d action=%s room=%s reason=door_not_opened" % [peer_id, action, room.room_id])
-				_send_error(peer_id, "goal_blocked", "Goal cannot be entered before the door is opened.", request_id)
-				return
-			if not room.match_state.is_player_alive(peer_id):
-				print("[world_event_request] reject peer=%d action=%s room=%s reason=player_not_alive" % [peer_id, action, room.room_id])
-				_send_error(peer_id, "goal_blocked", "Dead players cannot enter goal.", request_id)
-				return
-			accepted = room.match_state.set_goal(peer_id, true)
-			broadcast_kind = "goal_entered"
-		"goal_exit":
-			if not room.match_state.is_player_alive(peer_id):
-				print("[world_event_request] reject peer=%d action=%s room=%s reason=player_not_alive" % [peer_id, action, room.room_id])
-				_send_error(peer_id, "goal_blocked", "Dead players cannot exit goal.", request_id)
-				return
-			accepted = room.match_state.set_goal(peer_id, false)
-			broadcast_kind = "goal_exited"
-		"player_death":
-			accepted = room.match_state.set_player_alive(peer_id, false)
-			broadcast_kind = "player_died"
-		_:
-			print("[world_event_request] reject peer=%d action=%s room=%s reason=unsupported_world_action" % [peer_id, action, room.room_id])
-			_send_error(peer_id, "unsupported_world_action", "Unsupported world event action: %s" % action, request_id)
-			return
+	var normalized_payload := payload.duplicate(true)
+	normalized_payload["level_id"] = requested_level_id
+	normalized_payload["target_id"] = target_id
+	normalized_payload["legacy"] = legacy
 
-	if not accepted:
-		print("[world_event_request] reject peer=%d action=%s room=%s reason=world_action_rejected" % [peer_id, action, room.room_id])
-		_send_error(peer_id, "world_action_rejected", "World event request rejected by server state.", request_id)
-		return
-
-	var events_to_broadcast: Array[Dictionary] = []
-	var base_event := {
-		"request_action": action,
-		"peer_id": peer_id,
-		"level_index": room.current_level_index,
-	}
-	if payload.has("sync_id"):
-		base_event["sync_id"] = String(payload.get("sync_id", ""))
-
-	var primary_event := base_event.duplicate(true)
-	primary_event["kind"] = broadcast_kind
-	events_to_broadcast.append(primary_event)
-
-	if action == "player_death":
-		if room.match_state.respawn_player(peer_id):
-			var respawn_event := base_event.duplicate(true)
-			respawn_event["kind"] = "player_respawned"
-			events_to_broadcast.append(respawn_event)
-		else:
-			push_warning("Respawn failed for peer %d in room %s after death event." % [peer_id, room.room_id])
-
-	for event in events_to_broadcast:
-		print("[world_event_request] accept peer=%d action=%s room=%s event=%s level=%d sync_id=%s" % [
+	var result := room.match_state.apply_world_action(peer_id, action, target_id, normalized_payload)
+	if not bool(result.get("ok", false)):
+		print("[world_action_request] reject peer=%d action=%s room=%s target=%s reason=%s" % [
 			peer_id,
 			action,
 			room.room_id,
-			String(event.get("kind", "")),
-			room.current_level_index,
-			String(event.get("sync_id", ""))
+			target_id,
+			String(result.get("code", "world_action_rejected"))
+		])
+		_send_error(
+			peer_id,
+			String(result.get("code", "world_action_rejected")),
+			String(result.get("message", "World action rejected by server state.")),
+			request_id
+		)
+		return
+
+	var events_to_broadcast: Array = result.get("events", [])
+	for event in events_to_broadcast:
+		if typeof(event) != TYPE_DICTIONARY:
+			continue
+		var event_dict: Dictionary = event
+		print("[world_action_request] accept peer=%d action=%s room=%s event=%s level=%s target=%s" % [
+			peer_id,
+			action,
+			room.room_id,
+			String(event_dict.get("kind", "")),
+			room.current_level_id,
+			String(event_dict.get("target_id", ""))
 		])
 		_send_room_message(room, "world_event", {
-			"event": event,
+			"event": event_dict,
 		})
 
 	_try_level_transition(room)
+
+
+func _infer_legacy_target_id(level_id: String, action: String) -> String:
+	var normalized_action := GameCatalog.normalize_world_action(action)
+	var level_def := GameCatalog.get_level(level_id)
+	var objects_raw = level_def.get("objects", {})
+	if typeof(objects_raw) != TYPE_DICTIONARY:
+		return ""
+
+	var objects: Dictionary = objects_raw
+	for raw_target_id in objects.keys():
+		var target_id := String(raw_target_id)
+		var allowed_actions := GameCatalog.get_allowed_actions(level_id, target_id)
+		if allowed_actions.has(normalized_action) or allowed_actions.has(action.strip_edges().to_lower()):
+			return target_id
+
+	return ""
 
 
 func _try_level_transition(room: Room) -> void:
@@ -378,7 +396,7 @@ func _try_level_transition(room: Room) -> void:
 
 	var from_level_index := room.current_level_index
 	var next_level_index := from_level_index + 1
-	var match_complete := next_level_index >= room.world_count
+	var match_complete := next_level_index >= room.level_ids.size()
 	if match_complete:
 		next_level_index = from_level_index
 		room.mark_complete()
@@ -388,6 +406,8 @@ func _try_level_transition(room: Room) -> void:
 	_send_room_message(room, "level_transition", {
 		"from_level_index": from_level_index,
 		"to_level_index": next_level_index,
+		"from_level_id": GameCatalog.get_level_id_by_index(room.map_id, from_level_index),
+		"to_level_id": room.current_level_id,
 		"match_complete": match_complete,
 		"room": room.snapshot(),
 	})

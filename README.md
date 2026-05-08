@@ -1,37 +1,84 @@
 ## Requirements
 
 - Git
-- Godot 4.6 or newer 
-- Docker and Docker Compose for running the server in a container
+- Godot 4.6
+- Docker and Docker Compose for running or deploying the dedicated server
 
+## Quick Start
 
-## Project Layout
-
-```text
-client/   Godot game client project
-server/   Godot headless multiplayer server project
-```
-
-
-## Environment
-
-Create a local environment file from the example:
+Create the local environment file used by Docker:
 
 ```bash
 cp .env.example .env
 ```
 
-Default values:
+Start the multiplayer server container from the repository root:
+
+```bash
+docker compose up --build
+```
+
+Open the client project in Godot:
+
+```bash
+godot --path client
+```
+
+For online play, the client reads its server endpoint from:
+
+```text
+client/config/client_network.cfg
+```
+
+The default target is local development:
+
+```ini
+[server]
+host="127.0.0.1"
+port=7000
+```
+
+## Running Without Docker
+
+Run the headless server directly with Godot:
+
+```bash
+godot --headless --path server
+```
+
+Run the client directly:
+
+```bash
+godot --path client
+```
+
+## Environment
+
+Server runtime variables:
 
 ```env
 CREAMBUFFET_SERVER_PORT=7000
 CREAMBUFFET_SERVER_MAX_CLIENTS=32
 ```
 
+Optional smoke-test helper:
 
-## Run Server With Docker
+```env
+CREAMBUFFET_SERVER_EXIT_AFTER_MS=3000
+```
 
-Build and run the server:
+Client environment overrides are enabled by default in
+`client/config/client_network.cfg`:
+
+```env
+CREAMBUFFET_SERVER_HOST=127.0.0.1
+CREAMBUFFET_SERVER_PORT=7000
+CREAMBUFFET_PLAYER_NAME=Player
+```
+
+## Docker Server
+
+Build and run:
 
 ```bash
 docker compose up --build
@@ -43,28 +90,39 @@ Run in the background:
 docker compose up -d --build
 ```
 
-Stop the server:
-
-```bash
-docker compose down
-```
-
 Show logs:
 
 ```bash
 docker compose logs -f server
 ```
 
-Manual Docker commands are also supported:
+Stop:
+
+```bash
+docker compose down
+```
+
+Manual Docker commands:
 
 ```bash
 docker build -t creambuffet-server .
 docker run --rm --env-file .env -p 7000:7000/udp --name creambuffet-server creambuffet-server
 ```
 
+The image copies only the `server/` project and runs it with the Godot Linux
+binary in headless mode. The server listens on UDP port `7000` unless
+`CREAMBUFFET_SERVER_PORT` overrides it.
+
 ## VPS Deployment
 
-On a Linux VPS:
+On the VPS, open the selected UDP server port in both the host firewall and any
+cloud firewall/security group:
+
+```bash
+sudo ufw allow 7000/udp
+```
+
+For a manual source deployment:
 
 ```bash
 git clone <repo-url>
@@ -73,75 +131,11 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Open the server UDP port in the VPS firewall and any cloud firewall/security group:
-
-```bash
-sudo ufw allow 7000/udp
-```
-
-Client builds must connect to the VPS public IP or domain. Update:
-
-```text
-client/config/client_network.cfg
-```
-
-Example:
-
-```ini
-[server]
-host="game.example.com"
-port=7000
-```
-
-## Network Config
-
-The server defaults to UDP port `7000`.
-
-Server environment variables:
-
-- `CREAMBUFFET_SERVER_PORT`
-- `CREAMBUFFET_SERVER_MAX_CLIENTS`
-- `CREAMBUFFET_SERVER_EXIT_AFTER_MS` for smoke tests
-
-Client config:
-
-```text
-client/config/client_network.cfg
-```
-
-For LAN testing, set the client host to the LAN IP of the machine running the server.
-
-## Production CI/CD
-
-The repository includes separate GitHub Actions workflows for CI and CD.
-
-CI flow:
-
-1. Run on `pull_request`, `push` to `main`, or manual `workflow_dispatch`
-2. Build the Docker image
-3. Smoke-test the server boot in headless mode
-4. On `main`, push image tags for:
-   - `production`
-   - `latest`
-   - the current commit SHA
-
-CD flow:
-
-1. Run automatically after the `CI` workflow succeeds on a `push` to `main`
-2. Can also be run manually with `workflow_dispatch`
-3. SSH into the VPS
-4. Run:
-
-```bash
-docker compose pull
-docker compose up -d
-```
-
-On the VPS, create `/opt/creambuffet/.env`:
+For the GitHub Actions CD workflow, prepare `/opt/creambuffet/.env`:
 
 ```env
 CREAMBUFFET_SERVER_PORT=7000
-CREAMBUFFET_SERVER_MAX_CLIENTS=8
+CREAMBUFFET_SERVER_MAX_CLIENTS=32
 ```
 
 And `/opt/creambuffet/compose.yaml`:
@@ -158,11 +152,31 @@ services:
     restart: unless-stopped
 ```
 
-Required GitHub Actions secrets for CD:
+Client builds must point to the VPS public IP or domain:
 
-- `VPS_HOST`
-- `VPS_USER`
-- `VPS_PORT`
-- `VPS_SSH_KEY`
+```ini
+[server]
+host="game.example.com"
+port=7000
+```
 
-If the package is private, the VPS must be logged in to `ghcr.io` with a token that has package read access before CD can pull the image.
+## CI/CD
+
+The repository includes two GitHub Actions workflows:
+
+- `CI`: builds the Docker image, smoke-tests server boot with
+  `CREAMBUFFET_SERVER_EXIT_AFTER_MS`, and publishes GHCR tags on `main`.
+- `CD`: after a successful `CI` run on a `main` push, or after manual dispatch,
+  SSHs into the VPS, runs `docker compose pull`, and restarts the service.
+
+Required CD secrets:
+
+```text
+VPS_HOST
+VPS_USER
+VPS_PORT
+VPS_SSH_KEY
+```
+
+If the GHCR package is private, the VPS Docker installation must be logged in to
+`ghcr.io` with a token that can read the package.

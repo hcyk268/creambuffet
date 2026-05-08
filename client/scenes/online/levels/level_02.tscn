@@ -24,10 +24,12 @@ sync_id = "level02_spike_01"
 
 [node name="PushBox" parent="." unique_id=1080354286 instance=ExtResource("3_opx33")]
 position = Vector2(-94, 119)
+sync_id = "level02_box_01"
 
 [node name="Button" parent="." unique_id=651816027 node_paths=PackedStringArray("target_platform") instance=ExtResource("3_yjjx0")]
 position = Vector2(-36, 125)
 activation_mode = 1
+sync_id = "level02_button_01"
 target_platform = NodePath("../Terrains/MovingPlatform")
 
 [node name="Goal" parent="." unique_id=777829995 instance=ExtResource("2_6ahyg")]
@@ -40,8 +42,10 @@ tile_map_data = PackedByteArray("AADw//3/AAAAAAAAAADx//3/AAABAAAAAADy//3/AAACAAA
 [node name="MovingPlatform" parent="Terrains" unique_id=1025752984 instance=ExtResource("6_keemd")]
 position = Vector2(15, 119)
 movement_mode = 1
+sync_id = "level02_platform_01"
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=130341638]
+sync_id = "level02_fall_reset_01"
 position = Vector2(22, 224)
 script = ExtResource("6_a3l5x")
 

@@ -10,6 +10,9 @@ signal pushable_control_received(level_index, controls)
 signal level_transition(from_level_index, to_level_index, match_complete, room)
 signal world_event_received(event)
 
+const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
+
+const PROTOCOL_VERSION := 1
 const STATE_DISCONNECTED := "disconnected"
 const STATE_CONNECTING := "connecting"
 const STATE_CONNECTED := "connected"
@@ -120,12 +123,13 @@ func request_public_rooms() -> void:
 	_queue_or_send("list_rooms", {})
 
 
-func create_room(max_players: int, world_count: int, randomized: bool, visibility: String = "public") -> void:
+func create_room(max_players: int, world_count: int, randomized: bool, visibility: String = "public", map_id: String = "beginner") -> void:
 	_queue_or_send("create_room", {
 		"player_name": _display_name,
 		"visibility": visibility,
 		"max_players": max_players,
 		"world_count": world_count,
+		"map_id": map_id,
 		"randomized": randomized,
 	})
 
@@ -157,10 +161,36 @@ func send_player_state(state: Dictionary) -> void:
 
 
 func send_world_event(event: Dictionary) -> void:
+	var action := String(event.get("action", event.get("kind", ""))).strip_edges()
+	var target_id := String(event.get("target_id", event.get("sync_id", ""))).strip_edges()
+	var payload := event.duplicate(true)
+	if target_id.is_empty():
+		target_id = _infer_legacy_target_id(action, payload)
+	payload.erase("kind")
+	payload.erase("sync_id")
+	payload.erase("node_name")
+	payload.erase("peer_id")
+	payload.erase("level_has_key")
+	payload.erase("level_has_door")
+	payload.erase("key_count")
+	send_world_action(action, target_id, payload)
+
+
+func send_world_action(action: String, target_id: String = "", extra: Dictionary = {}) -> void:
 	if connection_state != STATE_CONNECTED:
 		return
 
-	_send_packet("world_event_request", event)
+	var payload := extra.duplicate(true)
+	payload["action"] = action
+	if not target_id.strip_edges().is_empty():
+		payload["target_id"] = target_id.strip_edges()
+
+	if not payload.has("level_id"):
+		var level_id := String(_current_room.get("current_level_id", ""))
+		if not level_id.is_empty():
+			payload["level_id"] = level_id
+
+	_send_packet("world_action_request", payload, _next_request_id("act"))
 
 
 func _bind_multiplayer_signals() -> void:
@@ -313,6 +343,7 @@ func _queue_or_send(message_type: String, payload: Dictionary) -> void:
 		return
 
 	var packet := {
+		"v": PROTOCOL_VERSION,
 		"type": message_type,
 		"payload": payload,
 		"request_id": _next_request_id(message_type),
@@ -342,6 +373,7 @@ func _send_packet(
 	transfer_mode: int = MultiplayerPeer.TRANSFER_MODE_RELIABLE
 ) -> void:
 	var packet := {
+		"v": PROTOCOL_VERSION,
 		"type": message_type,
 		"payload": payload,
 	}
@@ -355,6 +387,9 @@ func _send_packet(
 func _send_packet_dict(packet: Dictionary, transfer_mode: int = MultiplayerPeer.TRANSFER_MODE_RELIABLE) -> void:
 	if _scene_multiplayer == null or connection_state != STATE_CONNECTED:
 		return
+
+	if not packet.has("v"):
+		packet["v"] = PROTOCOL_VERSION
 
 	var send_error := _scene_multiplayer.send_bytes(
 		JSON.stringify(packet).to_utf8_buffer(),
@@ -387,6 +422,21 @@ func _decode_packet(packet: PackedByteArray) -> Dictionary:
 		}
 
 	var decoded: Dictionary = data
+	var version = decoded.get("v", null)
+	if version == null:
+		return {
+			"ok": false,
+			"code": "missing_protocol_version",
+			"message": "Server packet is missing protocol version.",
+		}
+
+	if version != null and int(version) != PROTOCOL_VERSION:
+		return {
+			"ok": false,
+			"code": "unsupported_protocol_version",
+			"message": "Server packet used an unsupported protocol version.",
+		}
+
 	var message_type := String(decoded.get("type", "")).strip_edges()
 	if message_type.is_empty():
 		return {
@@ -405,6 +455,7 @@ func _decode_packet(packet: PackedByteArray) -> Dictionary:
 
 	return {
 		"ok": true,
+		"v": int(version),
 		"type": message_type,
 		"payload": payload,
 		"request_id": decoded.get("request_id", null),
@@ -490,3 +541,31 @@ func _guess_display_name() -> String:
 func _next_request_id(prefix: String) -> String:
 	_request_counter += 1
 	return "%s-%d" % [prefix, _request_counter]
+
+
+func _infer_legacy_target_id(action: String, payload: Dictionary) -> String:
+	var level_id := String(payload.get("level_id", ""))
+	if level_id.is_empty():
+		var map_id := String(_current_room.get("map_id", GameCatalog.DEFAULT_MAP_ID))
+		if payload.has("level_index"):
+			level_id = GameCatalog.get_level_id_by_index(map_id, int(payload.get("level_index", 0)))
+		else:
+			level_id = String(_current_room.get("current_level_id", ""))
+
+	if level_id.is_empty():
+		return ""
+
+	var normalized_action := GameCatalog.normalize_world_action(action)
+	var level_def := GameCatalog.get_level(level_id)
+	var objects_raw = level_def.get("objects", {})
+	if typeof(objects_raw) != TYPE_DICTIONARY:
+		return ""
+
+	var objects: Dictionary = objects_raw
+	for raw_target_id in objects.keys():
+		var target_id := String(raw_target_id)
+		var allowed_actions := GameCatalog.get_allowed_actions(level_id, target_id)
+		if allowed_actions.has(normalized_action) or allowed_actions.has(action.strip_edges().to_lower()):
+			return target_id
+
+	return ""

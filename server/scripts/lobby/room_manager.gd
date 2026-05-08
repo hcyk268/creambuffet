@@ -3,6 +3,7 @@ class_name RoomManager
 
 const PlayerSession = preload("res://scripts/lobby/player_session.gd")
 const Room = preload("res://scripts/lobby/room.gd")
+const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 
 const ROOM_CODE_ALPHABET := [
 	"A", "B", "C", "D", "E", "F", "G", "H",
@@ -79,10 +80,23 @@ func create_room(peer_id: int, requested_name: String, options: Dictionary) -> D
 
 	var is_public := _read_visibility(options)
 	var max_players := _clamp_int(options.get("max_players", MAX_PLAYERS), MIN_PLAYERS, MAX_PLAYERS)
-	var world_count := _clamp_int(options.get("world_count", MIN_WORLDS), MIN_WORLDS, MAX_WORLDS)
+	var map_id := GameCatalog.normalize_map_id(String(options.get("map_id", GameCatalog.DEFAULT_MAP_ID)))
+	if not GameCatalog.has_map(map_id):
+		return _error("unknown_map", "Map is not defined: %s" % map_id)
+
+	var level_ids := GameCatalog.get_level_ids(map_id)
+	if level_ids.is_empty():
+		return _error("empty_map", "Map has no playable levels: %s" % map_id)
+
+	for level_id in level_ids:
+		var validation := GameCatalog.validate_level_rulesets(map_id, level_id)
+		if not bool(validation.get("ok", false)):
+			return validation
+
+	var world_count := level_ids.size()
 	var randomized := bool(options.get("randomized", false))
 
-	var room := Room.new(room_id, peer_id, is_public, max_players, world_count, randomized)
+	var room := Room.new(room_id, peer_id, is_public, max_players, world_count, randomized, map_id, level_ids)
 	var add_error := room.try_add_player(session)
 	if add_error != OK:
 		return _error("room_create_failed", "Server could not add the host to the room.")

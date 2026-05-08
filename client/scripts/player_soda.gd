@@ -132,14 +132,11 @@ func get_network_state(level_index: int) -> Dictionary:
 		flip_h = sprite.flip_h
 
 	return {
-		"peer_id": network_peer_id,
-		"display_name": display_name,
 		"level_index": level_index,
 		"position": _vector_to_packet(global_position),
 		"velocity": _vector_to_packet(velocity),
 		"animation": animation,
 		"flip_h": flip_h,
-		"key_count": key_count,
 	}
 
 
@@ -273,7 +270,12 @@ func _collect_push_intents() -> void:
 		if absf(lateral_push) < 0.01:
 			continue
 
-		_push_intents[body.name] = {
+		var target_id := body.name
+		if "sync_id" in body and not String(body.sync_id).strip_edges().is_empty():
+			target_id = String(body.sync_id).strip_edges()
+
+		_push_intents[target_id] = {
+			"target_id": target_id,
 			"node_name": body.name,
 			"direction": signf(lateral_push),
 			"strength": clampf(absf(velocity.x) / maxf(SPEED, 0.001), 0.35, 1.0),
