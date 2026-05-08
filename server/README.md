@@ -200,13 +200,20 @@ The server catalog defines:
 - Maps and their ordered level IDs.
 - Level scene paths used by the client.
 - Spawn points.
-- Enabled rulesets per level.
+- Map-level default rulesets plus level overrides.
+- Optional player-state defaults that seed match runtime state.
 - Network object definitions and trigger/body shapes.
 - Completion rules.
 - Linked object state changes, such as buttons activating moving platforms.
 
 When a room is created, the server validates that every level in the selected
 map only uses allowed and known rulesets and object kinds.
+
+For concrete authoring examples, see:
+
+```text
+../docs/CATALOG_AUTHORING.md
+```
 
 ## Deployment Notes
 

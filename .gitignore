@@ -53,4 +53,5 @@ creambuffet_deploy_key.pub
 # Debug / crash
 crash.log
 
-docs/
+docs/*
+!docs/CATALOG_AUTHORING.md
