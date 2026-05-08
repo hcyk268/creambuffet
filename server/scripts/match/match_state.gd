@@ -443,7 +443,7 @@ func _reset_level_state() -> void:
 
 
 func _new_player_state() -> Dictionary:
-	return {
+	var player_state := {
 		"alive": true,
 		"at_goal": false,
 		"goal_target_id": "",
@@ -452,6 +452,23 @@ func _new_player_state() -> Dictionary:
 		"velocity": {},
 		"updated_at_ms": 0,
 	}
+	return _merge_state_defaults(player_state, level_definition.get("player_state_defaults", {}))
+
+
+func _merge_state_defaults(base: Dictionary, defaults_raw: Variant) -> Dictionary:
+	var result := base.duplicate(true)
+	if typeof(defaults_raw) != TYPE_DICTIONARY:
+		return result
+
+	var defaults: Dictionary = defaults_raw
+	for raw_key in defaults.keys():
+		var key := String(raw_key)
+		var value = defaults[raw_key]
+		if typeof(value) == TYPE_DICTIONARY and typeof(result.get(key, null)) == TYPE_DICTIONARY:
+			result[key] = _merge_state_defaults(Dictionary(result[key]), value)
+		else:
+			result[key] = value
+	return result
 
 
 func _get_required_object(target_id: String, allowed_kinds: Array, action: String) -> Dictionary:

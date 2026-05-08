@@ -230,6 +230,7 @@ static func _resolve_level_definition(level: Dictionary) -> Dictionary:
 
 	var resolved := level.duplicate(true)
 	resolved["rulesets"] = _merged_rulesets_for_level(level)
+	resolved["player_state_defaults"] = _merged_player_state_defaults(level)
 	return resolved
 
 
@@ -282,6 +283,47 @@ static func _string_lookup(raw_values: Variant) -> Dictionary:
 	for raw_value in raw_values:
 		lookup[String(raw_value)] = true
 	return lookup
+
+
+static func _merged_player_state_defaults(level: Dictionary) -> Dictionary:
+	var map_id := normalize_map_id(String(level.get("map_id", DEFAULT_MAP_ID)))
+	var result := _map_dictionary_field(map_id, "player_state_defaults")
+	result = _merge_dictionaries(result, level.get("player_state_defaults", {}))
+	result = _merge_dictionaries(result, level.get("player_state_overrides", {}))
+	_remove_dictionary_keys(result, level.get("removed_player_state_fields", []))
+	return result
+
+
+static func _map_dictionary_field(map_id: String, field_name: String) -> Dictionary:
+	var map_data := get_map(map_id)
+	var raw_value: Variant = map_data.get(field_name, {})
+	if typeof(raw_value) != TYPE_DICTIONARY:
+		return {}
+	return Dictionary(raw_value).duplicate(true)
+
+
+static func _merge_dictionaries(base: Dictionary, overrides_raw: Variant) -> Dictionary:
+	var result := base.duplicate(true)
+	if typeof(overrides_raw) != TYPE_DICTIONARY:
+		return result
+
+	var overrides: Dictionary = overrides_raw
+	for raw_key in overrides.keys():
+		var key := String(raw_key)
+		var override_value = overrides[raw_key]
+		if typeof(override_value) == TYPE_DICTIONARY and typeof(result.get(key, null)) == TYPE_DICTIONARY:
+			result[key] = _merge_dictionaries(Dictionary(result[key]), override_value)
+		else:
+			result[key] = override_value
+	return result
+
+
+static func _remove_dictionary_keys(target: Dictionary, raw_keys: Variant) -> void:
+	if typeof(raw_keys) != TYPE_ARRAY:
+		return
+
+	for raw_key in raw_keys:
+		target.erase(String(raw_key))
 
 
 static func _rulesets_for_object_kind(object_kind: String) -> Array[String]:
