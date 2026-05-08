@@ -29,6 +29,7 @@ tile_map_data = PackedByteArray("AADw//3/AAAAAAEAAADx//3/AAABAAEAAADy//3/AAACAAE
 
 [node name="Button" parent="Terrains" unique_id=651816027 node_paths=PackedStringArray("target_platform") instance=ExtResource("4_q2hnt")]
 position = Vector2(-184, -67)
+sync_id = "level09_button_01"
 target_platform = NodePath("../../MovingPlatform4")
 
 [node name="Key" parent="." unique_id=1093618448 instance=ExtResource("4_n27h5")]
@@ -37,9 +38,11 @@ sync_id = "level09_key_01"
 
 [node name="Button" parent="." unique_id=183573583 node_paths=PackedStringArray("target_platform") instance=ExtResource("4_q2hnt")]
 position = Vector2(-104, 44)
+sync_id = "level09_button_02"
 target_platform = NodePath("../MovingPlatform2")
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=1343468811]
+sync_id = "level09_fall_reset_01"
 position = Vector2(170, 240)
 script = ExtResource("6_n27h5")
 
@@ -51,19 +54,23 @@ position = Vector2(-152, 59.75)
 movement_mode = 1
 diameter = 32.0
 activation = true
+sync_id = "level09_platform_01"
 
 [node name="MovingPlatform3" parent="." unique_id=2083622816 instance=ExtResource("7_41lp0")]
 position = Vector2(156, 67)
 movement_mode = 1
 diameter = 32.0
 activation = true
+sync_id = "level09_platform_02"
 
 [node name="MovingPlatform2" parent="." unique_id=1834676784 instance=ExtResource("7_41lp0")]
 position = Vector2(-137, -10)
 movement_mode = 1
 diameter = 80.0
+sync_id = "level09_platform_03"
 
 [node name="MovingPlatform4" parent="." unique_id=1340521294 instance=ExtResource("7_41lp0")]
 position = Vector2(137, -12)
 movement_mode = 1
 diameter = 80.0
+sync_id = "level09_platform_04"

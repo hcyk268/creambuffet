@@ -1,5 +1,6 @@
 extends RigidBody2D
 
+@export var sync_id := ""
 @export var online_target_speed := 95.0
 @export var online_acceleration := 14.0
 @export var online_drag := 18.0
@@ -39,3 +40,13 @@ func apply_server_push_control(drive_x: float) -> void:
 	_online_authoritative = true
 	_server_drive_x = clampf(drive_x, -1.0, 1.0)
 	_server_control_updated_at_ms = Time.get_ticks_msec()
+
+
+func apply_server_position(position: Vector2) -> void:
+	_online_authoritative = true
+	global_position = position
+	linear_velocity = Vector2.ZERO
+	angular_velocity = 0.0
+	_server_drive_x = 0.0
+	_server_control_updated_at_ms = Time.get_ticks_msec()
+	sleeping = false

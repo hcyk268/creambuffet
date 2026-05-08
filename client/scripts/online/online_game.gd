@@ -1,6 +1,7 @@
 extends Node2D
 
 const PLAYER_SCENE := preload("res://scenes/player_soda.tscn")
+const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const NETWORK_SEND_INTERVAL := 0.05
 
 @export var levels: Array[PackedScene] = []
@@ -12,6 +13,7 @@ const NETWORK_SEND_INTERVAL := 0.05
 
 var _current_level: Node
 var _current_level_index := -1
+var _current_level_id := ""
 var _network_client: Node
 var _is_online_session := false
 var _remote_container: Node2D
@@ -19,6 +21,7 @@ var _remote_players: Dictionary = {}
 var _send_timer := 0.0
 var _match_complete := false
 var _applying_remote_world_event := false
+var _synced_nodes: Dictionary = {}
 
 
 func _ready() -> void:
@@ -61,6 +64,9 @@ func _physics_process(delta: float) -> void:
 	_send_timer = 0.0
 	if player.has_method("get_network_state"):
 		var state: Dictionary = player.get_network_state(_current_level_index)
+		var pushable_states := _collect_pushable_state_observations()
+		if not pushable_states.is_empty():
+			state["pushable_states"] = pushable_states
 		if player.has_method("consume_push_intents"):
 			var push_intents: Array[Dictionary] = player.consume_push_intents()
 			if not push_intents.is_empty():
@@ -79,13 +85,16 @@ func load_level(index: int) -> void:
 	_current_level = levels[index].instantiate()
 	level_container.add_child(_current_level)
 	_current_level_index = index
+	_current_level_id = _level_id_for_index(index)
 	_match_complete = false
 
 	_setup_player_spawn(_current_level)
 	_reset_remote_players_to_spawn()
+	_register_synced_nodes(_current_level)
 	_connect_level_goals(_current_level)
 	_connect_world_events(_current_level)
 	_configure_pushables_for_online(_current_level)
+	_configure_buttons_for_online(_current_level)
 	_update_level_label(false)
 
 func restart_level() -> void:
@@ -144,13 +153,15 @@ func _on_goal_reached(body: Node, goal_node: Node) -> void:
 	if _match_complete or not _is_online_session or body != player:
 		return
 
+	var target_id := _node_sync_id(goal_node)
+	if target_id.is_empty():
+		push_warning("Ignoring goal_enter request because goal sync_id is missing.")
+		return
+
 	_network_client.send_world_event({
-		"kind": "goal_enter",
-		"level_index": _current_level_index,
-		"sync_id": goal_node.sync_id,
-		"peer_id": _network_client.get_local_peer_id(),
-		"level_has_key": _level_has_key(),
-		"level_has_door": _level_has_door(),
+		"action": "goal_enter",
+		"level_id": _current_level_id,
+		"target_id": target_id,
 	})
 
 
@@ -158,13 +169,15 @@ func _on_goal_left(body: Node, goal_node: Node) -> void:
 	if _match_complete or not _is_online_session or body != player:
 		return
 
+	var target_id := _node_sync_id(goal_node)
+	if target_id.is_empty():
+		push_warning("Ignoring goal_exit request because goal sync_id is missing.")
+		return
+
 	_network_client.send_world_event({
-		"kind": "goal_exit",
-		"level_index": _current_level_index,
-		"sync_id": goal_node.sync_id,
-		"peer_id": _network_client.get_local_peer_id(),
-		"level_has_key": _level_has_key(),
-		"level_has_door": _level_has_door(),
+		"action": "goal_exit",
+		"level_id": _current_level_id,
+		"target_id": target_id,
 	})
 
 
@@ -176,7 +189,7 @@ func _update_level_label(game_complete: bool) -> void:
 	var suffix := ""
 	if _is_online_session:
 		var room: Dictionary = _network_client.get_current_room()
-		suffix = " | Room %s" % String(room.get("room_id", ""))
+		suffix = " | Room %s | %s" % [String(room.get("room_id", "")), _current_level_id]
 
 	level_label.text = "Level %d / %d%s" % [_current_level_index + 1, levels.size(), suffix]
 
@@ -336,8 +349,10 @@ func _on_level_transition(_from_level_index: int, to_level_index: int, match_com
 		_update_level_label(true)
 		return
 
-	if to_level_index != _current_level_index:
-		load_level(to_level_index)
+	var target_level_id := String(room.get("current_level_id", ""))
+	var target_index := _index_for_level_id(target_level_id, to_level_index)
+	if target_index != _current_level_index:
+		load_level(target_index)
 
 	_sync_remote_roster(room)
 	_apply_match_state_snapshot(room)
@@ -387,6 +402,11 @@ func _connect_world_event_nodes(node: Node) -> void:
 		if not node.is_connected("player_death", on_player_death):
 			node.connect("player_death", on_player_death)
 
+	if node.has_signal("pressed_state_changed"):
+		var on_button_state := Callable(self, "_on_button_state_changed").bind(node)
+		if not node.is_connected("pressed_state_changed", on_button_state):
+			node.connect("pressed_state_changed", on_button_state)
+
 
 	for child in node.get_children():
 		if child is Node:
@@ -400,16 +420,15 @@ func _on_key_collected(body: Node, key_node: Node) -> void:
 	if body != player:
 		return
 
-	if not ("sync_id" in key_node) or String(key_node.sync_id).is_empty():
+	var target_id := _node_sync_id(key_node)
+	if target_id.is_empty():
 		push_warning("Ignoring key_collect request because key sync_id is missing.")
 		return
 
 	_network_client.send_world_event({
-		"kind": "key_collect",
-		"level_index": _current_level_index,
-		"sync_id": key_node.sync_id,
-		"level_has_key": _level_has_key(),
-		"level_has_door": _level_has_door(),
+		"action": "collect",
+		"level_id": _current_level_id,
+		"target_id": target_id,
 	})
 
 
@@ -417,48 +436,88 @@ func _on_door_opened(door_node: Node) -> void:
 	if not _is_online_session or _applying_remote_world_event:
 		return
 
+	var target_id := _node_sync_id(door_node)
+	if target_id.is_empty():
+		push_warning("Ignoring open request because door sync_id is missing.")
+		return
+
 	_network_client.send_world_event({
-		"kind": "door_open",
-		"level_index": _current_level_index,
-		"sync_id": door_node.sync_id,
-		"level_has_key": _level_has_key(),
-		"level_has_door": _level_has_door(),
+		"action": "open",
+		"level_id": _current_level_id,
+		"target_id": target_id,
 	})
 
-func _on_player_death(spike_node: Node) -> void:
+func _on_player_death(body: Node, spike_node: Node) -> void:
+	if not _is_online_session or _applying_remote_world_event:
+		return
+	if body != player:
+		return
+
+	var target_id := _node_sync_id(spike_node)
+	if target_id.is_empty():
+		push_warning("Ignoring player_death request because hazard sync_id is missing.")
+		return
+
+	_network_client.send_world_event({
+		"action": "player_death",
+		"level_id": _current_level_id,
+		"target_id": target_id,
+	})
+
+
+func _on_button_state_changed(is_pressed: bool, button_node: Node) -> void:
 	if not _is_online_session or _applying_remote_world_event:
 		return
 
-	_network_client.send_world_event({
-		"kind": "player_death",
-		"level_index": _current_level_index,
-		"sync_id": spike_node.sync_id,
-		"peer_id": _network_client.get_local_peer_id()
+	var target_id := _node_sync_id(button_node)
+	if target_id.is_empty():
+		push_warning("Ignoring button_state request because button sync_id is missing.")
+		return
+
+	_network_client.send_world_action("button_state", target_id, {
+		"level_id": _current_level_id,
+		"pressed": is_pressed,
 	})
 
 func _on_world_event_received(event: Dictionary) -> void:
-	if int(event.get("level_index", _current_level_index)) != _current_level_index:
+	if not _event_matches_current_level(event):
 		return
 
 	_applying_remote_world_event = true
+	var target_id := _event_target_id(event)
+	var event_state: Dictionary = {}
+	var raw_event_state = event.get("state", {})
+	if typeof(raw_event_state) == TYPE_DICTIONARY:
+		event_state = raw_event_state
 	match String(event.get("kind", "")):
 		"key_collected":
-			_apply_key_collected(String(event.get("sync_id", "")),int(event.get("peer_id", -1)))
+			_apply_key_collected(target_id, int(event.get("peer_id", -1)))
 		"door_opened":
-			_apply_door_opened(String(event.get("sync_id", "")), int(event.get("peer_id", -1)))
+			_apply_door_opened(target_id, int(event.get("peer_id", -1)))
 		"player_died":
 			_apply_player_died(int(event.get("peer_id", -1)))
 		"player_respawned":
 			_apply_player_respawned(int(event.get("peer_id", -1)))
 		"goal_entered":
-			_apply_goal_enter(String(event.get("sync_id", "")),int(event.get("peer_id", -1)))
+			_apply_goal_enter(target_id, int(event.get("peer_id", -1)))
 		"goal_exited":
-			_apply_goal_exit(String(event.get("sync_id", "")),int(event.get("peer_id", -1)))
+			_apply_goal_exit(target_id, int(event.get("peer_id", -1)))
+		"button_state":
+			_apply_button_state(target_id, bool(event.get("pressed", event_state.get("pressed", false))))
+		"push_box_state":
+			_apply_push_box_state(target_id, event)
+		"object_state_changed":
+			_apply_object_state_changed(target_id, event_state)
 	_applying_remote_world_event = false
 
 func _find_node_by_sync_id(sync_id: String) -> Node:
 	if not is_instance_valid(_current_level) or sync_id.is_empty():
 		return null
+
+	if _synced_nodes.has(sync_id):
+		var registered := _synced_nodes[sync_id] as Node
+		if is_instance_valid(registered):
+			return registered
 
 	for node in _current_level.get_children():
 		var found = _find_node_recursive(node, sync_id)
@@ -518,6 +577,49 @@ func _apply_goal_exit(sync_id: String, peer_id: int) -> void:
 		return
 	print("You left goal %s", sync_id)
 
+func _apply_button_state(sync_id: String, is_pressed: bool) -> void:
+	var button_node := _find_node_by_sync_id(sync_id)
+	if button_node != null and button_node.has_method("apply_server_pressed"):
+		button_node.apply_server_pressed(is_pressed)
+
+
+func _apply_object_state_changed(sync_id: String, state: Dictionary) -> void:
+	var node := _find_node_by_sync_id(sync_id)
+	if node == null:
+		return
+
+	if state.has("active") and node.has_method("set_activation"):
+		node.set_activation(bool(state.get("active", false)))
+	if state.has("opened") and node.has_method("set_open"):
+		node.set_open(bool(state.get("opened", false)))
+	if state.has("pressed") and node.has_method("apply_server_pressed"):
+		node.apply_server_pressed(bool(state.get("pressed", false)))
+
+
+func _apply_push_box_state(sync_id: String, event: Dictionary) -> void:
+	var node := _find_node_by_sync_id(sync_id)
+	if node == null:
+		return
+
+	var raw_position = event.get("position", {})
+	if typeof(raw_position) != TYPE_DICTIONARY:
+		var raw_state = event.get("state", {})
+		if typeof(raw_state) == TYPE_DICTIONARY:
+			raw_position = Dictionary(raw_state).get("position", {})
+
+	if typeof(raw_position) != TYPE_DICTIONARY:
+		return
+
+	var fallback := Vector2.ZERO
+	if node is Node2D:
+		fallback = (node as Node2D).global_position
+	var next_position := _packet_to_vector(raw_position, fallback)
+	if node.has_method("apply_server_position"):
+		node.apply_server_position(next_position)
+	elif node is Node2D:
+		(node as Node2D).global_position = next_position
+
+
 func _apply_match_state_snapshot(room: Dictionary) -> void:
 	if room.is_empty() or not is_instance_valid(_current_level):
 		return
@@ -528,16 +630,45 @@ func _apply_match_state_snapshot(room: Dictionary) -> void:
 
 	var match_state: Dictionary = match_state_raw
 	_applying_remote_world_event = true
-	var is_door_opened := bool(match_state.get("door_opened", false))
-	for node in _find_nodes_in_group(_current_level, "level_door"):
-		if not node.has_method("set_open"):
-			continue
-		node.set_open(is_door_opened)
+	var objects_raw = match_state.get("objects", {})
+	if typeof(objects_raw) == TYPE_DICTIONARY:
+		var object_states: Dictionary = objects_raw
+		for raw_target_id in object_states.keys():
+			var target_id := String(raw_target_id)
+			var object_raw: Variant = object_states.get(target_id, {})
+			if typeof(object_raw) != TYPE_DICTIONARY:
+				continue
+			var object_data: Dictionary = object_raw
+			var state_raw: Variant = object_data.get("state", {})
+			var state: Dictionary = {}
+			if typeof(state_raw) == TYPE_DICTIONARY:
+				state = state_raw
+			match String(object_data.get("kind", "")):
+				"key":
+					if bool(state.get("collected", false)):
+						var key_node := _find_node_by_sync_id(target_id)
+						if is_instance_valid(key_node):
+							key_node.queue_free()
+				"door", "exit_door":
+					var door_node := _find_node_by_sync_id(target_id)
+					if door_node != null and door_node.has_method("set_open"):
+						door_node.set_open(bool(state.get("opened", false)))
+				"button", "pressure_plate":
+					_apply_button_state(target_id, bool(state.get("pressed", false)))
+				"push_box":
+					_apply_push_box_state(target_id, {"position": state.get("position", {})})
+				"moving_platform":
+					_apply_object_state_changed(target_id, state)
+	else:
+		var is_door_opened := bool(match_state.get("door_opened", false))
+		for node in _find_nodes_in_group(_current_level, "level_door"):
+			if node.has_method("set_open"):
+				node.set_open(is_door_opened)
 
-	if bool(match_state.get("key_collected", false)):
-		for node in _find_nodes_in_group(_current_level, "level_key"):
-			if is_instance_valid(node):
-				node.queue_free()
+		if bool(match_state.get("key_collected", false)):
+			for node in _find_nodes_in_group(_current_level, "level_key"):
+				if is_instance_valid(node):
+					node.queue_free()
 
 	var players_raw = match_state.get("players", {})
 	if typeof(players_raw) == TYPE_DICTIONARY:
@@ -565,6 +696,12 @@ func _configure_pushables_for_online(level_root: Node) -> void:
 			node.set_online_authoritative(true)
 
 
+func _configure_buttons_for_online(level_root: Node) -> void:
+	for node in _find_nodes_in_group(level_root, "level_button"):
+		if node.has_method("set_online_authoritative"):
+			node.set_online_authoritative(true)
+
+
 func _apply_pushable_controls(raw_controls) -> void:
 	if typeof(raw_controls) != TYPE_ARRAY or not is_instance_valid(_current_level):
 		return
@@ -574,11 +711,39 @@ func _apply_pushable_controls(raw_controls) -> void:
 			continue
 
 		var control: Dictionary = raw_control
-		var body := _find_level_node(String(control.get("node_name", "")))
+		var body := _find_node_by_sync_id(String(control.get("target_id", "")))
+		if body == null:
+			body = _find_level_node(String(control.get("node_name", "")))
 		if body == null or not body.has_method("apply_server_push_control"):
 			continue
 
 		body.apply_server_push_control(float(control.get("drive_x", 0.0)))
+
+
+func _collect_pushable_state_observations() -> Array[Dictionary]:
+	var states: Array[Dictionary] = []
+	if not is_instance_valid(_current_level):
+		return states
+
+	for node in _find_nodes_in_group(_current_level, "pushable"):
+		if not (node is Node2D):
+			continue
+
+		var body := node as Node2D
+		if player.global_position.distance_to(body.global_position) > 128.0:
+			continue
+
+		var target_id := _node_sync_id(body)
+		if target_id.is_empty():
+			target_id = body.name
+
+		states.append({
+			"target_id": target_id,
+			"node_name": body.name,
+			"position": _vector_to_packet(body.global_position),
+		})
+
+	return states
 
 
 func _find_level_node(node_name: String) -> Node:
@@ -598,6 +763,100 @@ func _level_has_key() -> bool:
 
 func _level_has_door() -> bool:
 	return is_instance_valid(_current_level) and not _find_nodes_in_group(_current_level, "level_door").is_empty()
+
+
+func _level_id_for_index(index: int) -> String:
+	if _is_online_session and _network_client != null:
+		var room: Dictionary = _network_client.get_current_room()
+		var level_ids = room.get("level_ids", [])
+		if typeof(level_ids) == TYPE_ARRAY and index >= 0 and index < level_ids.size():
+			return String(level_ids[index])
+		var map_id := String(room.get("map_id", GameCatalog.DEFAULT_MAP_ID))
+		var catalog_level_id := GameCatalog.get_level_id_by_index(map_id, index)
+		if not catalog_level_id.is_empty():
+			return catalog_level_id
+
+	return GameCatalog.get_level_id_by_index(GameCatalog.DEFAULT_MAP_ID, index)
+
+
+func _index_for_level_id(level_id: String, fallback_index: int) -> int:
+	if level_id.is_empty():
+		return fallback_index
+
+	if _is_online_session and _network_client != null:
+		var room: Dictionary = _network_client.get_current_room()
+		var level_ids = room.get("level_ids", [])
+		if typeof(level_ids) == TYPE_ARRAY:
+			for index in range(level_ids.size()):
+				if String(level_ids[index]) == level_id:
+					return index
+		var catalog_index := GameCatalog.get_level_index(String(room.get("map_id", GameCatalog.DEFAULT_MAP_ID)), level_id)
+		if catalog_index >= 0:
+			return catalog_index
+
+	return fallback_index
+
+
+func _event_matches_current_level(event: Dictionary) -> bool:
+	var event_level_id := String(event.get("level_id", ""))
+	if not event_level_id.is_empty():
+		return event_level_id == _current_level_id
+	return int(event.get("level_index", _current_level_index)) == _current_level_index
+
+
+func _event_target_id(event: Dictionary) -> String:
+	return String(event.get("target_id", event.get("sync_id", "")))
+
+
+func _node_sync_id(node: Node) -> String:
+	if node != null and "sync_id" in node:
+		return String(node.sync_id).strip_edges()
+	return ""
+
+
+func _register_synced_nodes(level_root: Node) -> void:
+	_synced_nodes.clear()
+	_collect_synced_nodes(level_root)
+	_warn_missing_catalog_nodes()
+
+
+func _collect_synced_nodes(node: Node) -> void:
+	if "sync_id" in node:
+		var sync_id := String(node.sync_id).strip_edges()
+		if not sync_id.is_empty():
+			if _synced_nodes.has(sync_id):
+				push_warning("Duplicate sync_id in level %s: %s" % [_current_level_id, sync_id])
+			_synced_nodes[sync_id] = node
+
+	for child in node.get_children():
+		if child is Node:
+			_collect_synced_nodes(child)
+
+
+func _warn_missing_catalog_nodes() -> void:
+	if _current_level_id.is_empty():
+		return
+
+	var level_def := GameCatalog.get_level(_current_level_id)
+	var objects_raw = level_def.get("objects", {})
+	if typeof(objects_raw) != TYPE_DICTIONARY:
+		return
+
+	var objects: Dictionary = objects_raw
+	for raw_target_id in objects.keys():
+		var target_id := String(raw_target_id)
+		if not _synced_nodes.has(target_id):
+			push_warning("Catalog target_id %s is not present as sync_id in %s." % [target_id, _current_level_id])
+
+	var checked_nodes: Dictionary = {}
+	for group_name in ["level_key", "level_door", "level_goal", "level_hazard", "pushable", "level_button"]:
+		for node in _find_nodes_in_group(_current_level, StringName(group_name)):
+			var instance_id := node.get_instance_id()
+			if checked_nodes.has(instance_id):
+				continue
+			checked_nodes[instance_id] = true
+			if _node_sync_id(node).is_empty():
+				push_warning("Network-relevant node %s is missing sync_id in %s." % [str(node.get_path()), _current_level_id])
 
 
 func _vector_to_packet(value: Vector2) -> Dictionary:

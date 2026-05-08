@@ -8,14 +8,18 @@ enum ActivationMode {
 }
 
 @export var activation_mode: ActivationMode = ActivationMode.PRESS_ONCE
+@export var sync_id := ""
 @export var target_platform: AnimatableBody2D
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 var is_pressed := false
 var _tracked_bodies: Dictionary = {}
+var _online_authoritative := false
+var _applying_server_state := false
 
 
 func _ready() -> void:
+	add_to_group("level_button")
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	call_deferred("_sync_overlaps")
@@ -52,12 +56,14 @@ func _update_pressed_state() -> void:
 		return
 
 	is_pressed = next_pressed
-	animated_sprite.play("pressed" if is_pressed else "released")
-	_update_target_platform_state()
+	_apply_pressed_state()
 	pressed_state_changed.emit(is_pressed)
 
 
 func _update_target_platform_state() -> void:
+	if _online_authoritative and not _applying_server_state:
+		return
+
 	if target_platform == null:
 		return
 
@@ -68,3 +74,19 @@ func _update_target_platform_state() -> void:
 					target_platform.set_activation(true)
 			ActivationMode.WHILE_HELD:
 				target_platform.set_activation(is_pressed)
+
+
+func apply_server_pressed(pressed: bool) -> void:
+	_applying_server_state = true
+	is_pressed = pressed
+	_apply_pressed_state()
+	_applying_server_state = false
+
+
+func set_online_authoritative(enabled: bool) -> void:
+	_online_authoritative = enabled
+
+
+func _apply_pressed_state() -> void:
+	animated_sprite.play("pressed" if is_pressed else "released")
+	_update_target_platform_state()

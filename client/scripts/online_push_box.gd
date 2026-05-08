@@ -1,5 +1,6 @@
 extends AnimatableBody2D
 
+@export var sync_id := ""
 @export var online_target_speed := 125.0
 @export var online_acceleration := 22.0
 @export var online_drag := 12.0
@@ -14,6 +15,7 @@ var _control_updated_at_ms := 0
 
 
 func _ready() -> void:
+	sync_to_physics = false
 	add_to_group("pushable")
 
 
@@ -50,6 +52,13 @@ func set_online_authoritative(_enabled: bool) -> void:
 
 func apply_server_push_control(drive_x: float) -> void:
 	_drive_x = clampf(drive_x, -1.0, 1.0)
+	_control_updated_at_ms = Time.get_ticks_msec()
+
+
+func apply_server_position(position: Vector2) -> void:
+	global_position = position
+	_velocity = Vector2.ZERO
+	_drive_x = 0.0
 	_control_updated_at_ms = Time.get_ticks_msec()
 
 

@@ -31,6 +31,7 @@ position = Vector2(35, -130)
 sync_id = "level08_key_01"
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=1074389878]
+sync_id = "level08_fall_reset_01"
 position = Vector2(184, 233)
 script = ExtResource("5_80sek")
 

@@ -27,6 +27,8 @@ enum MovementMode {
 	get:
 		return _activation
 
+@export var sync_id := ""
+
 @onready var platform_state: AnimationPlayer = $PlatformState
 
 const MOVE_SPEED := 45.0
@@ -49,6 +51,7 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	add_to_group("moving_platform")
 	_origin = global_position
 	_apply_activation_state()
 	queue_redraw()

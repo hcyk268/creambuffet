@@ -17,9 +17,11 @@ position = Vector2(-170, 30)
 
 [node name="PushBox" parent="." unique_id=1080354286 instance=ExtResource("2_j6e47")]
 position = Vector2(-89, 119)
+sync_id = "level04_box_01"
 
 [node name="PushBox2" parent="." unique_id=197026178 instance=ExtResource("2_j6e47")]
 position = Vector2(-40, 71)
+sync_id = "level04_box_02"
 
 [node name="Key" parent="." unique_id=1093618448 instance=ExtResource("2_nanf4")]
 position = Vector2(94, 35)
@@ -37,6 +39,7 @@ position = Vector2(171, 117)
 sync_id = "level04_door_01"
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=727390906]
+sync_id = "level04_fall_reset_01"
 position = Vector2(170, 240)
 script = ExtResource("6_ypi4k")
 

@@ -17,6 +17,7 @@ position = Vector2(-170, 30)
 
 [node name="PushBox" parent="." unique_id=1080354286 instance=ExtResource("2_pe0ra")]
 position = Vector2(-94, 119)
+sync_id = "level05_box_01"
 
 [node name="Goal" parent="." unique_id=777829995 instance=ExtResource("3_hqfam")]
 sync_id = "level05_goal_01"
