@@ -52,6 +52,20 @@ Run the client directly:
 godot --path client
 ```
 
+## Catalog Authoring
+
+Online maps and levels are authored through the shared gameplay catalog.
+
+- Authoring guide: `docs/CATALOG_AUTHORING.md`
+- Client catalog: `client/data/game_catalog.json`
+- Server catalog: `server/data/game_catalog.json`
+
+The catalog now supports:
+
+- map-level `default_rulesets`
+- level-level `extra_rulesets` and `removed_rulesets`
+- map/level `player_state_defaults` for seeding level-specific player state
+
 ## Environment
 
 Server runtime variables:

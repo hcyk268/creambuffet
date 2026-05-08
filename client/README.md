@@ -91,6 +91,12 @@ data/game_catalog.json
 The server has its own copy at `server/data/game_catalog.json`. Keep both files
 identical for online play.
 
+Catalog authoring examples and the current override model are documented in:
+
+```text
+../docs/CATALOG_AUTHORING.md
+```
+
 Network-relevant level nodes need a `sync_id` that matches a catalog
 `target_id`. This currently applies to keys, doors, goals, hazards or fall
 reset triggers, push boxes, buttons, pressure plates, and linked moving
