@@ -10,6 +10,7 @@ const ButtonPlatformMechanic = preload("res://scripts/match/mechanics/button_pla
 
 const PUSH_BOX_OBSERVE_PADDING := 24.0
 const PUSH_BOX_SYNC_EPSILON := 0.5
+const HAZARD_RESPAWN_REARM_MS := 250
 
 var map_id := GameCatalog.DEFAULT_MAP_ID
 var current_level := 0
@@ -82,10 +83,52 @@ func update_player_runtime(peer_id: int, payload: Dictionary) -> void:
 		return
 
 	var player_state: Dictionary = players[peer_id]
+	var previous_position: Dictionary = {}
+	var previous_position_raw = player_state.get("position", {})
+	if typeof(previous_position_raw) == TYPE_DICTIONARY:
+		previous_position = Dictionary(previous_position_raw).duplicate(true)
+	player_state["previous_position"] = previous_position
 	player_state["position"] = _packet_vector(payload.get("position", player_state.get("position", {})))
 	player_state["velocity"] = _packet_vector(payload.get("velocity", player_state.get("velocity", {})))
 	player_state["updated_at_ms"] = Time.get_ticks_msec()
 	players[peer_id] = player_state
+
+
+func apply_automatic_fall_reset(peer_id: int) -> Array[Dictionary]:
+	var events: Array[Dictionary] = []
+	if not has_player(peer_id):
+		return events
+	if not is_player_alive(peer_id):
+		return events
+
+	var player_state: Dictionary = players[peer_id]
+	if Time.get_ticks_msec() < int(player_state.get("hazard_rearm_at_ms", 0)):
+		return events
+
+	var hazard_handler: Callable = _mechanic_handlers.get("hazard_respawn.player_death", Callable())
+	if not hazard_handler.is_valid():
+		return events
+
+	for raw_target_id in objects.keys():
+		var target_id := String(raw_target_id)
+		var object_data := _get_object(target_id)
+		if object_data.is_empty():
+			continue
+		if String(object_data.get("kind", "")) != "fall_reset":
+			continue
+		if not can_player_interact_with_trigger(peer_id, target_id) and not did_player_cross_trigger_since_last_update(peer_id, target_id):
+			continue
+
+		var result = hazard_handler.call(self, peer_id, target_id, {})
+		if typeof(result) != TYPE_DICTIONARY or not bool(result.get("ok", false)):
+			return events
+
+		var hazard_events_raw = result.get("events", [])
+		if typeof(hazard_events_raw) == TYPE_ARRAY:
+			events.assign(hazard_events_raw)
+		return events
+
+	return events
 
 
 func apply_push_box_observations(peer_id: int, raw_states) -> Array[Dictionary]:
@@ -111,26 +154,24 @@ func apply_push_box_observations(peer_id: int, raw_states) -> Array[Dictionary]:
 			continue
 
 		var observed_position := _packet_vector(raw_position)
-		if not can_player_observe_push_box(peer_id, target_id, observed_position):
-			continue
-
 		var object_data: Dictionary = object_state
 		var object_runtime_state: Dictionary = object_data.get("state", {})
 		var previous_position: Dictionary = {}
 		var raw_previous_position: Variant = object_runtime_state.get("position", {})
 		if typeof(raw_previous_position) == TYPE_DICTIONARY:
 			previous_position = Dictionary(raw_previous_position).duplicate(true)
-		if _positions_match(previous_position, observed_position, PUSH_BOX_SYNC_EPSILON):
-			continue
+		if not _positions_match(previous_position, observed_position, PUSH_BOX_SYNC_EPSILON):
+			object_runtime_state["position"] = observed_position
+			object_runtime_state["updated_by_peer_id"] = peer_id
+			object_data["state"] = object_runtime_state
+			objects[target_id] = object_data
 
-		object_runtime_state["position"] = observed_position
-		object_runtime_state["updated_by_peer_id"] = peer_id
-		object_data["state"] = object_runtime_state
-		objects[target_id] = object_data
-
-		events.append(_event("push_box_state", "push_box_state", peer_id, target_id, {
-			"position": observed_position.duplicate(true),
-		}))
+			events.append(_event("push_box_state", "push_box_state", peer_id, target_id, {
+				"position": observed_position.duplicate(true),
+			}))
+		var button_platform = _mechanics.get("button_platform", null)
+		if button_platform != null and button_platform.has_method("refresh_button_states"):
+			events.append_array(button_platform.refresh_button_states(self, peer_id))
 
 	return events
 
@@ -447,7 +488,9 @@ func _new_player_state() -> Dictionary:
 		"alive": true,
 		"at_goal": false,
 		"goal_target_id": "",
+		"hazard_rearm_at_ms": 0,
 		"key_count": 0,
+		"previous_position": {},
 		"position": {},
 		"velocity": {},
 		"updated_at_ms": 0,
@@ -573,7 +616,38 @@ func _player_shape(peer_id: int) -> Dictionary:
 
 
 func _player_bounding_rect(peer_id: int) -> Rect2:
-	var shape := _player_shape(peer_id)
+	var player_state := get_player_state(peer_id)
+	if player_state.is_empty():
+		return Rect2()
+	return _player_bounding_rect_for_position(player_state.get("position", {}))
+
+
+func did_player_cross_trigger_since_last_update(peer_id: int, target_id: String) -> bool:
+	if not has_player(peer_id):
+		return false
+
+	var player_state := get_player_state(peer_id)
+	if player_state.is_empty():
+		return false
+
+	var current_rect := _player_bounding_rect_for_position(player_state.get("position", {}))
+	if current_rect.size == Vector2.ZERO:
+		return false
+
+	var previous_rect := _player_bounding_rect_for_position(player_state.get("previous_position", {}))
+	if previous_rect.size == Vector2.ZERO:
+		return false
+
+	var trigger_shape := _shape_for_object(target_id, "trigger")
+	if trigger_shape.is_empty():
+		return false
+
+	var trigger_rect := _shape_rect(trigger_shape).grow(float(trigger_shape.get("margin", 0.0)))
+	return previous_rect.merge(current_rect).intersects(trigger_rect)
+
+
+func _player_bounding_rect_for_position(raw_position: Variant) -> Rect2:
+	var shape := _player_shape_for_position(raw_position)
 	if shape.is_empty():
 		return Rect2()
 
@@ -586,6 +660,27 @@ func _player_bounding_rect(peer_id: int) -> Rect2:
 		Vector2(float(center.get("x", 0.0)) - radius, float(center.get("y", 0.0)) - radius),
 		Vector2(radius * 2.0, radius * 2.0)
 	)
+
+
+func _player_shape_for_position(raw_position: Variant) -> Dictionary:
+	if typeof(raw_position) != TYPE_DICTIONARY:
+		return {}
+
+	var template := GameCatalog.get_player_template()
+	var shape: Dictionary = template.get("shape", {})
+	if shape.is_empty():
+		return {}
+
+	var base_position: Dictionary = Dictionary(raw_position).duplicate(true)
+	var offset: Dictionary = Dictionary(shape.get("offset", {})).duplicate(true)
+	return {
+		"type": String(shape.get("type", "")),
+		"center": _packet_vec(
+			float(base_position.get("x", 0.0)) + float(offset.get("x", 0.0)),
+			float(base_position.get("y", 0.0)) + float(offset.get("y", 0.0))
+		),
+		"radius": float(shape.get("radius", 0.0)),
+	}
 
 
 func _shape_for_object(target_id: String, shape_field: String) -> Dictionary:
