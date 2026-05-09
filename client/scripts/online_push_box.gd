@@ -8,6 +8,8 @@ extends AnimatableBody2D
 @export var max_fall_speed := 900.0
 @export var stacked_contact_tolerance := 2.0
 @export var stacked_overlap_margin := 2.0
+@export var server_snap_distance := 24.0
+@export var server_correction_blend := 0.35
 
 var _drive_x := 0.0
 var _velocity := Vector2.ZERO
@@ -56,10 +58,11 @@ func apply_server_push_control(drive_x: float) -> void:
 
 
 func apply_server_position(position: Vector2) -> void:
-	global_position = position
-	_velocity = Vector2.ZERO
-	_drive_x = 0.0
-	_control_updated_at_ms = Time.get_ticks_msec()
+	var delta := position - global_position
+	if delta.length() > server_snap_distance:
+		global_position = position
+	else:
+		global_position += delta * server_correction_blend
 
 
 func _carry_stacked_pushables(delta_x: float, moved_ids: Dictionary) -> void:
