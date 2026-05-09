@@ -600,7 +600,7 @@
 		  "kind": "button",
 		  "state": {"pressed": false},
 		  "transform": {"position": {"x": 95.0, "y": 205.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 1.0}, "size": {"x": 10.0, "y": 4.0}, "margin": 3.0}
+		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": -4.0}, "size": {"x": 18.0, "y": 16.0}, "margin": 4.0}
 		},
 		"level10_platform_01": {"kind": "moving_platform", "state": {"active": false}, "transform": {"position": {"x": 169.0, "y": 94.0}}}
 	  },

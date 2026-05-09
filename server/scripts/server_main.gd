@@ -217,8 +217,10 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 
 	var pushable_controls: Array[Dictionary] = []
 	var push_box_events: Array[Dictionary] = []
+	var hazard_events: Array[Dictionary] = []
 	if room.match_state != null:
 		room.match_state.update_player_runtime(peer_id, payload)
+		hazard_events = room.match_state.apply_automatic_fall_reset(peer_id)
 		push_box_events = room.match_state.apply_push_box_observations(peer_id, payload.get("pushable_states", []))
 		var server_player_state := room.match_state.get_player_state(peer_id)
 		if not server_player_state.is_empty():
@@ -250,13 +252,29 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 	for event in push_box_events:
 		if typeof(event) != TYPE_DICTIONARY:
 			continue
+		var event_kind := String(Dictionary(event).get("kind", ""))
+		var transfer_mode := MultiplayerPeer.TRANSFER_MODE_RELIABLE
+		if event_kind == "push_box_state":
+			transfer_mode = MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED
 		_send_room_message(
 			room,
 			"world_event",
 			{"event": event},
 			-1,
 			null,
-			MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED
+			transfer_mode
+		)
+
+	for event in hazard_events:
+		if typeof(event) != TYPE_DICTIONARY:
+			continue
+		_send_room_message(
+			room,
+			"world_event",
+			{"event": event},
+			-1,
+			null,
+			MultiplayerPeer.TRANSFER_MODE_RELIABLE
 		)
 
 

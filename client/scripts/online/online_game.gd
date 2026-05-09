@@ -279,16 +279,17 @@ func _sync_remote_roster(room: Dictionary = {}) -> void:
 		if seen.has(peer_id):
 			continue
 
-		var remote := _remote_players.get(peer_id) as Node
-		if is_instance_valid(remote):
-			remote.queue_free()
+		var remote = _remote_players.get(peer_id)
+		if is_instance_valid(remote) and remote is Node:
+			(remote as Node).queue_free()
 		_remote_players.erase(peer_id)
 
 
 func _ensure_remote_player(peer_id: int, player_name: String = "") -> CharacterBody2D:
-	var existing := _remote_players.get(peer_id) as CharacterBody2D
-	if is_instance_valid(existing):
-		return existing
+	var existing = _remote_players.get(peer_id)
+	if is_instance_valid(existing) and existing is CharacterBody2D:
+		return existing as CharacterBody2D
+	_remote_players.erase(peer_id)
 
 	var remote := PLAYER_SCENE.instantiate() as CharacterBody2D
 	remote.name = "RemotePlayer_%d" % peer_id
@@ -305,16 +306,16 @@ func _ensure_remote_player(peer_id: int, player_name: String = "") -> CharacterB
 
 func _reset_remote_players_to_spawn() -> void:
 	for value in _remote_players.values():
-		var remote := value as CharacterBody2D
-		if is_instance_valid(remote):
+		if is_instance_valid(value) and value is CharacterBody2D:
+			var remote := value as CharacterBody2D
 			remote.global_position = player.spawn_position
 			remote.velocity = Vector2.ZERO
 
 
 func _remove_remote_players() -> void:
 	for value in _remote_players.values():
-		var remote := value as Node
-		if is_instance_valid(remote):
+		if is_instance_valid(value) and value is Node:
+			var remote := value as Node
 			remote.queue_free()
 	_remote_players.clear()
 
@@ -523,9 +524,10 @@ func _find_node_by_sync_id(sync_id: String) -> Node:
 		return null
 
 	if _synced_nodes.has(sync_id):
-		var registered := _synced_nodes[sync_id] as Node
-		if is_instance_valid(registered):
-			return registered
+		var registered = _synced_nodes[sync_id]
+		if is_instance_valid(registered) and registered is Node:
+			return registered as Node
+		_synced_nodes.erase(sync_id)
 
 	for node in _current_level.get_children():
 		var found = _find_node_recursive(node, sync_id)
@@ -548,6 +550,7 @@ func _find_node_recursive(node: Node, sync_id: String) -> Node:
 func _apply_key_collected(sync_id: String, peer_id: int) -> void:
 	var key_node := _find_node_by_sync_id(sync_id)
 	if is_instance_valid(key_node):
+		_synced_nodes.erase(sync_id)
 		key_node.queue_free()
 		
 	if peer_id == _network_client.get_local_peer_id():
@@ -656,6 +659,7 @@ func _apply_match_state_snapshot(room: Dictionary) -> void:
 					if bool(state.get("collected", false)):
 						var key_node := _find_node_by_sync_id(target_id)
 						if is_instance_valid(key_node):
+							_synced_nodes.erase(target_id)
 							key_node.queue_free()
 				"door", "exit_door":
 					var door_node := _find_node_by_sync_id(target_id)
@@ -696,7 +700,11 @@ func _apply_match_state_snapshot(room: Dictionary) -> void:
 func _player_for_peer(peer_id: int) -> CharacterBody2D:
 	if peer_id == _network_client.get_local_peer_id():
 		return player
-	return _remote_players.get(peer_id) as CharacterBody2D
+	var remote = _remote_players.get(peer_id)
+	if is_instance_valid(remote) and remote is CharacterBody2D:
+		return remote as CharacterBody2D
+	_remote_players.erase(peer_id)
+	return null
 
 func _configure_pushables_for_online(level_root: Node) -> void:
 	for node in _find_nodes_in_group(level_root, "pushable"):
@@ -738,8 +746,6 @@ func _collect_pushable_state_observations() -> Array[Dictionary]:
 			continue
 
 		var body := node as Node2D
-		if player.global_position.distance_to(body.global_position) > 128.0:
-			continue
 
 		var target_id := _node_sync_id(body)
 		if target_id.is_empty():

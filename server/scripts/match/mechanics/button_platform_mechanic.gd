@@ -7,6 +7,28 @@ func apply_button_state(match_state, peer_id: int, target_id: String, payload: D
 		return object_state
 
 	var object_data: Dictionary = object_state["object"]
+	return _apply_button_state_for_object(match_state, peer_id, target_id, object_data)
+
+
+func refresh_button_states(match_state, peer_id: int) -> Array[Dictionary]:
+	var events: Array[Dictionary] = []
+	for raw_target_id in match_state.objects.keys():
+		var target_id := String(raw_target_id)
+		var object_data: Dictionary = match_state._get_object(target_id)
+		if object_data.is_empty():
+			continue
+		var kind := String(object_data.get("kind", ""))
+		if kind != "button" and kind != "pressure_plate":
+			continue
+
+		var result: Dictionary = _apply_button_state_for_object(match_state, peer_id, target_id, object_data)
+		var raw_events: Variant = result.get("events", [])
+		if typeof(raw_events) == TYPE_ARRAY:
+			events.append_array(raw_events)
+	return events
+
+
+func _apply_button_state_for_object(match_state, peer_id: int, target_id: String, object_data: Dictionary) -> Dictionary:
 	var state: Dictionary = object_data.get("state", {})
 	var pressed: bool = match_state.compute_button_pressed(target_id)
 	if bool(state.get("pressed", false)) == pressed:
