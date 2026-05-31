@@ -153,6 +153,17 @@ func start_match() -> void:
 	_queue_or_send("start_match", {})
 
 
+func set_room_map(map_id: String) -> void:
+	var normalized := map_id.strip_edges().to_lower()
+	if normalized.is_empty():
+		error_received.emit("missing_map_id", "Map id is required.")
+		return
+
+	_queue_or_send("set_room_map", {
+		"map_id": normalized,
+	})
+
+
 func send_player_state(state: Dictionary) -> void:
 	if connection_state != STATE_CONNECTED:
 		return
@@ -251,7 +262,7 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			pass
 		"room_list":
 			_set_public_rooms(payload.get("rooms", []))
-		"room_created", "room_joined", "room_updated":
+		"room_created", "room_joined", "room_updated", "room_map_updated":
 			_set_current_room(payload.get("room", {}))
 		"room_left":
 			_set_current_room({})

@@ -78,6 +78,9 @@
     "beginner": {
       "map_id": "beginner",
       "title": "Beginner",
+      "selectable": true,
+      "wip": false,
+      "thumbnail_path": "res://assets/sprites/maps/beginner_map.png",
       "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
       "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
       "levels": [
@@ -92,6 +95,46 @@
         "beginner_09",
         "beginner_10"
       ]
+    },
+    "ice": {
+      "map_id": "ice",
+      "title": "Ice World",
+      "selectable": false,
+      "wip": true,
+      "thumbnail_path": "res://assets/sprites/maps/ice_map.png",
+      "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
+      "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
+      "levels": ["beginner_01"]
+    },
+    "desert": {
+      "map_id": "desert",
+      "title": "Desert Ruins",
+      "selectable": false,
+      "wip": true,
+      "thumbnail_path": "res://assets/sprites/maps/desert_map.png",
+      "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
+      "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
+      "levels": ["beginner_01"]
+    },
+    "forest": {
+      "map_id": "forest",
+      "title": "Forest Temple",
+      "selectable": false,
+      "wip": true,
+      "thumbnail_path": "res://assets/sprites/maps/forest_map.png",
+      "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
+      "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
+      "levels": ["beginner_01"]
+    },
+    "sky": {
+      "map_id": "sky",
+      "title": "Sky Fortress",
+      "selectable": false,
+      "wip": true,
+      "thumbnail_path": "res://assets/sprites/maps/sky_map.png",
+      "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
+      "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
+      "levels": ["beginner_01"]
     }
   },
   "levels": {

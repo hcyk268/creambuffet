@@ -127,6 +127,14 @@ func player_snapshots() -> Array[Dictionary]:
 	return snapshots
 
 
+func set_map(new_map_id: String, level_ids_for_map: Array[String]) -> void:
+	map_id = GameCatalog.normalize_map_id(new_map_id)
+	level_ids = level_ids_for_map.duplicate()
+	world_count = level_ids.size()
+	current_level_index = 0
+	current_level_id = _level_id_for_index(current_level_index)
+
+
 func start_match() -> void:
 	status = STATUS_PLAYING
 	current_level_index = 0

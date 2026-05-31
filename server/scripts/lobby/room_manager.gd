@@ -84,6 +84,9 @@ func create_room(peer_id: int, requested_name: String, options: Dictionary) -> D
 	if not GameCatalog.has_map(map_id):
 		return _error("unknown_map", "Map is not defined: %s" % map_id)
 
+	if not GameCatalog.is_map_selectable(map_id):
+		return _error("map_not_selectable", "Map is not available yet: %s" % map_id)
+
 	var level_ids := GameCatalog.get_level_ids(map_id)
 	if level_ids.is_empty():
 		return _error("empty_map", "Map has no playable levels: %s" % map_id)
@@ -198,7 +201,44 @@ func start_match(peer_id: int) -> Dictionary:
 	if room.host_peer_id != peer_id:
 		return _error("not_host", "Only the host can start the match.")
 
+	if room.status != Room.STATUS_LOBBY:
+		return _error("room_not_in_lobby", "Match can only start while the room is in lobby status.")
+
 	room.start_match()
+	return {
+		"ok": true,
+		"room": room,
+	}
+
+
+func set_room_map(peer_id: int, requested_map_id: String) -> Dictionary:
+	var room := get_room_for_peer(peer_id)
+	if room == null:
+		return _error("not_in_room", "Peer must be in a room before changing the map.")
+
+	if room.host_peer_id != peer_id:
+		return _error("not_host", "Only the host can change the room map.")
+
+	if room.status != Room.STATUS_LOBBY:
+		return _error("room_not_in_lobby", "Map can only be changed while the room is in lobby status.")
+
+	var map_id := GameCatalog.normalize_map_id(requested_map_id)
+	if not GameCatalog.has_map(map_id):
+		return _error("unknown_map", "Map is not defined: %s" % map_id)
+
+	if not GameCatalog.is_map_selectable(map_id):
+		return _error("map_not_selectable", "Map is not available yet: %s" % map_id)
+
+	var level_ids := GameCatalog.get_level_ids(map_id)
+	if level_ids.is_empty():
+		return _error("empty_map", "Map has no playable levels: %s" % map_id)
+
+	for level_id in level_ids:
+		var validation := GameCatalog.validate_level_rulesets(map_id, level_id)
+		if not bool(validation.get("ok", false)):
+			return validation
+
+	room.set_map(map_id, level_ids)
 	return {
 		"ok": true,
 		"room": room,

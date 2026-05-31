@@ -101,6 +101,8 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			_handle_leave_room(peer_id, request_id)
 		"start_match":
 			_handle_start_match(peer_id, request_id)
+		"set_room_map":
+			_handle_set_room_map(peer_id, request_id, payload)
 		"player_state":
 			_handle_player_state(peer_id, payload)
 		"level_changed":
@@ -190,6 +192,29 @@ func _handle_start_match(peer_id: int, request_id) -> void:
 	_send_room_message(room, "match_started", {
 		"room": room.snapshot(),
 	}, -1, request_id)
+	_publish_room_snapshot(room)
+
+
+func _handle_set_room_map(peer_id: int, request_id, payload: Dictionary) -> void:
+	var map_id := String(payload.get("map_id", ""))
+	var result := _room_manager.set_room_map(peer_id, map_id)
+	if not bool(result.get("ok", false)):
+		_send_error(
+			peer_id,
+			String(result.get("code", "set_map_failed")),
+			String(result.get("message", "Could not update room map.")),
+			request_id
+		)
+		return
+
+	var room := result.get("room") as Room
+	if room == null:
+		_send_error(peer_id, "set_map_failed", "Set room map returned no room object.", request_id)
+		return
+
+	_send_message(peer_id, "room_map_updated", {
+		"room": room.snapshot(),
+	}, request_id)
 	_publish_room_snapshot(room)
 
 
