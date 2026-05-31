@@ -53,7 +53,7 @@ theme_override_constants/separation = 40
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_titlefont")
 theme_override_font_sizes/font_size = 110
-text = "SELECT LEVEL"
+text = "SELECT MAP"
 horizontal_alignment = 1
 
 [node name="Scroll" type="ScrollContainer" parent="Margin/Vbox"]

@@ -1,64 +1,38 @@
 extends Node2D
 
-# ============================================================
-# Room Scene - khuon vien cho giua nguoi choi (online room view)
-# ============================================================
-# Day la scene xuat hien sau khi user vao mot phong (qua create/join).
-# State duoc lay tu autoload NetworkClient (luon ton tai qua cac scene).
-# Neu chay thang scene F6 ma chua connect, NetworkClient tra ve room
-# rong -> dung gia tri @export ben duoi lam fallback de test.
-# ============================================================
-#
-# Cau truc scene (xem trong Godot Editor):
-#
-#   Room (Node2D)                     <- script nay gan o day
-#   |- BackgroundLayer  (CanvasLayer) <- nen cho dep, khong anh huong gameplay
-#   |- Camera2D                       <- camera nhin vao khuon vien
-#   |- Floor (StaticBody2D)           <- san de player dung (WorldBoundary)
-#   |- PlayerSpawn (Marker2D)         <- danh dau cho spawn local player
-#   |- Player (instance)              <- nhan vat player_soda
-#   |- HUD (CanvasLayer)              <- UI overlay: ten phong, so player, banner
-#   |- PausePanel (CanvasLayer)       <- cua so ESC: danh sach member + Exit/Cancel
-#
-# ------------------------------------------------------------
-# Quy uoc process_mode (quan trong de pause hoat dong dung):
-#   - Room (root):    ALWAYS    -> script van chay khi pause (de bam ESC unpause)
-#   - Player:         PAUSABLE  -> dung khi pause
-#   - HUD/PausePanel: ALWAYS    -> nut Cancel/Exit van click duoc khi pause
-# ============================================================
+const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
+const BODY_FONT := preload("res://assets/fonts/EXEPixelPerfect.ttf")
 
-
-# ---- Fallback @export (chi dung khi chay scene truc tiep, NetworkClient rong) ----
 @export var is_host: bool = true
 @export var max_players: int = 4
 @export var current_players: int = 1
 
-
-# ---- Tham chieu node trong scene ----
 @onready var host_banner: Label = $HUD/HostBanner
 @onready var player_count_label: Label = $HUD/TopBar/PlayerCount
+@onready var room_title_label: Label = $HUD/TopBar/RoomTitle
+@onready var map_label: Label = $HUD/BottomBar/MapLabel
+@onready var host_controls: HBoxContainer = $HUD/BottomBar/HostControls
 @onready var pause_panel: CanvasLayer = $PausePanel
 @onready var member_list: VBoxContainer = $PausePanel/Panel/MarginContainer/VBoxContainer/MemberList
+
+var _entering_match := false
 
 
 func _ready() -> void:
 	var room: Dictionary = _network_client().get_current_room()
-	if not room.is_empty():
-		_apply_room_state(room)
+	if room.is_empty():
+		get_tree().change_scene_to_file("res://scenes/online_menu.tscn")
+		return
 
-	var on_room := Callable(self, "_on_current_room_changed")
-	if not _network_client().current_room_changed.is_connected(on_room):
-		_network_client().current_room_changed.connect(on_room)
-
+	_apply_room_state(room)
+	_bind_network_signals()
 	_refresh_hud()
 	pause_panel.visible = false
 	get_tree().paused = false
 
 
 func _exit_tree() -> void:
-	var on_room := Callable(self, "_on_current_room_changed")
-	if _network_client().current_room_changed.is_connected(on_room):
-		_network_client().current_room_changed.disconnect(on_room)
+	_unbind_network_signals()
 
 
 func _apply_room_state(room: Dictionary) -> void:
@@ -70,8 +44,23 @@ func _apply_room_state(room: Dictionary) -> void:
 
 
 func _refresh_hud() -> void:
+	var room: Dictionary = _network_client().get_current_room()
+	var room_id := String(room.get("room_id", ""))
+	var map_id := String(room.get("map_id", GameCatalog.DEFAULT_MAP_ID))
+	var map_title := GameCatalog.get_map_title(map_id)
+	var level_count := int(room.get("world_count", GameCatalog.get_level_ids(map_id).size()))
+
+	room_title_label.text = "ROOM %s" % room_id if not room_id.is_empty() else "ROOM"
 	player_count_label.text = "%d/%d" % [current_players, max_players]
-	host_banner.visible = is_host
+	map_label.text = "Map: %s (%d levels)" % [map_title, level_count]
+
+	if is_host:
+		host_banner.text = "Choose a map, then start the game."
+		host_controls.visible = true
+	else:
+		host_banner.text = "Waiting for host to choose a map and start..."
+		host_controls.visible = false
+
 	_refresh_member_list()
 
 
@@ -94,6 +83,7 @@ func _refresh_member_list() -> void:
 			continue
 		var player: Dictionary = raw_player
 		var label := Label.new()
+		label.add_theme_font_override("font", BODY_FONT)
 		label.add_theme_font_size_override("font_size", 36)
 		var role := "Host" if int(player.get("peer_id", 0)) == host_peer_id else "Ready"
 		label.text = "%s     peer %d     %s" % [
@@ -104,47 +94,98 @@ func _refresh_member_list() -> void:
 		member_list.add_child(label)
 
 
+func _bind_network_signals() -> void:
+	var on_room := Callable(self, "_on_current_room_changed")
+	if not _network_client().current_room_changed.is_connected(on_room):
+		_network_client().current_room_changed.connect(on_room)
+
+	var on_match := Callable(self, "_on_match_started")
+	if not _network_client().match_started.is_connected(on_match):
+		_network_client().match_started.connect(on_match)
+
+	var on_error := Callable(self, "_on_network_error")
+	if not _network_client().error_received.is_connected(on_error):
+		_network_client().error_received.connect(on_error)
+
+
+func _unbind_network_signals() -> void:
+	var on_room := Callable(self, "_on_current_room_changed")
+	if _network_client().current_room_changed.is_connected(on_room):
+		_network_client().current_room_changed.disconnect(on_room)
+
+	var on_match := Callable(self, "_on_match_started")
+	if _network_client().match_started.is_connected(on_match):
+		_network_client().match_started.disconnect(on_match)
+
+	var on_error := Callable(self, "_on_network_error")
+	if _network_client().error_received.is_connected(on_error):
+		_network_client().error_received.disconnect(on_error)
+
+
 func _on_current_room_changed(room: Dictionary) -> void:
 	if room.is_empty():
-		# Da bi server kick hoac leave -> ve menu online.
 		get_tree().paused = false
 		get_tree().change_scene_to_file("res://scenes/online_menu.tscn")
 		return
 
 	_apply_room_state(room)
 	_refresh_hud()
+	_maybe_enter_match(room)
 
 
-# Bat input ngoai UI (chi trigger khi khong click vao button nao).
-#   ESC   -> bat/tat PausePanel
-#   ENTER -> chi host moi co quyen (placeholder chon world)
+func _on_match_started(room: Dictionary) -> void:
+	_maybe_enter_match(room)
+
+
+func _on_network_error(_code: String, message: String) -> void:
+	host_banner.text = message
+
+
+func _maybe_enter_match(room: Dictionary) -> void:
+	if _entering_match or room.is_empty():
+		return
+
+	if String(room.get("status", "")) != "playing":
+		return
+
+	_entering_match = true
+	get_tree().paused = false
+	call_deferred("_change_to_game_scene")
+
+
+func _change_to_game_scene() -> void:
+	get_tree().change_scene_to_file("res://scenes/online/online_game.tscn")
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_toggle_pause_panel()
-	elif event.is_action_pressed("ui_accept") and is_host:
-		_on_host_enter_pressed()
 
 
 func _toggle_pause_panel() -> void:
 	pause_panel.visible = not pause_panel.visible
-	# Pause/unpause toan bo tree theo trang thai panel.
-	# Player co process_mode = PAUSABLE nen se tu dung/chay lai.
 	get_tree().paused = pause_panel.visible
 
 
-# ---- Host bam ENTER -> mo World Select scene ----
-func _on_host_enter_pressed() -> void:
+func _on_select_map_pressed() -> void:
+	if not is_host:
+		return
+
 	get_tree().change_scene_to_file("res://scenes/world_select.tscn")
 
 
-# ---- Nut Exit trong PausePanel: thoat ve menu chinh ----
+func _on_start_game_pressed() -> void:
+	if not _network_client().is_room_host():
+		host_banner.text = "Only the host can start the game."
+		return
+
+	host_banner.text = "Starting game..."
+	_network_client().start_match()
+
+
 func _on_exit_butt_pressed() -> void:
 	get_tree().paused = false
 
-	# Disconnect listener TRUOC khi goi leave_room().
-	# Ly do: neu state = DISCONNECTED, leave_room() se goi _set_current_room({})
-	# dong bo va emit `current_room_changed` ngay -> handler _on_current_room_changed
-	# se tu navigate -> race voi change_scene_to_file ben duoi (loi "data.tree is null").
 	var on_room := Callable(self, "_on_current_room_changed")
 	if _network_client().current_room_changed.is_connected(on_room):
 		_network_client().current_room_changed.disconnect(on_room)
@@ -153,7 +194,6 @@ func _on_exit_butt_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/online_menu.tscn")
 
 
-# ---- Nut Cancel trong PausePanel: dong panel, tiep tuc choi ----
 func _on_cancel_butt_pressed() -> void:
 	pause_panel.visible = false
 	get_tree().paused = false

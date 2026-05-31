@@ -26,6 +26,35 @@ static func get_map(map_id: String = DEFAULT_MAP_ID) -> Dictionary:
 	return Dictionary(maps.get(normalized, {})).duplicate(true)
 
 
+static func get_map_ids() -> Array[String]:
+	var result: Array[String] = []
+	var maps := _maps()
+	var raw_ids := maps.keys()
+	raw_ids.sort()
+	for raw_id in raw_ids:
+		result.append(String(raw_id))
+	return result
+
+
+static func get_map_title(map_id: String) -> String:
+	var map_data := get_map(map_id)
+	var title := String(map_data.get("title", "")).strip_edges()
+	if title.is_empty():
+		return normalize_map_id(map_id)
+	return title
+
+
+static func is_map_selectable(map_id: String) -> bool:
+	var map_data := get_map(map_id)
+	if map_data.is_empty():
+		return false
+	return bool(map_data.get("selectable", true))
+
+
+static func is_map_wip(map_id: String) -> bool:
+	return bool(get_map(map_id).get("wip", false))
+
+
 static func get_level_ids(map_id: String = DEFAULT_MAP_ID) -> Array[String]:
 	var result: Array[String] = []
 	var map_data := get_map(map_id)

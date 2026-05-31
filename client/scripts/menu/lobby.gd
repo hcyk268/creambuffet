@@ -4,6 +4,8 @@ const STATUS_FONT = preload("res://assets/fonts/EXEPixelPerfect.ttf")
 const TITLE_FONT = preload("res://assets/fonts/editundo.ttf")
 const BODY_FONT = preload("res://assets/fonts/EXEPixelPerfect.ttf")
 
+const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
+
 @onready var rooms_container: VBoxContainer = $TextureRect2/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer
 
 var _status_label: Label
@@ -18,6 +20,11 @@ func _ready() -> void:
 	_public_rooms = _network_client().get_public_rooms()
 	_current_room = _network_client().get_current_room()
 	_set_status(_network_client().get_status_text())
+
+	if not _current_room.is_empty() and String(_current_room.get("status", "")) != "playing":
+		get_tree().change_scene_to_file("res://scenes/room.tscn")
+		return
+
 	_render()
 	_network_client().request_public_rooms()
 
@@ -99,6 +106,10 @@ func _on_room_list_updated(rooms) -> void:
 
 func _on_current_room_changed(room: Dictionary) -> void:
 	_current_room = room.duplicate(true)
+	if not room.is_empty() and String(room.get("status", "")) != "playing":
+		get_tree().change_scene_to_file("res://scenes/room.tscn")
+		return
+
 	_render()
 	_maybe_enter_match(_current_room)
 
@@ -117,39 +128,10 @@ func _render() -> void:
 
 
 func _render_current_room() -> void:
+	# Lobby browser only reaches here while match is starting (lobby rooms redirect to room.tscn).
 	rooms_container.add_child(_make_heading_label("CURRENT ROOM"))
 	rooms_container.add_child(_make_body_label(_room_summary(_current_room)))
-	rooms_container.add_child(_make_body_label("Share room id: %s" % String(_current_room.get("room_id", ""))))
-
-	var players = _current_room.get("players", [])
-	rooms_container.add_child(_make_heading_label("PLAYERS"))
-	if typeof(players) == TYPE_ARRAY and not players.is_empty():
-		for raw_player in players:
-			if typeof(raw_player) != TYPE_DICTIONARY:
-				continue
-			var player: Dictionary = raw_player
-			var line := "%s (peer %d)" % [
-				String(player.get("display_name", "Guest")),
-				int(player.get("peer_id", 0)),
-			]
-			if int(player.get("peer_id", 0)) == int(_current_room.get("host_peer_id", -1)):
-				line += " - host"
-			rooms_container.add_child(_make_body_label(line))
-	else:
-		rooms_container.add_child(_make_body_label("No player snapshots yet."))
-
-	var room_status := String(_current_room.get("status", "lobby"))
-	if room_status == "playing":
-		rooms_container.add_child(_make_body_label("Match is starting..."))
-	elif _network_client().is_room_host():
-		var start_button := Button.new()
-		start_button.text = "Start Game"
-		start_button.add_theme_font_override("font", BODY_FONT)
-		start_button.add_theme_font_size_override("font_size", 48)
-		start_button.pressed.connect(_on_start_match_pressed)
-		rooms_container.add_child(start_button)
-	else:
-		rooms_container.add_child(_make_body_label("Waiting for host to start."))
+	rooms_container.add_child(_make_body_label("Match is starting..."))
 
 	var leave_button := Button.new()
 	leave_button.text = "Leave Room"
@@ -193,15 +175,6 @@ func _on_leave_room_pressed() -> void:
 	_network_client().leave_room()
 
 
-func _on_start_match_pressed() -> void:
-	if not _network_client().is_room_host():
-		_set_status("Only the host can start the game.")
-		return
-
-	_set_status("Starting game...")
-	_network_client().start_match()
-
-
 func _maybe_enter_match(room: Dictionary) -> void:
 	if _entering_match or room.is_empty():
 		return
@@ -218,12 +191,14 @@ func _change_to_game_scene() -> void:
 
 
 func _room_summary(room: Dictionary) -> String:
-	return "Room %s | %d/%d players | %d worlds | randomized: %s" % [
+	var map_id := String(room.get("map_id", GameCatalog.DEFAULT_MAP_ID))
+	var map_title := GameCatalog.get_map_title(map_id)
+	return "Room %s | %d/%d players | %s (%d levels)" % [
 		String(room.get("room_id", "ROOM")),
 		int(room.get("player_count", 0)),
 		int(room.get("max_players", 1)),
-		int(room.get("world_count", 1)),
-		"yes" if bool(room.get("randomized", false)) else "no",
+		map_title,
+		int(room.get("world_count", 0)),
 	]
 
 

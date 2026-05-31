@@ -119,7 +119,7 @@ func _on_current_room_changed(room: Dictionary) -> void:
 
 	_awaiting_create = false
 	hide()
-	get_tree().change_scene_to_file("res://scenes/lobby.tscn")
+	get_tree().change_scene_to_file("res://scenes/room.tscn")
 
 
 func _set_status(message: String) -> void:
