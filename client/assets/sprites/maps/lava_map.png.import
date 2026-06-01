@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://4iyjiecrkxwq"
-path="res://.godot/imported/sky_map.png-f119bff05835c541845dfb0ca5622873.ctex"
+uid="uid://n32msb2smq8q"
+path="res://.godot/imported/lava_map.png-302532053c9978b0a8e37ebb9d5f6ad0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/maps/sky_map.png"
-dest_files=["res://.godot/imported/sky_map.png-f119bff05835c541845dfb0ca5622873.ctex"]
+source_file="res://assets/sprites/maps/lava_map.png"
+dest_files=["res://.godot/imported/lava_map.png-302532053c9978b0a8e37ebb9d5f6ad0.ctex"]
 
 [params]
 
