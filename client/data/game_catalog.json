@@ -1,666 +1,4356 @@
 {
   "version": 1,
-  "player_templates": {"default": {"shape": {"type": "circle", "offset": {"x": 0.0, "y": -19.0}, "radius": 5.0}}},
+  "player_templates": {
+    "default": {
+      "shape": {
+        "type": "circle",
+        "offset": {
+          "x": 0.0,
+          "y": -19.0
+        },
+        "radius": 5.0
+      }
+    }
+  },
   "global_rulesets": {
-	"key_door_v1": {"ruleset_id": "key_door_v1", "mechanic_id": "key_door_v1", "title": "Key Door"},
-	"goal_all_v1": {"ruleset_id": "goal_all_v1", "mechanic_id": "goal_all_v1", "title": "All Players Goal"},
-	"hazard_respawn_v1": {"ruleset_id": "hazard_respawn_v1", "mechanic_id": "hazard_respawn_v1", "title": "Hazard Respawn"},
-	"push_box_v1": {"ruleset_id": "push_box_v1", "mechanic_id": "push_box_v1", "title": "Push Box"},
-	"button_platform_v1": {"ruleset_id": "button_platform_v1", "mechanic_id": "button_platform_v1", "title": "Button Platform"},
-	"moving_platform_v1": {"ruleset_id": "moving_platform_v1", "mechanic_id": "moving_platform_v1", "title": "Moving Platform"}
+    "key_door_v1": {
+      "ruleset_id": "key_door_v1",
+      "mechanic_id": "key_door_v1",
+      "title": "Key Door"
+    },
+    "goal_all_v1": {
+      "ruleset_id": "goal_all_v1",
+      "mechanic_id": "goal_all_v1",
+      "title": "All Players Goal"
+    },
+    "hazard_respawn_v1": {
+      "ruleset_id": "hazard_respawn_v1",
+      "mechanic_id": "hazard_respawn_v1",
+      "title": "Hazard Respawn"
+    },
+    "push_box_v1": {
+      "ruleset_id": "push_box_v1",
+      "mechanic_id": "push_box_v1",
+      "title": "Push Box"
+    },
+    "button_platform_v1": {
+      "ruleset_id": "button_platform_v1",
+      "mechanic_id": "button_platform_v1",
+      "title": "Button Platform"
+    },
+    "moving_platform_v1": {
+      "ruleset_id": "moving_platform_v1",
+      "mechanic_id": "moving_platform_v1",
+      "title": "Moving Platform"
+    }
   },
   "mechanic_definitions": {
-	"key_door_v1": {
-	  "mechanic_id": "key_door_v1",
-	  "object_kinds": ["key", "door", "exit_door"],
-	  "actions": {
-		"collect": {
-		  "object_kinds": ["key"],
-		  "aliases": ["key_collect", "key_collected"],
-		  "required_payload": [],
-		  "server_handler": "key_door.collect"
-		},
-		"open": {
-		  "object_kinds": ["door", "exit_door"],
-		  "aliases": ["door_open", "door_opened"],
-		  "required_payload": [],
-		  "server_handler": "key_door.open"
-		}
-	  }
-	},
-	"goal_all_v1": {
-	  "mechanic_id": "goal_all_v1",
-	  "object_kinds": ["goal"],
-	  "actions": {
-		"goal_enter": {"object_kinds": ["goal"], "aliases": ["goal_entered"], "required_payload": [], "server_handler": "goal.enter"},
-		"goal_exit": {"object_kinds": ["goal"], "aliases": ["goal_exited"], "required_payload": [], "server_handler": "goal.exit"}
-	  }
-	},
-	"hazard_respawn_v1": {
-	  "mechanic_id": "hazard_respawn_v1",
-	  "object_kinds": ["hazard", "fall_reset"],
-	  "actions": {
-		"player_death": {
-		  "object_kinds": ["hazard", "fall_reset"],
-		  "aliases": ["player_died"],
-		  "required_payload": [],
-		  "server_handler": "hazard_respawn.player_death"
-		}
-	  }
-	},
-	"push_box_v1": {
-	  "mechanic_id": "push_box_v1",
-	  "object_kinds": ["push_box"],
-	  "actions": {
-		"push_box_state": {
-		  "object_kinds": ["push_box"],
-		  "aliases": [],
-		  "required_payload": [{"field": "position", "type": "dictionary"}],
-		  "server_handler": "push_box.state"
-		}
-	  }
-	},
-	"button_platform_v1": {
-	  "mechanic_id": "button_platform_v1",
-	  "object_kinds": ["button", "pressure_plate"],
-	  "actions": {
-		"button_state": {
-		  "object_kinds": ["button", "pressure_plate"],
-		  "aliases": ["toggle_switch"],
-		  "required_payload": [{"field": "pressed", "type": "bool", "aliases": ["active"]}],
-		  "server_handler": "button_platform.button_state"
-		}
-	  }
-	},
-	"moving_platform_v1": {"mechanic_id": "moving_platform_v1", "object_kinds": ["moving_platform"], "actions": {}}
+    "key_door_v1": {
+      "mechanic_id": "key_door_v1",
+      "object_kinds": [
+        "key",
+        "door",
+        "exit_door"
+      ],
+      "actions": {
+        "collect": {
+          "object_kinds": [
+            "key"
+          ],
+          "aliases": [
+            "key_collect",
+            "key_collected"
+          ],
+          "required_payload": [],
+          "server_handler": "key_door.collect"
+        },
+        "open": {
+          "object_kinds": [
+            "door",
+            "exit_door"
+          ],
+          "aliases": [
+            "door_open",
+            "door_opened"
+          ],
+          "required_payload": [],
+          "server_handler": "key_door.open"
+        }
+      }
+    },
+    "goal_all_v1": {
+      "mechanic_id": "goal_all_v1",
+      "object_kinds": [
+        "goal"
+      ],
+      "actions": {
+        "goal_enter": {
+          "object_kinds": [
+            "goal"
+          ],
+          "aliases": [
+            "goal_entered"
+          ],
+          "required_payload": [],
+          "server_handler": "goal.enter"
+        },
+        "goal_exit": {
+          "object_kinds": [
+            "goal"
+          ],
+          "aliases": [
+            "goal_exited"
+          ],
+          "required_payload": [],
+          "server_handler": "goal.exit"
+        }
+      }
+    },
+    "hazard_respawn_v1": {
+      "mechanic_id": "hazard_respawn_v1",
+      "object_kinds": [
+        "hazard",
+        "fall_reset"
+      ],
+      "actions": {
+        "player_death": {
+          "object_kinds": [
+            "hazard",
+            "fall_reset"
+          ],
+          "aliases": [
+            "player_died"
+          ],
+          "required_payload": [],
+          "server_handler": "hazard_respawn.player_death"
+        }
+      }
+    },
+    "push_box_v1": {
+      "mechanic_id": "push_box_v1",
+      "object_kinds": [
+        "push_box"
+      ],
+      "actions": {
+        "push_box_state": {
+          "object_kinds": [
+            "push_box"
+          ],
+          "aliases": [],
+          "required_payload": [
+            {
+              "field": "position",
+              "type": "dictionary"
+            }
+          ],
+          "server_handler": "push_box.state"
+        }
+      }
+    },
+    "button_platform_v1": {
+      "mechanic_id": "button_platform_v1",
+      "object_kinds": [
+        "button",
+        "pressure_plate"
+      ],
+      "actions": {
+        "button_state": {
+          "object_kinds": [
+            "button",
+            "pressure_plate"
+          ],
+          "aliases": [
+            "toggle_switch"
+          ],
+          "required_payload": [
+            {
+              "field": "pressed",
+              "type": "bool",
+              "aliases": [
+                "active"
+              ]
+            }
+          ],
+          "server_handler": "button_platform.button_state"
+        }
+      }
+    },
+    "moving_platform_v1": {
+      "mechanic_id": "moving_platform_v1",
+      "object_kinds": [
+        "moving_platform"
+      ],
+      "actions": {}
+    }
   },
   "maps": {
-	"beginner": {
-	  "map_id": "beginner",
-	  "title": "Beginner",
-	  "selectable": true,
-	  "wip": false,
-	  "thumbnail_path": "res://assets/sprites/maps/beginner_map.png",
-	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
-	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
-	  "levels": [
-		"beginner_01",
-		"beginner_02",
-		"beginner_03",
-		"beginner_04",
-		"beginner_05",
-		"beginner_06",
-		"beginner_07",
-		"beginner_08",
-		"beginner_09",
+    "beginner": {
+      "map_id": "beginner",
+      "title": "Beginner",
+      "selectable": true,
+      "wip": false,
+      "thumbnail_path": "res://assets/sprites/maps/beginner_map.png",
+      "default_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1"
+      ],
+      "allowed_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1",
+        "push_box_v1",
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "levels": [
+        "beginner_01",
+        "beginner_02",
+        "beginner_03",
+        "beginner_04",
+        "beginner_05",
+        "beginner_06",
+        "beginner_07",
+        "beginner_08",
+        "beginner_09",
         "beginner_10"
-	  ]
-	},
-	"ice": {
-	  "map_id": "ice",
-	  "title": "Ice World",
-	  "selectable": false,
-	  "wip": true,
-	  "thumbnail_path": "res://assets/sprites/maps/ice_map.png",
-	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
-	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
-	  "levels": ["beginner_01"]
-	},
-	"desert": {
-	  "map_id": "desert",
-	  "title": "Desert Ruins",
-	  "selectable": false,
-	  "wip": true,
-	  "thumbnail_path": "res://assets/sprites/maps/desert_map.png",
-	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
-	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
-	  "levels": ["beginner_01"]
-	},
-	"forest": {
-	  "map_id": "forest",
-	  "title": "Forest Temple",
-	  "selectable": false,
-	  "wip": true,
-	  "thumbnail_path": "res://assets/sprites/maps/forest_map.png",
-	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
-	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
-	  "levels": ["beginner_01"]
-	},
-	"sky": {
-	  "map_id": "sky",
-	  "title": "Sky Fortress",
-	  "selectable": false,
-	  "wip": true,
-	  "thumbnail_path": "res://assets/sprites/maps/sky_map.png",
-	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
-	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
-	  "levels": ["beginner_01"]
-	}
+      ]
+    },
+    "ice": {
+      "map_id": "ice",
+      "title": "Ice World",
+      "selectable": false,
+      "wip": true,
+      "thumbnail_path": "res://assets/sprites/maps/ice_map.png",
+      "default_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1"
+      ],
+      "allowed_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1",
+        "push_box_v1",
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "levels": [
+        "beginner_01"
+      ]
+    },
+    "desert": {
+      "map_id": "desert",
+      "title": "Desert Ruins",
+      "selectable": true,
+      "wip": false,
+      "thumbnail_path": "res://assets/sprites/maps/desert_map.png",
+      "default_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1"
+      ],
+      "allowed_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1",
+        "push_box_v1",
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "levels": [
+        "desert_01",
+        "desert_02",
+        "desert_03",
+        "desert_04",
+        "desert_05"
+      ]
+    },
+    "forest": {
+      "map_id": "forest",
+      "title": "Forest Temple",
+      "selectable": false,
+      "wip": true,
+      "thumbnail_path": "res://assets/sprites/maps/forest_map.png",
+      "default_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1"
+      ],
+      "allowed_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1",
+        "push_box_v1",
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "levels": [
+        "beginner_01"
+      ]
+    },
+    "sky": {
+      "map_id": "sky",
+      "title": "Sky Fortress",
+      "selectable": false,
+      "wip": true,
+      "thumbnail_path": "res://assets/sprites/maps/sky_map.png",
+      "default_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1"
+      ],
+      "allowed_rulesets": [
+        "key_door_v1",
+        "goal_all_v1",
+        "hazard_respawn_v1",
+        "push_box_v1",
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "levels": [
+        "beginner_01"
+      ]
+    }
   },
   "levels": {
-	"beginner_01": {
-	  "level_id": "beginner_01",
-	  "map_id": "beginner",
-	  "index": 0,
-	  "scene_path": "res://scenes/online/levels/level_01.tscn",
-	  "spawn_point": {"x": -242.0, "y": 34.0},
-	  "extra_rulesets": ["moving_platform_v1"],
-	  "objects": {
-		"level01_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 63.0, "y": -28.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level01_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 168.0, "y": -17.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level01_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 168.0, "y": -17.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level01_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": 170.0, "y": 240.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": -179.0, "y": -76.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level01_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level01_goal_01"}
-	  ],
-	  "links": []
-	},
-	"beginner_02": {
-	  "level_id": "beginner_02",
-	  "map_id": "beginner",
-	  "index": 1,
-	  "scene_path": "res://scenes/online/levels/level_02.tscn",
-	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "extra_rulesets": ["push_box_v1", "button_platform_v1", "moving_platform_v1"],
-	  "objects": {
-		"level02_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 15.0, "y": 58.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level02_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 171.0, "y": 116.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level02_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 171.0, "y": 117.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level02_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": 22.0, "y": 224.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 1.0, "y": 0.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		},
-		"level02_spike_01": {
-		  "kind": "hazard",
-		  "state": {},
-		  "transform": {"position": {"x": 88.0, "y": 128.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": -4.0}, "size": {"x": 10.0, "y": 10.0}, "margin": 3.0}
-		},
-		"level02_box_01": {
-		  "kind": "push_box",
-		  "state": {"position": {"x": -94.0, "y": 119.0}},
-		  "transform": {"position": {"x": -94.0, "y": 119.0}},
-		  "body": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 16.0, "y": 16.0}}
-		},
-		"level02_button_01": {
-		  "kind": "button",
-		  "state": {"pressed": false},
-		  "transform": {"position": {"x": -36.0, "y": 125.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 1.0}, "size": {"x": 10.0, "y": 4.0}, "margin": 3.0}
-		},
-		"level02_platform_01": {"kind": "moving_platform", "state": {"active": false}, "transform": {"position": {"x": 15.0, "y": 119.0}}}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level02_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level02_goal_01"}
-	  ],
-	  "links": [
-		{
-		  "source_target_id": "level02_button_01",
-		  "source_field": "pressed",
-		  "source_value": true,
-		  "target_id": "level02_platform_01",
-		  "target_field": "active",
-		  "target_value": true
-		}
-	  ]
-	},
-	"beginner_03": {
-	  "level_id": "beginner_03",
-	  "map_id": "beginner",
-	  "index": 2,
-	  "scene_path": "res://scenes/online/levels/level_03.tscn",
-	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "objects": {
-		"level03_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 38.0, "y": 95.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level03_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 297.0, "y": 116.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level03_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 297.0, "y": 116.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level03_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": 170.0, "y": 240.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		},
-		"level03_spike_01": {
-		  "kind": "hazard",
-		  "state": {},
-		  "transform": {"position": {"x": -17.0, "y": 128.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": -4.0}, "size": {"x": 10.0, "y": 10.0}, "margin": 3.0}
-		},
-		"level03_spike_02": {
-		  "kind": "hazard",
-		  "state": {},
-		  "transform": {"position": {"x": 90.0, "y": 128.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": -4.0}, "size": {"x": 10.0, "y": 10.0}, "margin": 3.0}
-		},
-		"level03_spike_03": {
-		  "kind": "hazard",
-		  "state": {},
-		  "transform": {"position": {"x": 256.0, "y": 128.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": -4.0}, "size": {"x": 10.0, "y": 10.0}, "margin": 3.0}
-		}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level03_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level03_goal_01"}
-	  ],
-	  "links": []
-	},
-	"beginner_04": {
-	  "level_id": "beginner_04",
-	  "map_id": "beginner",
-	  "index": 3,
-	  "scene_path": "res://scenes/online/levels/level_04.tscn",
-	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "extra_rulesets": ["push_box_v1"],
-	  "objects": {
-		"level04_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 94.0, "y": 35.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level04_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 171.0, "y": 117.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level04_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 171.0, "y": 117.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level04_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": 170.0, "y": 240.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		},
-		"level04_box_01": {
-		  "kind": "push_box",
-		  "state": {"position": {"x": -89.0, "y": 119.0}},
-		  "transform": {"position": {"x": -89.0, "y": 119.0}},
-		  "body": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 16.0, "y": 16.0}}
-		},
-		"level04_box_02": {
-		  "kind": "push_box",
-		  "state": {"position": {"x": -40.0, "y": 71.0}},
-		  "transform": {"position": {"x": -40.0, "y": 71.0}},
-		  "body": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 16.0, "y": 16.0}}
-		}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level04_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level04_goal_01"}
-	  ],
-	  "links": []
-	},
-	"beginner_05": {
-	  "level_id": "beginner_05",
-	  "map_id": "beginner",
-	  "index": 4,
-	  "scene_path": "res://scenes/online/levels/level_05.tscn",
-	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "extra_rulesets": ["push_box_v1"],
-	  "objects": {
-		"level05_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 221.0, "y": 26.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level05_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 217.0, "y": 116.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level05_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 217.0, "y": 116.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level05_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": 170.0, "y": 240.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		},
-		"level05_box_01": {
-		  "kind": "push_box",
-		  "state": {"position": {"x": -94.0, "y": 119.0}},
-		  "transform": {"position": {"x": -94.0, "y": 119.0}},
-		  "body": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 16.0, "y": 16.0}}
-		}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level05_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level05_goal_01"}
-	  ],
-	  "links": []
-	},
-	"beginner_06": {
-	  "level_id": "beginner_06",
-	  "map_id": "beginner",
-	  "index": 5,
-	  "scene_path": "res://scenes/online/levels/level_06.tscn",
-	  "spawn_point": {"x": -170.0, "y": 30.0},
-	  "extra_rulesets": ["moving_platform_v1"],
-	  "objects": {
-		"level06_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 24.0, "y": 83.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level06_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 217.0, "y": 116.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level06_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 217.0, "y": 116.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level06_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": 0.0, "y": 270.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level06_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level06_goal_01"}
-	  ],
-	  "links": []
-	},
-	"beginner_07": {
-	  "level_id": "beginner_07",
-	  "map_id": "beginner",
-	  "index": 6,
-	  "scene_path": "res://scenes/online/levels/level_07.tscn",
-	  "spawn_point": {"x": -272.0, "y": 76.0},
-	  "extra_rulesets": ["moving_platform_v1"],
-	  "objects": {
-		"level07_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 0.0, "y": 86.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level07_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 291.0, "y": 118.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level07_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 291.0, "y": 118.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level07_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": 0.0, "y": 270.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level07_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level07_goal_01"}
-	  ],
-	  "links": []
-	},
-	"beginner_08": {
-	  "level_id": "beginner_08",
-	  "map_id": "beginner",
-	  "index": 7,
-	  "scene_path": "res://scenes/online/levels/level_08.tscn",
-	  "spawn_point": {"x": -187.0, "y": 92.0},
-	  "extra_rulesets": ["moving_platform_v1"],
-	  "objects": {
-		"level08_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 35.0, "y": -130.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level08_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 324.0, "y": 116.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level08_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 323.0, "y": 116.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level08_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": 184.0, "y": 233.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": -4.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level08_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level08_goal_01"}
-	  ],
-	  "links": []
-	},
-	"beginner_09": {
-	  "level_id": "beginner_09",
-	  "map_id": "beginner",
-	  "index": 8,
-	  "scene_path": "res://scenes/online/levels/level_09.tscn",
-	  "spawn_point": {"x": 0.0, "y": 101.0},
-	  "extra_rulesets": ["button_platform_v1", "moving_platform_v1"],
-	  "objects": {
-		"level09_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 182.0, "y": -89.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level09_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 0.0, "y": 19.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level09_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 0.0, "y": 18.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level09_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": 170.0, "y": 240.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		},
-		"level09_button_01": {
-		  "kind": "button",
-		  "state": {"pressed": false},
-		  "transform": {"position": {"x": -184.0, "y": -67.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 1.0}, "size": {"x": 10.0, "y": 4.0}, "margin": 3.0}
-		},
-		"level09_button_02": {
-		  "kind": "button",
-		  "state": {"pressed": false},
-		  "transform": {"position": {"x": -104.0, "y": 44.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 1.0}, "size": {"x": 10.0, "y": 4.0}, "margin": 3.0}
-		},
-		"level09_platform_01": {"kind": "moving_platform", "state": {"active": true}, "transform": {"position": {"x": -152.0, "y": 59.75}}},
-		"level09_platform_02": {"kind": "moving_platform", "state": {"active": true}, "transform": {"position": {"x": 156.0, "y": 67.0}}},
-		"level09_platform_03": {"kind": "moving_platform", "state": {"active": false}, "transform": {"position": {"x": -137.0, "y": -10.0}}},
-		"level09_platform_04": {"kind": "moving_platform", "state": {"active": false}, "transform": {"position": {"x": 137.0, "y": -12.0}}}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level09_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level09_goal_01"}
-	  ],
-	  "links": [
-		{
-		  "source_target_id": "level09_button_01",
-		  "source_field": "pressed",
-		  "source_value": true,
-		  "target_id": "level09_platform_04",
-		  "target_field": "active",
-		  "target_value": true
-		},
-		{
-		  "source_target_id": "level09_button_02",
-		  "source_field": "pressed",
-		  "source_value": true,
-		  "target_id": "level09_platform_03",
-		  "target_field": "active",
-		  "target_value": true
-		}
-	  ]
-	},
-	"beginner_10": {
-	  "level_id": "beginner_10",
-	  "map_id": "beginner",
-	  "index": 9,
-	  "scene_path": "res://scenes/online/levels/level_10.tscn",
-	  "spawn_point": {"x": -176.0, "y": 62.0},
-	  "extra_rulesets": ["push_box_v1", "button_platform_v1", "moving_platform_v1"],
-	  "objects": {
-		"level10_key_01": {
-		  "kind": "key",
-		  "state": {"collected": false, "collector_peer_id": 0},
-		  "transform": {"position": {"x": 223.0, "y": 13.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 8.0, "y": 16.0}, "margin": 2.0}
-		},
-		"level10_door_01": {
-		  "kind": "door",
-		  "requires": {"item": "key", "count": 1},
-		  "state": {"opened": false},
-		  "transform": {"position": {"x": 218.0, "y": 132.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 24.0, "y": 24.0}, "margin": 4.0}
-		},
-		"level10_goal_01": {
-		  "kind": "goal",
-		  "state": {"players_inside": []},
-		  "transform": {"position": {"x": 218.0, "y": 132.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 20.0, "y": 23.0}, "margin": 6.0}
-		},
-		"level10_fall_reset_01": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {"position": {"x": -6.0, "y": 302.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 1400.0, "y": 40.0}, "margin": 4.0}
-		},
-		"level10_box_01": {
-		  "kind": "push_box",
-		  "state": {"position": {"x": -42.0, "y": 87.0}},
-		  "transform": {"position": {"x": -42.0, "y": 87.0}},
-		  "body": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 16.0, "y": 16.0}}
-		},
-		"level10_box_02": {
-		  "kind": "push_box",
-		  "state": {"position": {"x": -118.0, "y": 135.0}},
-		  "transform": {"position": {"x": -118.0, "y": 135.0}},
-		  "body": {"shape": "rectangle", "offset": {"x": 0.0, "y": 0.0}, "size": {"x": 16.0, "y": 16.0}}
-		},
-		"level10_button_01": {
-		  "kind": "button",
-		  "state": {"pressed": false},
-		  "transform": {"position": {"x": 95.0, "y": 205.0}},
-		  "trigger": {"shape": "rectangle", "offset": {"x": 0.0, "y": -4.0}, "size": {"x": 18.0, "y": 16.0}, "margin": 4.0}
-		},
-		"level10_platform_01": {"kind": "moving_platform", "state": {"active": false}, "transform": {"position": {"x": 169.0, "y": 94.0}}}
-	  },
-	  "completion_rules": [
-		{"type": "object_state_equals", "target_id": "level10_door_01", "field": "opened", "value": true},
-		{"type": "all_players_at_goal", "target_id": "level10_goal_01"}
-	  ],
-	  "links": [
-		{
-		  "source_target_id": "level10_button_01",
-		  "source_field": "pressed",
-		  "source_value": true,
-		  "target_id": "level10_platform_01",
-		  "target_field": "active",
-		  "target_value": true
-		}
-	  ]
-	}
+    "beginner_01": {
+      "level_id": "beginner_01",
+      "map_id": "beginner",
+      "index": 0,
+      "scene_path": "res://scenes/online/levels/level_01.tscn",
+      "spawn_point": {
+        "x": -242.0,
+        "y": 34.0
+      },
+      "extra_rulesets": [
+        "moving_platform_v1"
+      ],
+      "objects": {
+        "level01_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 63.0,
+              "y": -28.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level01_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 168.0,
+              "y": -17.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level01_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 168.0,
+              "y": -17.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level01_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": -179.0,
+              "y": -76.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level01_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level01_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "beginner_02": {
+      "level_id": "beginner_02",
+      "map_id": "beginner",
+      "index": 1,
+      "scene_path": "res://scenes/online/levels/level_02.tscn",
+      "spawn_point": {
+        "x": -170.0,
+        "y": 30.0
+      },
+      "extra_rulesets": [
+        "push_box_v1",
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "objects": {
+        "level02_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 15.0,
+              "y": 58.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level02_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 171.0,
+              "y": 116.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level02_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 171.0,
+              "y": 117.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level02_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 22.0,
+              "y": 224.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 1.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level02_spike_01": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 88.0,
+              "y": 128.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.0
+            },
+            "size": {
+              "x": 10.0,
+              "y": 10.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level02_box_01": {
+          "kind": "push_box",
+          "state": {
+            "position": {
+              "x": -94.0,
+              "y": 119.0
+            }
+          },
+          "transform": {
+            "position": {
+              "x": -94.0,
+              "y": 119.0
+            }
+          },
+          "body": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            }
+          }
+        },
+        "level02_button_01": {
+          "kind": "button",
+          "state": {
+            "pressed": false
+          },
+          "transform": {
+            "position": {
+              "x": -36.0,
+              "y": 125.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 1.0
+            },
+            "size": {
+              "x": 10.0,
+              "y": 4.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level02_platform_01": {
+          "kind": "moving_platform",
+          "state": {
+            "active": false
+          },
+          "transform": {
+            "position": {
+              "x": 15.0,
+              "y": 119.0
+            }
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level02_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level02_goal_01"
+        }
+      ],
+      "links": [
+        {
+          "source_target_id": "level02_button_01",
+          "source_field": "pressed",
+          "source_value": true,
+          "target_id": "level02_platform_01",
+          "target_field": "active",
+          "target_value": true
+        }
+      ]
+    },
+    "beginner_03": {
+      "level_id": "beginner_03",
+      "map_id": "beginner",
+      "index": 2,
+      "scene_path": "res://scenes/online/levels/level_03.tscn",
+      "spawn_point": {
+        "x": -170.0,
+        "y": 30.0
+      },
+      "objects": {
+        "level03_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 38.0,
+              "y": 95.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level03_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 297.0,
+              "y": 116.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level03_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 297.0,
+              "y": 116.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level03_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level03_spike_01": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -17.0,
+              "y": 128.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.0
+            },
+            "size": {
+              "x": 10.0,
+              "y": 10.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level03_spike_02": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 90.0,
+              "y": 128.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.0
+            },
+            "size": {
+              "x": 10.0,
+              "y": 10.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level03_spike_03": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 256.0,
+              "y": 128.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.0
+            },
+            "size": {
+              "x": 10.0,
+              "y": 10.0
+            },
+            "margin": 3.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level03_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level03_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "beginner_04": {
+      "level_id": "beginner_04",
+      "map_id": "beginner",
+      "index": 3,
+      "scene_path": "res://scenes/online/levels/level_04.tscn",
+      "spawn_point": {
+        "x": -170.0,
+        "y": 30.0
+      },
+      "extra_rulesets": [
+        "push_box_v1"
+      ],
+      "objects": {
+        "level04_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 94.0,
+              "y": 35.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level04_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 171.0,
+              "y": 117.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level04_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 171.0,
+              "y": 117.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level04_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level04_box_01": {
+          "kind": "push_box",
+          "state": {
+            "position": {
+              "x": -89.0,
+              "y": 119.0
+            }
+          },
+          "transform": {
+            "position": {
+              "x": -89.0,
+              "y": 119.0
+            }
+          },
+          "body": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            }
+          }
+        },
+        "level04_box_02": {
+          "kind": "push_box",
+          "state": {
+            "position": {
+              "x": -40.0,
+              "y": 71.0
+            }
+          },
+          "transform": {
+            "position": {
+              "x": -40.0,
+              "y": 71.0
+            }
+          },
+          "body": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            }
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level04_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level04_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "beginner_05": {
+      "level_id": "beginner_05",
+      "map_id": "beginner",
+      "index": 4,
+      "scene_path": "res://scenes/online/levels/level_05.tscn",
+      "spawn_point": {
+        "x": -170.0,
+        "y": 30.0
+      },
+      "extra_rulesets": [
+        "push_box_v1"
+      ],
+      "objects": {
+        "level05_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 221.0,
+              "y": 26.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level05_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 217.0,
+              "y": 116.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level05_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 217.0,
+              "y": 116.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level05_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level05_box_01": {
+          "kind": "push_box",
+          "state": {
+            "position": {
+              "x": -94.0,
+              "y": 119.0
+            }
+          },
+          "transform": {
+            "position": {
+              "x": -94.0,
+              "y": 119.0
+            }
+          },
+          "body": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            }
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level05_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level05_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "beginner_06": {
+      "level_id": "beginner_06",
+      "map_id": "beginner",
+      "index": 5,
+      "scene_path": "res://scenes/online/levels/level_06.tscn",
+      "spawn_point": {
+        "x": -170.0,
+        "y": 30.0
+      },
+      "extra_rulesets": [
+        "moving_platform_v1"
+      ],
+      "objects": {
+        "level06_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 24.0,
+              "y": 83.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level06_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 217.0,
+              "y": 116.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level06_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 217.0,
+              "y": 116.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level06_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 270.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level06_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level06_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "beginner_07": {
+      "level_id": "beginner_07",
+      "map_id": "beginner",
+      "index": 6,
+      "scene_path": "res://scenes/online/levels/level_07.tscn",
+      "spawn_point": {
+        "x": -272.0,
+        "y": 76.0
+      },
+      "extra_rulesets": [
+        "moving_platform_v1"
+      ],
+      "objects": {
+        "level07_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 86.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level07_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 291.0,
+              "y": 118.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level07_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 291.0,
+              "y": 118.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level07_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 270.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level07_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level07_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "beginner_08": {
+      "level_id": "beginner_08",
+      "map_id": "beginner",
+      "index": 7,
+      "scene_path": "res://scenes/online/levels/level_08.tscn",
+      "spawn_point": {
+        "x": -187.0,
+        "y": 92.0
+      },
+      "extra_rulesets": [
+        "moving_platform_v1"
+      ],
+      "objects": {
+        "level08_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 35.0,
+              "y": -130.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level08_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 324.0,
+              "y": 116.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level08_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 323.0,
+              "y": 116.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level08_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 184.0,
+              "y": 233.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level08_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level08_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "beginner_09": {
+      "level_id": "beginner_09",
+      "map_id": "beginner",
+      "index": 8,
+      "scene_path": "res://scenes/online/levels/level_09.tscn",
+      "spawn_point": {
+        "x": 0.0,
+        "y": 101.0
+      },
+      "extra_rulesets": [
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "objects": {
+        "level09_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 182.0,
+              "y": -89.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level09_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 19.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level09_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 18.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level09_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level09_button_01": {
+          "kind": "button",
+          "state": {
+            "pressed": false
+          },
+          "transform": {
+            "position": {
+              "x": -184.0,
+              "y": -67.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 1.0
+            },
+            "size": {
+              "x": 10.0,
+              "y": 4.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level09_button_02": {
+          "kind": "button",
+          "state": {
+            "pressed": false
+          },
+          "transform": {
+            "position": {
+              "x": -104.0,
+              "y": 44.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 1.0
+            },
+            "size": {
+              "x": 10.0,
+              "y": 4.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level09_platform_01": {
+          "kind": "moving_platform",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": -152.0,
+              "y": 59.75
+            }
+          }
+        },
+        "level09_platform_02": {
+          "kind": "moving_platform",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": 156.0,
+              "y": 67.0
+            }
+          }
+        },
+        "level09_platform_03": {
+          "kind": "moving_platform",
+          "state": {
+            "active": false
+          },
+          "transform": {
+            "position": {
+              "x": -137.0,
+              "y": -10.0
+            }
+          }
+        },
+        "level09_platform_04": {
+          "kind": "moving_platform",
+          "state": {
+            "active": false
+          },
+          "transform": {
+            "position": {
+              "x": 137.0,
+              "y": -12.0
+            }
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level09_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level09_goal_01"
+        }
+      ],
+      "links": [
+        {
+          "source_target_id": "level09_button_01",
+          "source_field": "pressed",
+          "source_value": true,
+          "target_id": "level09_platform_04",
+          "target_field": "active",
+          "target_value": true
+        },
+        {
+          "source_target_id": "level09_button_02",
+          "source_field": "pressed",
+          "source_value": true,
+          "target_id": "level09_platform_03",
+          "target_field": "active",
+          "target_value": true
+        }
+      ]
+    },
+    "beginner_10": {
+      "level_id": "beginner_10",
+      "map_id": "beginner",
+      "index": 9,
+      "scene_path": "res://scenes/online/levels/level_10.tscn",
+      "spawn_point": {
+        "x": -176.0,
+        "y": 62.0
+      },
+      "extra_rulesets": [
+        "push_box_v1",
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "objects": {
+        "level10_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 223.0,
+              "y": 13.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level10_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 218.0,
+              "y": 132.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level10_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 218.0,
+              "y": 132.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level10_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -6.0,
+              "y": 302.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level10_box_01": {
+          "kind": "push_box",
+          "state": {
+            "position": {
+              "x": -42.0,
+              "y": 87.0
+            }
+          },
+          "transform": {
+            "position": {
+              "x": -42.0,
+              "y": 87.0
+            }
+          },
+          "body": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            }
+          }
+        },
+        "level10_box_02": {
+          "kind": "push_box",
+          "state": {
+            "position": {
+              "x": -118.0,
+              "y": 135.0
+            }
+          },
+          "transform": {
+            "position": {
+              "x": -118.0,
+              "y": 135.0
+            }
+          },
+          "body": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            }
+          }
+        },
+        "level10_button_01": {
+          "kind": "button",
+          "state": {
+            "pressed": false
+          },
+          "transform": {
+            "position": {
+              "x": 95.0,
+              "y": 205.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.0
+            },
+            "size": {
+              "x": 18.0,
+              "y": 16.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level10_platform_01": {
+          "kind": "moving_platform",
+          "state": {
+            "active": false
+          },
+          "transform": {
+            "position": {
+              "x": 169.0,
+              "y": 94.0
+            }
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level10_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level10_goal_01"
+        }
+      ],
+      "links": [
+        {
+          "source_target_id": "level10_button_01",
+          "source_field": "pressed",
+          "source_value": true,
+          "target_id": "level10_platform_01",
+          "target_field": "active",
+          "target_value": true
+        }
+      ]
+    },
+    "desert_01": {
+      "level_id": "desert_01",
+      "map_id": "desert",
+      "index": 0,
+      "scene_path": "res://scenes/online/desert_levels/level_01_desert.tscn",
+      "spawn_point": {
+        "x": -242.0,
+        "y": 34.0
+      },
+      "objects": {
+        "level01_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 81.0,
+              "y": -11.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level01_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 142.0,
+              "y": 67.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level01_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 142.0,
+              "y": 67.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level01_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": -179.0,
+              "y": -76.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level01_magma_01": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -224.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_02": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -224.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_03": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -224.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_04": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -160.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_05": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -160.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_06": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -160.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_07": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -96.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_08": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -96.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_09": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -96.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_10": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -32.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_11": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -32.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_12": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -32.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_13": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 32.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_14": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 32.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level01_magma_15": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 32.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 16.0
+            },
+            "margin": 3.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level01_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level01_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "desert_02": {
+      "level_id": "desert_02",
+      "map_id": "desert",
+      "index": 1,
+      "scene_path": "res://scenes/online/desert_levels/level_02_desert.tscn",
+      "spawn_point": {
+        "x": -302.0,
+        "y": 44.0
+      },
+      "objects": {
+        "level02_magma_01": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -224.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_02": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -224.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_03": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -224.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_04": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -160.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_05": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -160.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_06": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -160.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_07": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -96.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_08": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -96.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_09": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -96.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_10": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -32.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_11": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -32.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_12": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -32.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_13": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 32.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_14": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 32.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_15": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 32.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_16": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -192.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_17": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -192.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_18": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -192.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_19": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -128.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_20": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -128.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_21": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -128.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_22": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -64.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_23": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -64.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_24": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -64.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_25": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_26": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_magma_27": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 120.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level02_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": -99.0,
+              "y": -10.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level02_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 144.0,
+              "y": -45.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level02_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 144.0,
+              "y": -45.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level02_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": -179.0,
+              "y": -76.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level02_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level02_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "desert_03": {
+      "level_id": "desert_03",
+      "map_id": "desert",
+      "index": 2,
+      "scene_path": "res://scenes/online/desert_levels/level_03_desert.tscn",
+      "spawn_point": {
+        "x": -339.0,
+        "y": -3.0
+      },
+      "extra_rulesets": [
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "objects": {
+        "level03_magma_01": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -272.0,
+              "y": -104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_02": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -272.0,
+              "y": -88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_03": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -272.0,
+              "y": -72.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_04": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -208.0,
+              "y": -104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_05": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -208.0,
+              "y": -88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_06": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -208.0,
+              "y": -72.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_07": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -144.0,
+              "y": -104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_08": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -144.0,
+              "y": -88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_09": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -144.0,
+              "y": -72.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_10": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -80.0,
+              "y": -104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_11": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -80.0,
+              "y": -88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_12": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -80.0,
+              "y": -72.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_13": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -16.0,
+              "y": -104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_14": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -16.0,
+              "y": -88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_15": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -16.0,
+              "y": -72.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_16": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -240.0,
+              "y": -104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_17": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -240.0,
+              "y": -88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_18": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -240.0,
+              "y": -72.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_19": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -176.0,
+              "y": -104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_20": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -176.0,
+              "y": -88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_21": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -176.0,
+              "y": -72.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_22": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -112.0,
+              "y": -104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_23": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -112.0,
+              "y": -88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_24": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -112.0,
+              "y": -72.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_25": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -48.0,
+              "y": -104.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_26": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -48.0,
+              "y": -88.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_magma_27": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -48.0,
+              "y": -72.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level03_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 54.0,
+              "y": -78.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level03_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 66.0,
+              "y": 20.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level03_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 66.0,
+              "y": 20.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level03_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": -179.0,
+              "y": -76.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level03_button_01": {
+          "kind": "button",
+          "state": {
+            "pressed": false
+          },
+          "transform": {
+            "position": {
+              "x": 41.0,
+              "y": 28.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 1.0
+            },
+            "size": {
+              "x": 10.0,
+              "y": 4.0
+            },
+            "margin": 3.0
+          }
+        },
+        "level03_platform_01": {
+          "kind": "moving_platform",
+          "state": {
+            "active": false
+          },
+          "transform": {
+            "position": {
+              "x": -328.0,
+              "y": -70.0
+            }
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level03_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level03_goal_01"
+        }
+      ],
+      "links": [
+        {
+          "source_target_id": "level03_button_01",
+          "source_field": "pressed",
+          "source_value": true,
+          "target_id": "level03_platform_01",
+          "target_field": "active",
+          "target_value": true
+        }
+      ]
+    },
+    "desert_04": {
+      "level_id": "desert_04",
+      "map_id": "desert",
+      "index": 3,
+      "scene_path": "res://scenes/online/desert_levels/level_04_desert.tscn",
+      "spawn_point": {
+        "x": -351.0,
+        "y": 68.0
+      },
+      "objects": {
+        "level04_magma_01": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -16.0,
+              "y": -40.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 32.0,
+              "y": 16.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level04_magma_02": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -40.0,
+              "y": -32.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 32.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level04_magma_03": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -40.0,
+              "y": 0.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 32.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level04_magma_04": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -40.0,
+              "y": 32.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 32.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level04_magma_05": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -40.0,
+              "y": 64.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 32.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level04_magma_06": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -40.0,
+              "y": 96.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 16.0,
+              "y": 32.0
+            },
+            "margin": 8.0
+          }
+        },
+        "level04_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": -62.0,
+              "y": 67.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level04_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": -61.0,
+              "y": -77.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level04_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": -61.0,
+              "y": -77.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level04_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": -179.0,
+              "y": -76.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level04_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level04_goal_01"
+        }
+      ],
+      "links": []
+    },
+    "desert_05": {
+      "level_id": "desert_05",
+      "map_id": "desert",
+      "index": 4,
+      "scene_path": "res://scenes/online/desert_levels/level_05_desert.tscn",
+      "spawn_point": {
+        "x": -357.0,
+        "y": 112.0
+      },
+      "objects": {
+        "level05_key_01": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": -93.0,
+              "y": 109.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 8.0,
+              "y": 16.0
+            },
+            "margin": 2.0
+          }
+        },
+        "level05_door_01": {
+          "kind": "door",
+          "requires": {
+            "item": "key",
+            "count": 1
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": -213.0,
+              "y": -224.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "level05_goal_01": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": -213.0,
+              "y": -224.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "level05_fall_reset_01": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 170.0,
+              "y": 240.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": -179.0,
+              "y": -76.0
+            },
+            "size": {
+              "x": 1400.0,
+              "y": 40.0
+            },
+            "margin": 4.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "level05_door_01",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "level05_goal_01"
+        }
+      ],
+      "links": []
+    }
   }
 }

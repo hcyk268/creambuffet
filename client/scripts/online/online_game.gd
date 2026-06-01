@@ -14,6 +14,7 @@ const NETWORK_SEND_INTERVAL := 0.05
 var _current_level: Node
 var _current_level_index := -1
 var _current_level_id := ""
+var _online_level_ids: Array[String] = []
 var _network_client: Node
 var _is_online_session := false
 var _remote_container: Node2D
@@ -39,6 +40,7 @@ func _ready() -> void:
 	if _is_online_session:
 		_bind_network_signals()
 		_setup_local_network_identity()
+		_configure_online_levels()
 
 	var safe_start_index := clampi(start_level_index, 0, levels.size() - 1)
 	if _is_online_session:
@@ -96,6 +98,38 @@ func load_level(index: int) -> void:
 	_configure_pushables_for_online(_current_level)
 	_configure_buttons_for_online(_current_level)
 	_update_level_label(false)
+
+
+func _configure_online_levels() -> void:
+	if not _is_online_session:
+		return
+
+	var room: Dictionary = _network_client.get_current_room()
+	var map_id := String(room.get("map_id", GameCatalog.DEFAULT_MAP_ID))
+	var level_ids := GameCatalog.get_level_ids(map_id)
+	var runtime_levels: Array[PackedScene] = []
+	_online_level_ids = []
+
+	for level_id in level_ids:
+		var level_def := GameCatalog.get_level(level_id)
+		var scene_path := String(level_def.get("scene_path", "")).strip_edges()
+		if scene_path.is_empty():
+			push_warning("Skipping level %s because scene_path is missing." % level_id)
+			continue
+
+		var packed_scene := load(scene_path) as PackedScene
+		if packed_scene == null:
+			push_warning("Skipping level %s because scene could not be loaded: %s" % [level_id, scene_path])
+			continue
+
+		runtime_levels.append(packed_scene)
+		_online_level_ids.append(level_id)
+
+	if runtime_levels.is_empty():
+		push_warning("No online levels could be resolved for map %s." % map_id)
+		return
+
+	levels = runtime_levels
 
 func restart_level() -> void:
 	if _current_level_index < 0:
@@ -781,6 +815,8 @@ func _level_has_door() -> bool:
 
 func _level_id_for_index(index: int) -> String:
 	if _is_online_session and _network_client != null:
+		if index >= 0 and index < _online_level_ids.size():
+			return _online_level_ids[index]
 		var room: Dictionary = _network_client.get_current_room()
 		var level_ids = room.get("level_ids", [])
 		if typeof(level_ids) == TYPE_ARRAY and index >= 0 and index < level_ids.size():
@@ -798,6 +834,8 @@ func _index_for_level_id(level_id: String, fallback_index: int) -> int:
 		return fallback_index
 
 	if _is_online_session and _network_client != null:
+		if level_id in _online_level_ids:
+			return _online_level_ids.find(level_id)
 		var room: Dictionary = _network_client.get_current_room()
 		var level_ids = room.get("level_ids", [])
 		if typeof(level_ids) == TYPE_ARRAY:
