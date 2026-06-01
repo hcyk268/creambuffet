@@ -114,7 +114,8 @@ func apply_automatic_fall_reset(peer_id: int) -> Array[Dictionary]:
 		var object_data := _get_object(target_id)
 		if object_data.is_empty():
 			continue
-		if String(object_data.get("kind", "")) != "fall_reset":
+		var object_kind := String(object_data.get("kind", ""))
+		if object_kind != "fall_reset" and object_kind != "hazard":
 			continue
 		if not can_player_interact_with_trigger(peer_id, target_id) and not did_player_cross_trigger_since_last_update(peer_id, target_id):
 			continue
