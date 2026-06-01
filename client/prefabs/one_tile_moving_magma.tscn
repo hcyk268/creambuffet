@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://cvj2wah06rxpw"]
+
+[ext_resource type="Texture2D" uid="uid://dvvalplpweh05" path="res://assets/sprites/map3_tiles.png" id="1_y44fj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y44fj"]
+atlas = ExtResource("1_y44fj")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q8cdt"]
+atlas = ExtResource("1_y44fj")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_65vto"]
+atlas = ExtResource("1_y44fj")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lpnm6"]
+atlas = ExtResource("1_y44fj")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3p4rc"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y44fj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q8cdt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_65vto")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lpnm6")
+}],
+"loop": true,
+"name": &"magma_moving",
+"speed": 2.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6104h"]
+size = Vector2(16, 16)
+
+[node name="Node2D" type="StaticBody2D" unique_id=1853100897]
+
+[node name="Sprite2D" type="AnimatedSprite2D" parent="." unique_id=542463058]
+sprite_frames = SubResource("SpriteFrames_3p4rc")
+animation = &"magma_moving"
+autoplay = "magma_moving"
+frame_progress = 0.3685573
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=419192196]
+shape = SubResource("RectangleShape2D_6104h")
