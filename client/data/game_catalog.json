@@ -4280,6 +4280,28 @@
             },
             "margin": 4.0
           }
+        },
+        "level05_magma_01": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -213.0,
+              "y": 147.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 385.5,
+              "y": 863.0
+            },
+            "margin": 8.0
+          }
         }
       },
       "completion_rules": [
