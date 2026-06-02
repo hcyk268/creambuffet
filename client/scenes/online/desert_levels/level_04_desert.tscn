@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://bteq8q3a66v3o" path="res://Terrain/Terrains.tscn" id="9_6b0oy"]
 [ext_resource type="PackedScene" path="res://prefabs/online_push_box.tscn" id="10_4fi1l"]
 [ext_resource type="PackedScene" uid="uid://u8fw0dm1iwk8" path="res://prefabs/fragile_platform.tscn" id="10_m26kc"]
+[ext_resource type="PackedScene" uid="uid://dhgxxep4w4cs0" path="res://prefabs/desert_rising_magma.tscn" id="11_6b0oy"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_50wog"]
 size = Vector2(1400, 40)
@@ -73,9 +74,8 @@ rotation = 1.5707964
 sync_id = "level04_magma_06"
 
 [node name="MovingPlatform" parent="." unique_id=1025752984 instance=ExtResource("7_qh3qc")]
-position = Vector2(-83, -50.25)
+position = Vector2(-88, -58.5)
 movement_mode = 1
-diameter = 48.0
 activation = true
 
 [node name="Terrains_original" parent="." unique_id=984441728 instance=ExtResource("9_6b0oy")]
@@ -107,3 +107,7 @@ position = Vector2(-105, -6)
 
 [node name="OnlinePushBox" parent="." unique_id=129547696 instance=ExtResource("10_4fi1l")]
 position = Vector2(-264, 72)
+
+[node name="Node2D" parent="." unique_id=1607020404 instance=ExtResource("11_6b0oy")]
+modulate = Color(0.8536935, 0.9484278, 1.353, 0.851)
+position = Vector2(-196, 120)
