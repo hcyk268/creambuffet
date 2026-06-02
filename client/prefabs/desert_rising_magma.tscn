@@ -1,14 +1,14 @@
-[gd_scene format=3 uid="uid://cvj2wah06rxpw"]
+[gd_scene format=3 uid="uid://dhgxxep4w4cs0"]
 
-[ext_resource type="Texture2D" uid="uid://dvvalplpweh05" path="res://assets/sprites/map3_tiles.png" id="1_y44fj"]
-[ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="2_spike"]
+[ext_resource type="Script" uid="uid://dsjb6wixylhbl" path="res://scripts/desert_rising_magma.gd" id="1_tx1cg"]
+[ext_resource type="Texture2D" uid="uid://dvvalplpweh05" path="res://assets/sprites/map3_tiles.png" id="2_krqgm"]
 
 [sub_resource type="Animation" id="Animation_q8cdt"]
 length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/path = NodePath("NinePatchRect:region_rect")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -24,7 +24,7 @@ length = 1.5
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/path = NodePath("NinePatchRect:region_rect")
 tracks/0/interp = 0
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -41,25 +41,25 @@ _data = {
 }
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6104h"]
-size = Vector2(16, 16)
+size = Vector2(385.5, 16.125)
 
-[node name="Node2D" type="Node2D" unique_id=1607020404]
-script = ExtResource("2_spike")
+[node name="Node2D" type="Area2D" unique_id=2570484]
+script = ExtResource("1_tx1cg")
 
-[node name="Sprite2D" type="NinePatchRect" parent="." unique_id=624310602]
-offset_left = -8.0
+[node name="NinePatchRect" type="NinePatchRect" parent="." unique_id=624310602]
+offset_left = -192.0
 offset_top = -8.0
-offset_right = 8.0
+offset_right = 193.0
 offset_bottom = 8.0
-texture = ExtResource("1_y44fj")
+texture = ExtResource("2_krqgm")
 region_rect = Rect2(0, 0, 16, 16)
 axis_stretch_horizontal = 1
+metadata/_edit_use_anchors_ = true
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1647596206]
 libraries/ = SubResource("AnimationLibrary_lpnm6")
 autoplay = &"magma_idle_moving"
 
-[node name="Area2D" type="Area2D" parent="." unique_id=1813746883]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=419192196]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=419192196]
+modulate = Color(1, 1, 1, 0.29411766)
 shape = SubResource("RectangleShape2D_6104h")
