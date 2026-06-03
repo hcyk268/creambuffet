@@ -3,6 +3,7 @@ extends Node2D
 const PLAYER_SCENE := preload("res://scenes/player_soda.tscn")
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const NETWORK_SEND_INTERVAL := 0.05
+const LOCAL_HAZARD_RESPAWN_REARM_MS := 300
 
 @export var levels: Array[PackedScene] = []
 @export var start_level_index := 0
@@ -28,6 +29,8 @@ var _hud_failure_state: Dictionary = {}
 var _hud_failure_fallback_state: Dictionary = {}
 var _hud_failure_snapshot_ms := 0
 var _pending_local_death_decrement := false
+var _pending_local_elimination := false
+var _local_hazard_rearm_until_ms := 0
 
 
 func _ready() -> void:
@@ -161,8 +164,15 @@ func _setup_player_spawn(level_root: Node) -> void:
 	else:
 		player.global_position = Vector2.ZERO
 
+	if player.has_method("set_input_enabled"):
+		player.set_input_enabled(true)
+	if player.has_method("set_eliminated"):
+		player.set_eliminated(false)
 	player.velocity = Vector2.ZERO
 	player.spawn_position = player.global_position
+	_pending_local_death_decrement = false
+	_pending_local_elimination = false
+	_local_hazard_rearm_until_ms = 0
 	if player.has_method("set_key_count"):
 		player.set_key_count(0)
 	else:
@@ -521,14 +531,34 @@ func _on_player_death(body: Node, spike_node: Node) -> void:
 	if body != player:
 		return
 
-	_pending_local_death_decrement = true
-	_decrement_shared_hud_hearts()
-	_update_failure_hud()
+	var now_ms: int = Time.get_ticks_msec()
+	if now_ms < _local_hazard_rearm_until_ms:
+		return
+	if _pending_local_death_decrement or _pending_local_elimination:
+		_pending_local_death_decrement = false
+		_pending_local_elimination = false
+	if player.has_method("is_eliminated") and bool(player.call("is_eliminated")):
+		return
 
 	var target_id := _node_sync_id(spike_node)
 	if target_id.is_empty():
 		push_warning("Ignoring player_death request because hazard sync_id is missing.")
 		return
+
+	var will_eliminate := _will_eliminate_on_next_death()
+	_pending_local_death_decrement = true
+	_pending_local_elimination = will_eliminate
+	_local_hazard_rearm_until_ms = now_ms + LOCAL_HAZARD_RESPAWN_REARM_MS
+	_decrement_shared_hud_hearts()
+	if will_eliminate:
+		if player.has_method("set_eliminated"):
+			player.set_eliminated(true)
+		if player.has_method("set_input_enabled"):
+			player.set_input_enabled(false)
+	else:
+		if player.has_method("respawn"):
+			player.respawn()
+	_update_failure_hud()
 
 	_network_client.send_world_event({
 		"action": "player_death",
@@ -572,7 +602,7 @@ func _on_world_event_received(event: Dictionary) -> void:
 		"door_opened":
 			_apply_door_opened(target_id, int(event.get("peer_id", -1)))
 		"player_died":
-			_apply_player_died(int(event.get("peer_id", -1)))
+			_apply_player_died(int(event.get("peer_id", -1)), bool(event.get("eliminated", false)))
 		"player_respawned":
 			_apply_player_respawned(int(event.get("peer_id", -1)))
 		"goal_entered":
@@ -633,15 +663,30 @@ func _apply_door_opened(sync_id: String, event_peer_id: int) -> void:
 	if event_peer_id == _network_client.get_local_peer_id() and player.has_method("use_key"):
 		player.use_key()
 
-func _apply_player_died(event_peer_id: int) -> void:
-	# Respawn is now server-confirmed via player_respawned.
+func _apply_player_died(event_peer_id: int, eliminated: bool = false) -> void:
+	var target_player := _player_for_peer(event_peer_id)
+	if target_player != null and eliminated and target_player.has_method("set_input_enabled"):
+		target_player.set_input_enabled(false)
+	if target_player != null and eliminated and target_player.has_method("set_eliminated"):
+		target_player.set_eliminated(true)
+	if target_player != null:
+		target_player.velocity = Vector2.ZERO
+
 	if event_peer_id == _network_client.get_local_peer_id() and _pending_local_death_decrement:
 		_pending_local_death_decrement = false
 	else:
 		_decrement_shared_hud_hearts()
 		_update_failure_hud()
+	if event_peer_id == _network_client.get_local_peer_id() and _pending_local_elimination:
+		_pending_local_elimination = false
+	if event_peer_id == _network_client.get_local_peer_id() and eliminated:
+		if player.has_method("set_input_enabled"):
+			player.set_input_enabled(false)
 	if event_peer_id == _network_client.get_local_peer_id():
-		print("Local player death acknowledged by server; waiting for respawn event.")
+		if eliminated:
+			print("Local player eliminated until the level resets.")
+		else:
+			print("Local player death acknowledged by server.")
 
 func _apply_player_respawned(event_peer_id: int) -> void:
 	var target_player := _player_for_peer(event_peer_id)
@@ -650,6 +695,14 @@ func _apply_player_respawned(event_peer_id: int) -> void:
 
 	if target_player.has_method("respawn"):
 		target_player.respawn()
+	if target_player.has_method("set_input_enabled"):
+		target_player.set_input_enabled(true)
+	if target_player.has_method("set_eliminated"):
+		target_player.set_eliminated(false)
+	if event_peer_id == _network_client.get_local_peer_id():
+		_pending_local_death_decrement = false
+		_pending_local_elimination = false
+		_local_hazard_rearm_until_ms = Time.get_ticks_msec() + LOCAL_HAZARD_RESPAWN_REARM_MS
 
 
 func _decrement_shared_hud_hearts() -> void:
@@ -665,6 +718,15 @@ func _decrement_shared_hud_hearts() -> void:
 		_hud_failure_fallback_state = failure_state
 	else:
 		_hud_failure_state = failure_state
+
+
+func _will_eliminate_on_next_death() -> bool:
+	var failure_state := _hud_failure_display_state()
+	var death_limit: Dictionary = failure_state.get("death_limit", {})
+	if death_limit.is_empty() or not bool(death_limit.get("enabled", false)):
+		return false
+
+	return int(death_limit.get("hearts_remaining", 0)) <= 1
 
 func _apply_goal_enter(sync_id: String, peer_id: int) -> void:
 	if peer_id != _network_client.get_local_peer_id():

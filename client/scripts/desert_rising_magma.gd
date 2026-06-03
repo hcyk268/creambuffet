@@ -7,6 +7,8 @@ signal player_death(body: Node)
 @export var rising_time: float = 10.0       # How many seconds to wait before rising
 @export var magma_speed: float = 20.0      # How fast it stretches upwards (pixels per second)
 
+const MAGMA_SURFACE_KILL_PADDING := 8.0
+
 var _time_elapsed: float = 0.0
 var _is_rising: bool = false
 var _tracked_bodies: Dictionary = {}
@@ -59,6 +61,11 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node) -> void:
 	if not _is_valid_body(body):
 		return
+	if not (body is Node2D):
+		return
+	var body_node := body as Node2D
+	if not _body_hits_magma(body_node):
+		return
 	var body_id := body.get_instance_id()
 	if _tracked_bodies.has(body_id):
 		return
@@ -94,15 +101,14 @@ func _sync_overlaps() -> void:
 
 
 func _is_valid_body(body: Node) -> bool:
-	return body != null and body.is_in_group("player")
+	if body == null or not body.is_in_group("player"):
+		return false
+	if body.has_method("is_eliminated") and bool(body.call("is_eliminated")):
+		return false
+	return true
 
 
 func _body_hits_magma(body: Node2D) -> bool:
-	if collision_shape == null or collision_shape.shape == null:
-		return false
-	if not (collision_shape.shape is RectangleShape2D):
-		return false
-
 	var player_shape_node := body.get_node_or_null("CollisionShape2D") as CollisionShape2D
 	if player_shape_node == null or player_shape_node.shape == null:
 		return false
@@ -114,11 +120,26 @@ func _body_hits_magma(body: Node2D) -> bool:
 		return false
 
 	var circle_shape: CircleShape2D = player_shape_node.shape
-	var circle_center := player_shape_node.global_position
-	return magma_rect.grow(circle_shape.radius).has_point(circle_center)
+	var circle_center: Vector2 = player_shape_node.global_position
+	var player_bottom := circle_center.y + circle_shape.radius
+	var player_left := circle_center.x - circle_shape.radius
+	var player_right := circle_center.x + circle_shape.radius
+	var magma_left := magma_rect.position.x
+	var magma_right := magma_rect.position.x + magma_rect.size.x
+	var magma_top := magma_rect.position.y
+	var magma_bottom := magma_rect.position.y + magma_rect.size.y
+
+	if player_right < magma_left or player_left > magma_right:
+		return false
+	if circle_center.y > magma_bottom:
+		return false
+	return player_bottom >= magma_top + MAGMA_SURFACE_KILL_PADDING
 
 
 func _magma_rectangle() -> Rect2:
+	if nine_patch != null:
+		return Rect2(global_position + nine_patch.position, nine_patch.size)
+
 	if collision_shape == null or collision_shape.shape == null:
 		return Rect2()
 	if not (collision_shape.shape is RectangleShape2D):
@@ -134,6 +155,13 @@ func _magma_rectangle() -> Rect2:
 
 func _kill_player(body: Node) -> void:
 	player_death.emit(body)
+	if _is_online_session():
+		if body.has_method("set_input_enabled"):
+			body.set_input_enabled(false)
+		if body is CharacterBody2D:
+			(body as CharacterBody2D).velocity = Vector2.ZERO
+		return
+
 	if body.has_method("die"):
 		body.die()
 
