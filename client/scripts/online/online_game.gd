@@ -10,6 +10,7 @@ const NETWORK_SEND_INTERVAL := 0.05
 @onready var player: CharacterBody2D = $Player
 @onready var level_container: Node2D = $LevelContainer
 @onready var level_label: Label = $CanvasLayer/LevelLabel
+@onready var time_label: Label = $CanvasLayer/TimeLabel
 
 var _current_level: Node
 var _current_level_index := -1
@@ -23,6 +24,10 @@ var _send_timer := 0.0
 var _match_complete := false
 var _applying_remote_world_event := false
 var _synced_nodes: Dictionary = {}
+var _hud_failure_state: Dictionary = {}
+var _hud_failure_fallback_state: Dictionary = {}
+var _hud_failure_snapshot_ms := 0
+var _pending_local_death_decrement := false
 
 
 func _ready() -> void:
@@ -49,10 +54,19 @@ func _ready() -> void:
 
 	load_level(safe_start_index)
 	_sync_remote_roster()
+	if _is_online_session:
+		_cache_failure_state(_network_client.get_current_room())
+	else:
+		_cache_failure_state({})
+	_update_failure_hud()
 
 
 func _exit_tree() -> void:
 	_unbind_network_signals()
+
+
+func _process(_delta: float) -> void:
+	_update_failure_hud()
 
 
 func _physics_process(delta: float) -> void:
@@ -97,7 +111,9 @@ func load_level(index: int) -> void:
 	_connect_world_events(_current_level)
 	_configure_pushables_for_online(_current_level)
 	_configure_buttons_for_online(_current_level)
+	_refresh_hud_failure_fallback_state()
 	_update_level_label(false)
+	_update_failure_hud()
 
 
 func _configure_online_levels() -> void:
@@ -225,7 +241,12 @@ func _update_level_label(game_complete: bool) -> void:
 		var room: Dictionary = _network_client.get_current_room()
 		suffix = " | Room %s | %s" % [String(room.get("room_id", "")), _current_level_id]
 
-	level_label.text = "Level %d / %d%s" % [_current_level_index + 1, levels.size(), suffix]
+	var hearts_text := _failure_hearts_text()
+	var hearts_suffix := ""
+	if not hearts_text.is_empty():
+		hearts_suffix = " %s" % hearts_text
+
+	level_label.text = "Level %d / %d%s%s" % [_current_level_index + 1, levels.size(), hearts_suffix, suffix]
 
 
 func _bind_network_signals() -> void:
@@ -369,11 +390,15 @@ func _on_remote_player_state(peer_id: int, state: Dictionary) -> void:
 func _on_current_room_changed(room: Dictionary) -> void:
 	if room.is_empty():
 		_remove_remote_players()
+		_cache_failure_state({})
+		_update_failure_hud()
 		return
 
 	_sync_remote_roster(room)
 	_apply_match_state_snapshot(room)
 	_update_level_label(_match_complete)
+	_cache_failure_state(room)
+	_update_failure_hud()
 
 
 func _on_level_transition(_from_level_index: int, to_level_index: int, match_complete: bool, room: Dictionary) -> void:
@@ -382,15 +407,19 @@ func _on_level_transition(_from_level_index: int, to_level_index: int, match_com
 		_sync_remote_roster(room)
 		_apply_match_state_snapshot(room)
 		_update_level_label(true)
+		_cache_failure_state(room)
+		_update_failure_hud()
 		return
 
 	var target_level_id := String(room.get("current_level_id", ""))
 	var target_index := _index_for_level_id(target_level_id, to_level_index)
-	if target_index != _current_level_index:
+	if target_index != _current_level_index or _from_level_index == to_level_index:
 		load_level(target_index)
 
 	_sync_remote_roster(room)
 	_apply_match_state_snapshot(room)
+	_cache_failure_state(room)
+	_update_failure_hud()
 
 
 func _on_pushable_control_received(level_index: int, controls: Array) -> void:
@@ -492,6 +521,10 @@ func _on_player_death(body: Node, spike_node: Node) -> void:
 	if body != player:
 		return
 
+	_pending_local_death_decrement = true
+	_decrement_shared_hud_hearts()
+	_update_failure_hud()
+
 	var target_id := _node_sync_id(spike_node)
 	if target_id.is_empty():
 		push_warning("Ignoring player_death request because hazard sync_id is missing.")
@@ -503,6 +536,7 @@ func _on_player_death(body: Node, spike_node: Node) -> void:
 		"target_id": target_id,
 		"position": _vector_to_packet(player.global_position),
 		"velocity": _vector_to_packet(player.velocity),
+		"target_position": _vector_to_packet((spike_node as Node2D).global_position if spike_node is Node2D else Vector2.ZERO),
 	})
 
 
@@ -601,6 +635,11 @@ func _apply_door_opened(sync_id: String, event_peer_id: int) -> void:
 
 func _apply_player_died(event_peer_id: int) -> void:
 	# Respawn is now server-confirmed via player_respawned.
+	if event_peer_id == _network_client.get_local_peer_id() and _pending_local_death_decrement:
+		_pending_local_death_decrement = false
+	else:
+		_decrement_shared_hud_hearts()
+		_update_failure_hud()
 	if event_peer_id == _network_client.get_local_peer_id():
 		print("Local player death acknowledged by server; waiting for respawn event.")
 
@@ -611,6 +650,21 @@ func _apply_player_respawned(event_peer_id: int) -> void:
 
 	if target_player.has_method("respawn"):
 		target_player.respawn()
+
+
+func _decrement_shared_hud_hearts() -> void:
+	var failure_state := _hud_failure_state if not _hud_failure_state.is_empty() else _hud_failure_fallback_state
+	var death_limit: Dictionary = failure_state.get("death_limit", {})
+	if death_limit.is_empty() or not bool(death_limit.get("enabled", false)):
+		return
+
+	var hearts_remaining := maxi(int(death_limit.get("hearts_remaining", 0)) - 1, 0)
+	death_limit["hearts_remaining"] = hearts_remaining
+	failure_state["death_limit"] = death_limit
+	if _hud_failure_state.is_empty():
+		_hud_failure_fallback_state = failure_state
+	else:
+		_hud_failure_state = failure_state
 
 func _apply_goal_enter(sync_id: String, peer_id: int) -> void:
 	if peer_id != _network_client.get_local_peer_id():
@@ -730,6 +784,7 @@ func _apply_match_state_snapshot(room: Dictionary) -> void:
 	if typeof(pushables_raw) == TYPE_ARRAY:
 		_apply_pushable_controls(pushables_raw)
 	_applying_remote_world_event = false
+	_cache_failure_state(room)
 
 func _player_for_peer(peer_id: int) -> CharacterBody2D:
 	if peer_id == _network_client.get_local_peer_id():
@@ -858,6 +913,139 @@ func _event_matches_current_level(event: Dictionary) -> bool:
 
 func _event_target_id(event: Dictionary) -> String:
 	return String(event.get("target_id", event.get("sync_id", "")))
+
+
+func _cache_failure_state(room: Dictionary) -> void:
+	if room.is_empty():
+		_hud_failure_state = {}
+		_hud_failure_snapshot_ms = 0
+		_refresh_hud_failure_fallback_state()
+		return
+
+	var match_state_raw = room.get("match_state", {})
+	if typeof(match_state_raw) != TYPE_DICTIONARY:
+		_hud_failure_state = {}
+		_hud_failure_snapshot_ms = 0
+		return
+
+	var match_state: Dictionary = match_state_raw
+	var failure_state_raw = match_state.get("failure_state", {})
+	if typeof(failure_state_raw) != TYPE_DICTIONARY:
+		_hud_failure_state = {}
+		_hud_failure_snapshot_ms = 0
+		return
+
+	_hud_failure_state = Dictionary(failure_state_raw).duplicate(true)
+	_hud_failure_snapshot_ms = Time.get_ticks_msec()
+
+
+func _update_failure_hud() -> void:
+	if time_label == null or level_label == null:
+		return
+
+	if _match_complete:
+		time_label.visible = false
+		_update_level_label(true)
+		return
+
+	var failure_display_state := _hud_failure_display_state()
+	var time_limit: Dictionary = failure_display_state.get("time_limit", {})
+	if bool(time_limit.get("enabled", false)):
+		time_label.visible = true
+		var remaining_ms := _failure_time_remaining_ms(failure_display_state)
+		time_label.text = "TIME %s" % _format_time_ms(remaining_ms)
+	else:
+		time_label.visible = false
+
+	_update_level_label(_match_complete)
+
+
+func _failure_hearts_text() -> String:
+	var death_limit: Dictionary = _hud_failure_display_state().get("death_limit", {})
+	if not bool(death_limit.get("enabled", false)):
+		return ""
+
+	var hearts_max := maxi(int(death_limit.get("hearts_max", 0)), 0)
+	var hearts_remaining := maxi(int(death_limit.get("hearts_remaining", 0)), 0)
+	if hearts_max <= 0:
+		return ""
+
+	var hearts := ""
+	for index in range(hearts_max):
+		hearts += "\u2665" if index < hearts_remaining else "\u2661"
+	return hearts
+
+
+func _format_time_ms(remaining_ms: int) -> String:
+	var total_seconds := maxi(int(remaining_ms / 1000), 0)
+	var minutes := int(total_seconds / 60)
+	var seconds := int(total_seconds % 60)
+	return "%02d:%02d" % [minutes, seconds]
+
+
+func _hud_failure_display_state() -> Dictionary:
+	if not _hud_failure_state.is_empty():
+		return Dictionary(_hud_failure_state).duplicate(true)
+	return Dictionary(_hud_failure_fallback_state).duplicate(true)
+
+
+func _failure_time_remaining_ms(state: Dictionary) -> int:
+	var time_limit: Dictionary = state.get("time_limit", {})
+	if time_limit.is_empty():
+		return 0
+
+	var duration_ms := int(time_limit.get("duration_ms", 0))
+	var started_at_ms := int(time_limit.get("started_at_ms", 0))
+	if started_at_ms <= 0:
+		return maxi(int(time_limit.get("remaining_ms", 0)), 0)
+
+	return maxi(duration_ms - (Time.get_ticks_msec() - started_at_ms), 0)
+
+
+func _refresh_hud_failure_fallback_state() -> void:
+	_hud_failure_fallback_state = {
+		"time_limit": {},
+		"death_limit": {},
+	}
+
+	if _current_level_id.is_empty():
+		return
+
+	var level_def := GameCatalog.get_level(_current_level_id)
+	if level_def.is_empty():
+		return
+
+	var raw_rules: Variant = level_def.get("failure_rules", [])
+	if typeof(raw_rules) != TYPE_ARRAY:
+		return
+
+	for raw_rule in raw_rules:
+		if typeof(raw_rule) != TYPE_DICTIONARY:
+			continue
+
+		var rule: Dictionary = raw_rule
+		match String(rule.get("type", "")):
+			"time_limit":
+				var seconds := maxf(float(rule.get("seconds", 0.0)), 0.0)
+				if seconds <= 0.0:
+					continue
+				var duration_ms := int(round(seconds * 1000.0))
+				_hud_failure_fallback_state["time_limit"] = {
+					"enabled": true,
+					"duration_ms": duration_ms,
+					"started_at_ms": Time.get_ticks_msec(),
+					"remaining_ms": duration_ms,
+				}
+			"death_limit":
+				var hearts := maxi(int(rule.get("hearts", rule.get("max_deaths", 0))), 0)
+				if hearts <= 0:
+					continue
+				_hud_failure_fallback_state["death_limit"] = {
+					"enabled": true,
+					"hearts_max": hearts,
+					"hearts_remaining": hearts,
+					"shared": bool(rule.get("shared", true)),
+				}
 
 
 func _node_sync_id(node: Node) -> String:
