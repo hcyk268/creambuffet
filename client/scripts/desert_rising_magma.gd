@@ -17,6 +17,8 @@ var _is_rising: bool = false
 func _ready() -> void:
 	add_to_group("level_hazard")
 	body_entered.connect(_on_body_entered)
+	if collision_shape and collision_shape.shape:
+		collision_shape.shape = collision_shape.shape.duplicate()
 	if animation_player:
 		animation_player.play("magma_idle_moving")
 
