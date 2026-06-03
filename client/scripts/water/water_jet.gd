@@ -242,12 +242,12 @@ func _apply_active_state() -> void:
 	var should_show := active or has_visible_length
 	var should_detect := active and has_visible_length
 	visible = should_show
-	monitoring = should_detect
-	monitorable = should_detect
+	set_deferred(&"monitoring", should_detect)
+	set_deferred(&"monitorable", should_detect)
 	set_process(active or has_visible_length)
 	set_physics_process(should_detect)
 	if collision_shape != null:
-		collision_shape.disabled = not should_detect
+		collision_shape.set_deferred(&"disabled", not should_detect)
 	queue_redraw()
 
 

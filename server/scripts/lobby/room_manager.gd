@@ -14,7 +14,7 @@ const ROOM_CODE_ALPHABET := [
 const ROOM_CODE_LENGTH := 6
 const MAX_ROOM_ID_ATTEMPTS := 32
 
-const MIN_PLAYERS := 1
+const MIN_PLAYERS := 2
 const MAX_PLAYERS := 4
 const MIN_WORLDS := 1
 const MAX_WORLDS := 10
@@ -63,7 +63,7 @@ func list_public_rooms() -> Array[Dictionary]:
 	for raw_room_id in room_ids:
 		var room_id := String(raw_room_id)
 		var room := rooms.get(room_id) as Room
-		if room != null and room.is_public:
+		if room != null and room.is_public and room.is_in_lobby():
 			snapshots.append(room.snapshot())
 
 	return snapshots
@@ -87,7 +87,8 @@ func create_room(peer_id: int, requested_name: String, options: Dictionary) -> D
 	if not GameCatalog.is_map_selectable(map_id):
 		return _error("map_not_selectable", "Map is not available yet: %s" % map_id)
 
-	var level_ids := GameCatalog.get_level_ids(map_id)
+	var randomized := false
+	var level_ids := _build_room_level_ids(map_id, 0, randomized)
 	if level_ids.is_empty():
 		return _error("empty_map", "Map has no playable levels: %s" % map_id)
 
@@ -97,7 +98,6 @@ func create_room(peer_id: int, requested_name: String, options: Dictionary) -> D
 			return validation
 
 	var world_count := level_ids.size()
-	var randomized := bool(options.get("randomized", false))
 
 	var room := Room.new(room_id, peer_id, is_public, max_players, world_count, randomized, map_id, level_ids)
 	var add_error := room.try_add_player(session)
@@ -125,6 +125,11 @@ func join_room(peer_id: int, requested_name: String, requested_room_id: String) 
 	var room := get_room(room_id)
 	if room == null:
 		return _error("room_not_found", "Room id does not exist.")
+
+	if not room.is_in_lobby():
+		if room.is_playing():
+			return _error("room_in_progress", "Room is already in progress.")
+		return _error("room_closed", "Room is no longer accepting new players.")
 
 	if room.is_full():
 		return _error("room_full", "Room is already full.")
@@ -204,6 +209,9 @@ func start_match(peer_id: int) -> Dictionary:
 	if room.status != Room.STATUS_LOBBY:
 		return _error("room_not_in_lobby", "Match can only start while the room is in lobby status.")
 
+	if room.player_ids().size() < room.max_players:
+		return _error("room_not_ready", "Waiting for all players to join before starting the match.")
+
 	room.start_match()
 	return {
 		"ok": true,
@@ -229,7 +237,7 @@ func set_room_map(peer_id: int, requested_map_id: String) -> Dictionary:
 	if not GameCatalog.is_map_selectable(map_id):
 		return _error("map_not_selectable", "Map is not available yet: %s" % map_id)
 
-	var level_ids := GameCatalog.get_level_ids(map_id)
+	var level_ids := _build_room_level_ids(map_id, 0, false)
 	if level_ids.is_empty():
 		return _error("empty_map", "Map has no playable levels: %s" % map_id)
 
@@ -292,6 +300,42 @@ func _create_unique_room_id() -> String:
 
 func _clamp_int(value, min_value: int, max_value: int) -> int:
 	return clampi(int(value), min_value, max_value)
+
+
+func _build_room_level_ids(map_id: String, requested_world_count: int, randomized: bool) -> Array[String]:
+	var available_level_ids := GameCatalog.get_level_ids(map_id)
+	if available_level_ids.is_empty():
+		return []
+
+	var effective_world_count := requested_world_count if requested_world_count > 0 else available_level_ids.size()
+	var normalized_world_count := _clamp_int(
+		effective_world_count,
+		MIN_WORLDS,
+		mini(MAX_WORLDS, available_level_ids.size())
+	)
+	var selected_level_ids := available_level_ids.duplicate()
+	if randomized and selected_level_ids.size() > 1:
+		_shuffle_level_ids(selected_level_ids)
+
+	if normalized_world_count >= selected_level_ids.size():
+		return selected_level_ids
+
+	var trimmed_level_ids: Array[String] = []
+	for index in range(normalized_world_count):
+		trimmed_level_ids.append(selected_level_ids[index])
+
+	return trimmed_level_ids
+
+
+func _shuffle_level_ids(level_ids: Array[String]) -> void:
+	for index in range(level_ids.size() - 1, 0, -1):
+		var swap_index := _rng.randi_range(0, index)
+		if swap_index == index:
+			continue
+
+		var current_level_id := level_ids[index]
+		level_ids[index] = level_ids[swap_index]
+		level_ids[swap_index] = current_level_id
 
 
 func _error(code: String, message: String) -> Dictionary:

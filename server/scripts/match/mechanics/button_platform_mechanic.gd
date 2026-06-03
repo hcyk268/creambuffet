@@ -7,7 +7,7 @@ func apply_button_state(match_state, peer_id: int, target_id: String, payload: D
 		return object_state
 
 	var object_data: Dictionary = object_state["object"]
-	return _apply_button_state_for_object(match_state, peer_id, target_id, object_data)
+	return _apply_button_state_for_object(match_state, peer_id, target_id, object_data, payload)
 
 
 func refresh_button_states(match_state, peer_id: int) -> Array[Dictionary]:
@@ -28,9 +28,12 @@ func refresh_button_states(match_state, peer_id: int) -> Array[Dictionary]:
 	return events
 
 
-func _apply_button_state_for_object(match_state, peer_id: int, target_id: String, object_data: Dictionary) -> Dictionary:
+func _apply_button_state_for_object(match_state, peer_id: int, target_id: String, object_data: Dictionary, payload: Dictionary = {}) -> Dictionary:
 	var state: Dictionary = object_data.get("state", {})
-	var pressed: bool = match_state.compute_button_pressed(target_id)
+	var computed_pressed: bool = match_state.compute_button_pressed(target_id)
+	var pressed: bool = computed_pressed
+	if bool(payload.get("pressed", false)):
+		pressed = true
 	if bool(state.get("pressed", false)) == pressed:
 		var no_events: Array[Dictionary] = []
 		return match_state._ok(no_events)

@@ -17,6 +17,7 @@ const SWIM_SPRITE_POSITION := Vector2(0, -27)
 const LAND_SPRITE_SCALE := Vector2.ONE
 const SWIM_SPRITE_SCALE := Vector2(0.1, 0.1)
 const WATER_JET_BLOCKED_DOT_EPSILON := 0.01
+const NAME_LABEL_OFFSET := Vector2(-120.0, -95.0)
 
 @export var SPEED := 150.0
 @export var JUMP_VELOCITY := -300.0
@@ -36,9 +37,16 @@ const WATER_JET_BLOCKED_DOT_EPSILON := 0.01
 @export var water_jet_response := 14.0
 @export var water_jet_cross_drag := 2.5
 @export var water_jet_max_velocity := 760.0
+@export var water_jet_upward_lift_ratio := 0.16
+@export var water_jet_upward_max_lift_speed := 78.0
+@export var water_jet_upward_lift_stop_speed := 45.0
+@export var water_jet_upward_side_ratio := 0.72
+@export var water_jet_upward_side_min_speed := 180.0
+@export var water_jet_upward_side_max_speed := 280.0
 
 @onready var carried_key_sprite: Sprite2D = get_node_or_null("CarriedKey") as Sprite2D
 @onready var bubble_effect: AnimatedSprite2D = get_node_or_null("BubbleEffect") as AnimatedSprite2D
+@onready var name_label: Label = get_node_or_null("NameLabel") as Label
 
 var spawn_position: Vector2
 var oxygen := 10.0
@@ -58,12 +66,17 @@ var _oxygen_depleted_pending := false
 var _water_jet_velocity := Vector2.ZERO
 var _applied_water_jet_velocity := Vector2.ZERO
 var _bubble_emit_timer := 0.0
+var _water_jet_side_sign := 1.0
 var _bubble_rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
 	_bubble_rng.randomize()
+	_water_jet_side_sign = -1.0 if _bubble_rng.randi_range(0, 1) == 0 else 1.0
 	_apply_network_control_mode()
+	if name_label != null:
+		name_label.top_level = true
+	_update_name_label()
 	_update_key_indicator()
 	_update_bubble_effect()
 	spawn_position = global_position
@@ -74,6 +87,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_update_oxygen(delta)
 	_process_bubble_effects(delta)
+	_update_name_label_position()
 
 	if carried_key_sprite == null or not carried_key_sprite.visible:
 		return
@@ -95,11 +109,13 @@ func _physics_process(delta: float) -> void:
 func set_network_identity(peer_id: int, player_name: String = "") -> void:
 	network_peer_id = peer_id
 	display_name = player_name
+	_update_name_label()
 
 
 func set_network_remote(remote: bool) -> void:
 	is_remote_player = remote
 	_apply_network_control_mode()
+	_update_name_label()
 
 
 func set_input_enabled(enabled: bool) -> void:
@@ -117,6 +133,7 @@ func respawn() -> void:
 	velocity = Vector2.ZERO
 	_water_jet_velocity = Vector2.ZERO
 	_applied_water_jet_velocity = Vector2.ZERO
+	_water_jet_side_sign = -1.0 if _bubble_rng.randi_range(0, 1) == 0 else 1.0
 	_bubble_emit_timer = 0.0
 	var was_in_water := is_in_water()
 	_water_zones.clear()
@@ -398,6 +415,29 @@ func _update_key_indicator() -> void:
 		carried_key_sprite.modulate = Color.WHITE
 
 
+func _update_name_label() -> void:
+	if name_label == null:
+		return
+
+	var cleaned_name := display_name.strip_edges()
+	var should_show := _should_show_online_name() and not cleaned_name.is_empty()
+	name_label.visible = should_show
+	if not should_show:
+		name_label.text = ""
+		return
+
+	name_label.text = cleaned_name
+	name_label.modulate = Color(0.82, 0.95, 1.0) if is_remote_player else Color.WHITE
+	_update_name_label_position()
+
+
+func _update_name_label_position() -> void:
+	if name_label == null or not name_label.visible:
+		return
+
+	name_label.global_position = global_position + NAME_LABEL_OFFSET
+
+
 func _update_oxygen(delta: float) -> void:
 	if is_remote_player or max_oxygen <= 0.0:
 		return
@@ -440,6 +480,7 @@ func _apply_pending_water_jet(delta: float) -> void:
 
 	var jet_velocity: Vector2 = consume_water_jet_velocity()
 	jet_velocity = _remove_blocked_components_from_water_jet(jet_velocity)
+	jet_velocity = _shape_water_jet_velocity(jet_velocity)
 	if jet_velocity.is_zero_approx():
 		return
 
@@ -458,6 +499,40 @@ func _apply_pending_water_jet(delta: float) -> void:
 		clampf(water_jet_cross_drag * delta, 0.0, 1.0)
 	)
 	velocity = lateral_velocity + jet_direction * next_along
+
+
+func _shape_water_jet_velocity(jet_velocity: Vector2) -> Vector2:
+	if jet_velocity.is_zero_approx():
+		return Vector2.ZERO
+
+	var upward_amount := maxf(-jet_velocity.y, 0.0)
+	var horizontal_amount := absf(jet_velocity.x)
+	if upward_amount <= horizontal_amount * 0.55:
+		return jet_velocity
+
+	var shaped := jet_velocity
+	if velocity.y < -water_jet_upward_lift_stop_speed:
+		shaped.y = 0.0
+	else:
+		shaped.y = -minf(upward_amount * water_jet_upward_lift_ratio, water_jet_upward_max_lift_speed)
+
+	var side_sign := signf(jet_velocity.x)
+	if is_zero_approx(side_sign):
+		side_sign = _preferred_water_jet_lateral_sign()
+
+	var side_speed := clampf(
+		maxf(maxf(horizontal_amount, upward_amount * water_jet_upward_side_ratio), water_jet_upward_side_min_speed),
+		0.0,
+		water_jet_upward_side_max_speed
+	)
+	shaped.x = side_sign * side_speed
+	return shaped
+
+
+func _preferred_water_jet_lateral_sign() -> float:
+	if not is_zero_approx(velocity.x):
+		_water_jet_side_sign = signf(velocity.x)
+	return _water_jet_side_sign
 
 
 func _remove_blocked_components_from_water_jet(jet_velocity: Vector2) -> Vector2:
@@ -597,6 +672,18 @@ func _is_online_session() -> bool:
 
 	var current_room = network_client.get_current_room()
 	return typeof(current_room) == TYPE_DICTIONARY and not current_room.is_empty()
+
+
+func _should_show_online_name() -> bool:
+	var network_client := get_node_or_null("/root/NetworkClient")
+	if network_client == null or not network_client.has_method("get_current_room"):
+		return false
+
+	var current_room = network_client.get_current_room()
+	if typeof(current_room) != TYPE_DICTIONARY or current_room.is_empty():
+		return false
+
+	return String(current_room.get("status", "")) != "playing"
 
 
 func _apply_sprite_sheet_for_animation(animation: String) -> void:

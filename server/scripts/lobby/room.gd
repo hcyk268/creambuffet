@@ -59,15 +59,27 @@ func is_empty() -> bool:
 	return players.is_empty()
 
 
+func is_in_lobby() -> bool:
+	return status == STATUS_LOBBY
+
+
 func is_playing() -> bool:
 	return status == STATUS_PLAYING
+
+
+func is_complete() -> bool:
+	return status == STATUS_COMPLETE
+
+
+func can_accept_players() -> bool:
+	return is_in_lobby() and not is_full()
 
 
 func try_add_player(session: PlayerSession) -> Error:
 	if has_player(session.peer_id):
 		return ERR_ALREADY_EXISTS
 
-	if is_full():
+	if not can_accept_players():
 		return ERR_CANT_ACQUIRE_RESOURCE
 
 	players[session.peer_id] = session
@@ -160,6 +172,7 @@ func snapshot() -> Dictionary:
 		"room_id": room_id,
 		"host_peer_id": host_peer_id,
 		"is_public": is_public,
+		"joinable": can_accept_players(),
 		"max_players": max_players,
 		"world_count": world_count,
 		"map_id": map_id,

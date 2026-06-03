@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://lsixjli4psir" path="res://scripts/states/playerDash.gd" id="8_riots"]
 [ext_resource type="Script" uid="uid://c1fp0dy6x6m7a" path="res://scripts/states/playerSwim.gd" id="9_swim"]
 [ext_resource type="PackedScene" uid="uid://bgieeqom4m0mw" path="res://prefabs/bubble_effect.tscn" id="10_bubble"]
+[ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="11_name_font"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_08d8h"]
 atlas = ExtResource("1_uw6r1")
@@ -794,7 +795,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 1,
-"values": [12, 13, 14, 15]
+"values": [8, 9, 10, 11]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -842,7 +843,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 1,
-"values": [Vector2(0.1, 0.1)]
+"values": [Vector2(-0.1, -0.1)]
 }
 
 [sub_resource type="Animation" id="Animation_swim_diagonal"]
@@ -1013,6 +1014,19 @@ texture = SubResource("CompressedTexture2D_uog8w")
 hframes = 5
 vframes = 6
 frame = 1
+
+[node name="NameLabel" type="Label" parent="." unique_id=1327418554]
+visible = false
+z_index = 6
+offset_left = -120.0
+offset_top = -95.0
+offset_right = 120.0
+offset_bottom = -55.0
+theme_override_fonts/font = ExtResource("11_name_font")
+theme_override_font_sizes/font_size = 20
+text = "Player"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CarriedKey" type="Sprite2D" parent="." unique_id=1492630624]
 visible = false

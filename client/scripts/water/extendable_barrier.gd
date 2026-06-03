@@ -5,6 +5,9 @@ class_name ExtendableBarrier
 @export_range(0.0, 4.0, 0.05) var min_length_ratio := 0.0
 @export_range(0.0, 4.0, 0.05) var max_length_ratio := 1.6
 @export var cycle_duration := 2.0
+@export var manual_extend_speed := 1.4
+@export var manual_retract_speed := 1.8
+@export var animate_manual_changes := true
 @export var auto_cycle := true
 @export var start_extended := false
 @export var hide_when_retracted := true
@@ -12,7 +15,7 @@ class_name ExtendableBarrier
 	set(value):
 		open = value
 		if is_node_ready():
-			_apply_open_state()
+			_set_open_target(false)
 @export var sync_id := ""
 
 @onready var sprite: Sprite2D = get_node_or_null("Sprite2D") as Sprite2D
@@ -22,6 +25,7 @@ const ATLAS_SIZE := Vector2(64, 318)
 
 var _time := 0.0
 var _manual_ratio := 1.0
+var _target_ratio := 1.0
 
 
 func _ready() -> void:
@@ -29,17 +33,15 @@ func _ready() -> void:
 	if collision_shape != null and collision_shape.shape != null:
 		collision_shape.shape = collision_shape.shape.duplicate()
 	_time = cycle_duration * 0.5 if start_extended else 0.0
-	if open:
-		_apply_open_state()
-	elif not auto_cycle:
-		_apply_open_state()
+	if open or not auto_cycle:
+		_set_open_target(true)
 	else:
 		_apply_length(_get_current_ratio())
 
 
 func _process(delta: float) -> void:
 	if not auto_cycle:
-		_apply_length(_manual_ratio)
+		_update_manual_length(delta)
 		return
 
 	if cycle_duration <= 0.0:
@@ -54,6 +56,7 @@ func set_length_ratio(ratio: float) -> void:
 	auto_cycle = false
 	open = false
 	_manual_ratio = clampf(ratio, 0.0, max_length_ratio)
+	_target_ratio = _manual_ratio
 	_apply_length(_manual_ratio)
 
 
@@ -63,7 +66,6 @@ func set_activation(enabled: bool) -> void:
 
 func set_open(opened: bool) -> void:
 	open = opened
-	_apply_open_state()
 
 
 func _get_current_ratio() -> float:
@@ -93,13 +95,21 @@ func _apply_length(length_ratio: float) -> void:
 			var rect := collision_shape.shape as RectangleShape2D
 			rect.size = displayed_size
 		collision_shape.position = Vector2(0, displayed_size.y * 0.5)
-		collision_shape.set_deferred("disabled", open or is_retracted)
+		collision_shape.set_deferred("disabled", is_retracted)
 
 
-func _apply_open_state() -> void:
+func _set_open_target(instant := false) -> void:
 	auto_cycle = false
-	var ratio := 0.0 if open else max_length_ratio
-	_manual_ratio = ratio
-	_apply_length(ratio)
-	if collision_shape != null:
-		collision_shape.set_deferred("disabled", open)
+	_target_ratio = 0.0 if open else max_length_ratio
+	if instant or not animate_manual_changes:
+		_manual_ratio = _target_ratio
+	_apply_length(_manual_ratio)
+
+
+func _update_manual_length(delta: float) -> void:
+	var speed := manual_extend_speed
+	if _target_ratio < _manual_ratio:
+		speed = manual_retract_speed
+
+	_manual_ratio = move_toward(_manual_ratio, _target_ratio, maxf(speed, 0.0) * delta)
+	_apply_length(_manual_ratio)

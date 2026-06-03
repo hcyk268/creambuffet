@@ -92,8 +92,10 @@ func _on_connection_state_changed(_state: String, details: String) -> void:
 	_set_status(details)
 
 
-func _on_network_error(_code: String, message: String) -> void:
+func _on_network_error(code: String, message: String) -> void:
 	_set_status(message)
+	if code in ["room_not_found", "room_full", "room_in_progress", "room_closed"]:
+		_network_client().request_public_rooms()
 
 
 func _on_room_list_updated(rooms) -> void:
@@ -158,7 +160,7 @@ func _render_public_rooms() -> void:
 		join_button.text = "Join %s" % String(room.get("room_id", "ROOM"))
 		join_button.add_theme_font_override("font", BODY_FONT)
 		join_button.add_theme_font_size_override("font_size", 42)
-		join_button.disabled = int(room.get("player_count", 0)) >= int(room.get("max_players", 1))
+		join_button.disabled = not bool(room.get("joinable", true))
 		join_button.pressed.connect(_on_join_public_room.bind(String(room.get("room_id", ""))))
 		card.add_child(join_button)
 

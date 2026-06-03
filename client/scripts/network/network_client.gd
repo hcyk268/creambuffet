@@ -21,6 +21,7 @@ const DEFAULT_SERVER_HOST := "127.0.0.1"
 const DEFAULT_SERVER_PORT := 7000
 const CONFIG_PATH := "res://config/client_network.cfg"
 const SERVER_PEER_ID := 1
+const MAX_DISPLAY_NAME_LENGTH := 24
 
 var server_host := DEFAULT_SERVER_HOST
 var server_port := DEFAULT_SERVER_PORT
@@ -41,7 +42,8 @@ var _public_rooms: Array[Dictionary] = []
 
 func _ready() -> void:
 	_load_runtime_config()
-	_display_name = _configured_display_name if not _configured_display_name.is_empty() else _guess_display_name()
+	var initial_display_name := _configured_display_name if not _configured_display_name.is_empty() else _guess_display_name()
+	_display_name = _sanitize_display_name(initial_display_name)
 	connection_details = "Offline. Target server: %s:%d" % [server_host, server_port]
 
 	_scene_multiplayer = get_tree().get_multiplayer() as SceneMultiplayer
@@ -105,6 +107,18 @@ func get_current_room() -> Dictionary:
 
 func get_local_peer_id() -> int:
 	return local_peer_id
+
+
+func get_display_name() -> String:
+	return _display_name
+
+
+func get_max_display_name_length() -> int:
+	return MAX_DISPLAY_NAME_LENGTH
+
+
+func set_display_name(requested_name: String) -> void:
+	_display_name = _sanitize_display_name(requested_name)
 
 
 func is_room_host() -> bool:
@@ -550,6 +564,16 @@ func _guess_display_name() -> String:
 	if username.is_empty():
 		return "Player"
 	return username
+
+
+func _sanitize_display_name(requested_name: String) -> String:
+	var cleaned := requested_name.strip_edges()
+	cleaned = cleaned.replace("\r", " ")
+	cleaned = cleaned.replace("\n", " ")
+	cleaned = cleaned.replace("\t", " ")
+	if cleaned.length() > MAX_DISPLAY_NAME_LENGTH:
+		cleaned = cleaned.substr(0, MAX_DISPLAY_NAME_LENGTH)
+	return cleaned
 
 
 func _next_request_id(prefix: String) -> String:

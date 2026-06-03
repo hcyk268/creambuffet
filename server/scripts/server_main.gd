@@ -220,14 +220,11 @@ func _handle_set_room_map(peer_id: int, request_id, payload: Dictionary) -> void
 
 func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 	var room := _room_manager.get_room_for_peer(peer_id)
-	if room == null or not room.has_player(peer_id) or not room.is_playing():
+	if room == null or not room.has_player(peer_id):
 		return
 
 	var session := _room_manager.get_session(peer_id)
 	var state := payload.duplicate(true)
-	if int(state.get("level_index", room.current_level_index)) != room.current_level_index:
-		return
-
 	state.erase("peer_id")
 	state.erase("display_name")
 	state.erase("key_count")
@@ -236,9 +233,28 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 	state["peer_id"] = peer_id
 	state["display_name"] = session.display_name if session != null else "Guest%d" % peer_id
 	state["server_time_unix"] = Time.get_unix_time_from_system()
-	state["level_id"] = room.current_level_id
 	state.erase("push_intents")
 	state.erase("pushable_states")
+
+	if not room.is_playing():
+		state["room_status"] = room.status
+		state["level_index"] = -1
+		state.erase("level_id")
+		_send_room_message(
+			room,
+			"player_state",
+			{"state": state},
+			peer_id,
+			null,
+			MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED
+		)
+		return
+
+	if int(state.get("level_index", room.current_level_index)) != room.current_level_index:
+		return
+
+	state["room_status"] = room.status
+	state["level_id"] = room.current_level_id
 
 	var pushable_controls: Array[Dictionary] = []
 	var push_box_events: Array[Dictionary] = []

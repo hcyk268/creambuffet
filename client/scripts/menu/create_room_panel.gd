@@ -2,17 +2,11 @@ extends Control
 
 const STATUS_FONT = preload("res://assets/fonts/EXEPixelPerfect.ttf")
 
-const MIN_PLAYERS = 1
+const MIN_PLAYERS = 2
 const MAX_PLAYERS = 4
-const MIN_WORLDS = 1
-const MAX_WORLDS = 10
 
 @onready var player_input: LineEdit = $TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/PlayerLineEdit
-@onready var world_input: LineEdit = $TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/WorldLineEdit
-@onready var rand_butt: TextureButton = $TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/HBoxContainer/RandButt
-
-var current_players: int = 1
-var current_worlds: int = 1
+var current_players: int = MIN_PLAYERS
 var _awaiting_create := false
 var _status_label: Label
 
@@ -20,7 +14,6 @@ var _status_label: Label
 func _ready() -> void:
 	update_displays()
 	player_input.editable = false
-	world_input.editable = false
 	_status_label = _create_status_label()
 	_bind_network_signals()
 	_set_status("Create a public room on %s." % _network_client().get_server_endpoint())
@@ -32,7 +25,6 @@ func _exit_tree() -> void:
 
 func update_displays() -> void:
 	player_input.text = str(current_players)
-	world_input.text = str(current_worlds)
 
 
 func _on_player_up_pressed() -> void:
@@ -47,18 +39,6 @@ func _on_player_down_pressed() -> void:
 		update_displays()
 
 
-func _on_world_up_pressed() -> void:
-	if current_worlds < MAX_WORLDS:
-		current_worlds += 1
-		update_displays()
-
-
-func _on_world_down_pressed() -> void:
-	if current_worlds > MIN_WORLDS:
-		current_worlds -= 1
-		update_displays()
-
-
 func _on_back_butt_pressed() -> void:
 	_awaiting_create = false
 	_set_status("Create a public room on %s." % _network_client().get_server_endpoint())
@@ -66,9 +46,12 @@ func _on_back_butt_pressed() -> void:
 
 
 func _on_create_butt_pressed() -> void:
+	if _awaiting_create:
+		return
+
 	_awaiting_create = true
 	_set_status("Creating room...")
-	_network_client().create_room(current_players, current_worlds, rand_butt.button_pressed)
+	_network_client().create_room(current_players, 0, false)
 
 
 func _bind_network_signals() -> void:

@@ -8,8 +8,13 @@ class_name PlayerSwim
 
 
 func enter() -> void:
+	_set_vertical_flip(false)
 	parent.play_player_animation("swim_idle")
 	parent.velocity *= 0.45
+
+
+func exit() -> void:
+	_set_vertical_flip(false)
 
 
 func physics_update(delta: float) -> void:
@@ -53,19 +58,30 @@ func _update_facing(direction: float) -> void:
 	if is_zero_approx(direction):
 		return
 
-	var sprite: Sprite2D = parent.get_node("Sprite2D") as Sprite2D
+	var sprite: Sprite2D = parent.get_node_or_null("Sprite2D") as Sprite2D
 	if sprite != null:
 		sprite.flip_h = direction > 0.0
 
 
 func _update_animation(swim_input: Vector2) -> void:
 	if swim_input.length() < 0.1:
+		_set_vertical_flip(false)
 		parent.play_player_animation("swim_idle")
 	elif absf(swim_input.x) > 0.1 and absf(swim_input.y) > 0.1:
+		_set_vertical_flip(false)
 		parent.play_player_animation("swim_diagonal")
 	elif swim_input.y < -0.1:
+		_set_vertical_flip(false)
 		parent.play_player_animation("swim_up")
 	elif swim_input.y > 0.1:
+		_set_vertical_flip(true)
 		parent.play_player_animation("swim_down")
 	else:
+		_set_vertical_flip(false)
 		parent.play_player_animation("swim")
+
+
+func _set_vertical_flip(flipped: bool) -> void:
+	var sprite: Sprite2D = parent.get_node_or_null("Sprite2D") as Sprite2D
+	if sprite != null:
+		sprite.flip_v = flipped
