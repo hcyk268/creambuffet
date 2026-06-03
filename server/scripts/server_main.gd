@@ -253,6 +253,7 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 		push_box_events = room.match_state.apply_push_box_observations(peer_id, payload.get("pushable_states", []))
 		var server_player_state := room.match_state.get_player_state(peer_id)
 		if not server_player_state.is_empty():
+			state["alive"] = bool(server_player_state.get("alive", true))
 			state["key_count"] = int(server_player_state.get("key_count", 0))
 		pushable_controls = room.match_state.apply_push_intents(peer_id, payload.get("push_intents", []))
 

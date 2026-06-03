@@ -4136,6 +4136,7 @@
 		},
 		"level04_magma_07": {
 		  "kind": "hazard",
+		  "automatic": false,
 		  "state": {},
 		  "transform": {
 			"position": {
@@ -4151,9 +4152,9 @@
 			},
 			"size": {
 			  "x": 385.5,
-			  "y": 64.0
+			  "y": 16.0
 			},
-			"margin": 8.0
+			"margin": 0.0
 		  }
 		},
 		"level04_key_01": {
@@ -4388,6 +4389,7 @@
 		},
 		"level05_magma_01": {
 		  "kind": "hazard",
+		  "automatic": false,
 		  "state": {},
 		  "transform": {
 			"position": {
@@ -4405,7 +4407,7 @@
 			  "x": 385.5,
 			  "y": 16.0
 			},
-			"margin": 8.0
+			"margin": 0.0
 		  }
 		}
 	  },
