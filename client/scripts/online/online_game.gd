@@ -10,6 +10,10 @@ const NETWORK_SEND_INTERVAL := 0.05
 @onready var player: CharacterBody2D = $Player
 @onready var level_container: Node2D = $LevelContainer
 @onready var level_label: Label = $CanvasLayer/LevelLabel
+@onready var water_hud: Control = $CanvasLayer/WaterHud
+@onready var oxygen_bar: ProgressBar = $CanvasLayer/WaterHud/OxygenBar
+@onready var oxygen_label: Label = $CanvasLayer/WaterHud/OxygenLabel
+@onready var respawn_label: Label = $CanvasLayer/WaterHud/RespawnLabel
 
 var _current_level: Node
 var _current_level_index := -1
@@ -39,6 +43,7 @@ func _ready() -> void:
 	if _is_online_session:
 		_bind_network_signals()
 		_setup_local_network_identity()
+		_connect_player_runtime_events()
 
 	var safe_start_index := clampi(start_level_index, 0, levels.size() - 1)
 	if _is_online_session:
@@ -75,14 +80,19 @@ func _physics_process(delta: float) -> void:
 
 
 func load_level(index: int) -> void:
-	if index < 0 or index >= levels.size():
+	if index < 0:
 		push_warning("Invalid level index: %d" % index)
+		return
+
+	var level_scene := _level_scene_for_index(index)
+	if level_scene == null:
+		push_warning("No level scene found for index: %d" % index)
 		return
 
 	if is_instance_valid(_current_level):
 		_current_level.queue_free()
 
-	_current_level = levels[index].instantiate()
+	_current_level = level_scene.instantiate()
 	level_container.add_child(_current_level)
 	_current_level_index = index
 	_current_level_id = _level_id_for_index(index)
@@ -95,7 +105,27 @@ func load_level(index: int) -> void:
 	_connect_world_events(_current_level)
 	_configure_pushables_for_online(_current_level)
 	_configure_buttons_for_online(_current_level)
+	_configure_water_objects_for_online(_current_level)
 	_update_level_label(false)
+	_refresh_water_hud_for_level()
+
+
+func _level_scene_for_index(index: int) -> PackedScene:
+	if _is_online_session and _network_client != null:
+		var level_id := _level_id_for_index(index)
+		var level_def := GameCatalog.get_level(level_id)
+		var scene_path := String(level_def.get("scene_path", "")).strip_edges()
+		if not scene_path.is_empty():
+			var loaded_scene := load(scene_path) as PackedScene
+			if loaded_scene != null:
+				return loaded_scene
+			push_warning("Could not load catalog scene_path for %s: %s" % [level_id, scene_path])
+
+	if index >= 0 and index < levels.size():
+		return levels[index]
+
+	return null
+
 
 func restart_level() -> void:
 	if _current_level_index < 0:
@@ -113,6 +143,8 @@ func _setup_player_spawn(level_root: Node) -> void:
 
 	player.velocity = Vector2.ZERO
 	player.spawn_position = player.global_position
+	if player.has_method("reset_oxygen"):
+		player.reset_oxygen()
 	if player.has_method("set_key_count"):
 		player.set_key_count(0)
 	else:
@@ -187,11 +219,110 @@ func _update_level_label(game_complete: bool) -> void:
 		return
 
 	var suffix := ""
+	var total_levels := levels.size()
 	if _is_online_session:
 		var room: Dictionary = _network_client.get_current_room()
+		var room_level_ids = room.get("level_ids", [])
+		if typeof(room_level_ids) == TYPE_ARRAY and not room_level_ids.is_empty():
+			total_levels = room_level_ids.size()
 		suffix = " | Room %s | %s" % [String(room.get("room_id", "")), _current_level_id]
 
-	level_label.text = "Level %d / %d%s" % [_current_level_index + 1, levels.size(), suffix]
+	level_label.text = "Level %d / %d%s" % [_current_level_index + 1, total_levels, suffix]
+
+
+func _refresh_water_hud_for_level() -> void:
+	var has_oxygen := _current_level_uses_ruleset("oxygen_v1")
+	var respawn_state := _team_respawn_budget_state_for_current_level()
+	var has_respawn_budget := not respawn_state.is_empty()
+
+	water_hud.visible = has_oxygen or has_respawn_budget
+	oxygen_bar.visible = has_oxygen
+	oxygen_label.visible = has_oxygen
+	respawn_label.visible = has_respawn_budget
+
+	if has_oxygen:
+		_refresh_oxygen_hud_from_player()
+	if has_respawn_budget:
+		_update_respawn_budget_hud(respawn_state)
+
+
+func _current_level_uses_ruleset(ruleset_id: String) -> bool:
+	if _current_level_id.is_empty():
+		return false
+
+	var level_def := GameCatalog.get_level(_current_level_id)
+	var raw_rulesets: Variant = level_def.get("rulesets", [])
+	if typeof(raw_rulesets) != TYPE_ARRAY:
+		return false
+
+	for raw_ruleset in raw_rulesets:
+		if String(raw_ruleset) == ruleset_id:
+			return true
+	return false
+
+
+func _team_respawn_budget_state_for_current_level() -> Dictionary:
+	if _current_level_id.is_empty():
+		return {}
+
+	var level_def := GameCatalog.get_level(_current_level_id)
+	var objects_raw: Variant = level_def.get("objects", {})
+	if typeof(objects_raw) != TYPE_DICTIONARY:
+		return {}
+
+	var objects: Dictionary = objects_raw
+	for raw_object in objects.values():
+		if typeof(raw_object) != TYPE_DICTIONARY:
+			continue
+		var object_data: Dictionary = raw_object
+		if String(object_data.get("kind", "")) != "team_respawn_budget":
+			continue
+		var state_raw: Variant = object_data.get("state", {})
+		if typeof(state_raw) == TYPE_DICTIONARY:
+			return Dictionary(state_raw).duplicate(true)
+		return {
+			"used": 0,
+			"max": int(object_data.get("max_respawns", 3)),
+			"failed": false,
+		}
+
+	return {}
+
+
+func _on_local_player_oxygen_changed(current: float, maximum: float) -> void:
+	_update_oxygen_hud(current, maximum)
+
+
+func _refresh_oxygen_hud_from_player() -> void:
+	if player == null:
+		return
+
+	var maximum := float(player.get("max_oxygen"))
+	if maximum <= 0.0:
+		maximum = 10.0
+	var current := float(player.get("oxygen"))
+	_update_oxygen_hud(current, maximum)
+
+
+func _update_oxygen_hud(current: float, maximum: float) -> void:
+	if oxygen_bar == null or oxygen_label == null:
+		return
+
+	var safe_maximum := maxf(maximum, 1.0)
+	var safe_current := clampf(current, 0.0, safe_maximum)
+	oxygen_bar.max_value = safe_maximum
+	oxygen_bar.value = safe_current
+	oxygen_label.text = "O2: %d/%d" % [ceili(safe_current), ceili(safe_maximum)]
+
+
+func _update_respawn_budget_hud(state: Dictionary) -> void:
+	if respawn_label == null:
+		return
+
+	var max_respawns := int(state.get("max", state.get("max_respawns", 3)))
+	var used_respawns := int(state.get("used", 0))
+	var remaining := maxi(max_respawns - used_respawns, 0)
+	respawn_label.text = "Respawn: %d/%d" % [remaining, max_respawns]
 
 
 func _bind_network_signals() -> void:
@@ -248,6 +379,23 @@ func _setup_local_network_identity() -> void:
 		player.set_network_identity(peer_id, player_name)
 	if player.has_method("set_network_remote"):
 		player.set_network_remote(false)
+
+
+func _connect_player_runtime_events() -> void:
+	if player == null:
+		return
+
+	if player.has_signal("oxygen_depleted"):
+		var on_oxygen_depleted := Callable(self, "_on_local_player_oxygen_depleted")
+		if not player.is_connected("oxygen_depleted", on_oxygen_depleted):
+			player.connect("oxygen_depleted", on_oxygen_depleted)
+
+	if player.has_signal("oxygen_changed"):
+		var on_oxygen_changed := Callable(self, "_on_local_player_oxygen_changed")
+		if not player.is_connected("oxygen_changed", on_oxygen_changed):
+			player.connect("oxygen_changed", on_oxygen_changed)
+
+	_refresh_oxygen_hud_from_player()
 
 
 func _sync_remote_roster(room: Dictionary = {}) -> void:
@@ -352,7 +500,7 @@ func _on_level_transition(_from_level_index: int, to_level_index: int, match_com
 
 	var target_level_id := String(room.get("current_level_id", ""))
 	var target_index := _index_for_level_id(target_level_id, to_level_index)
-	if target_index != _current_level_index:
+	if bool(room.get("_restart_level", false)) or target_index != _current_level_index:
 		load_level(target_index)
 
 	_sync_remote_roster(room)
@@ -488,6 +636,18 @@ func _on_button_state_changed(is_pressed: bool, button_node: Node) -> void:
 		"velocity": _vector_to_packet(player.velocity),
 	})
 
+
+func _on_local_player_oxygen_depleted() -> void:
+	if not _is_online_session or _match_complete or _current_level_id.is_empty():
+		return
+
+	_network_client.send_world_event({
+		"action": "oxygen_depleted",
+		"level_id": _current_level_id,
+		"position": _vector_to_packet(player.global_position),
+		"velocity": _vector_to_packet(player.velocity),
+	})
+
 func _on_world_event_received(event: Dictionary) -> void:
 	if not _event_matches_current_level(event):
 		return
@@ -502,7 +662,9 @@ func _on_world_event_received(event: Dictionary) -> void:
 		"key_collected":
 			_apply_key_collected(target_id, int(event.get("peer_id", -1)))
 		"door_opened":
-			_apply_door_opened(target_id, int(event.get("peer_id", -1)))
+			_apply_door_opened(target_id, int(event.get("peer_id", -1)), event)
+		"door_key_deposited":
+			_apply_player_key_counts(event)
 		"player_died":
 			_apply_player_died(int(event.get("peer_id", -1)))
 		"player_respawned":
@@ -515,6 +677,13 @@ func _on_world_event_received(event: Dictionary) -> void:
 			_apply_button_state(target_id, bool(event.get("pressed", event_state.get("pressed", false))))
 		"push_box_state":
 			_apply_push_box_state(target_id, event)
+		"oxygen_collected":
+			_apply_oxygen_collected(target_id, int(event.get("peer_id", -1)), event, event_state)
+		"team_respawn_budget_changed":
+			_apply_object_state_changed(target_id, event_state)
+			_update_respawn_budget_hud(event_state)
+		"level_failed":
+			print("Level failed: %s" % String(event.get("reason", "")))
 		"object_state_changed":
 			_apply_object_state_changed(target_id, event_state)
 	_applying_remote_world_event = false
@@ -549,21 +718,42 @@ func _find_node_recursive(node: Node, sync_id: String) -> Node:
 	
 func _apply_key_collected(sync_id: String, peer_id: int) -> void:
 	var key_node := _find_node_by_sync_id(sync_id)
+	var key_color := Color.WHITE
 	if is_instance_valid(key_node):
+		if key_node is CanvasItem:
+			key_color = (key_node as CanvasItem).modulate
 		_synced_nodes.erase(sync_id)
 		key_node.queue_free()
 		
 	if peer_id == _network_client.get_local_peer_id():
 		if player.has_method("collect_key"):
-			player.collect_key()
+			player.collect_key(1, key_color)
 
-func _apply_door_opened(sync_id: String, event_peer_id: int) -> void:
+func _apply_door_opened(sync_id: String, event_peer_id: int, event: Dictionary = {}) -> void:
 	var door_node := _find_node_by_sync_id(sync_id)
 	if door_node != null and door_node.has_method("open"):
 		door_node.open()
-		
-	if event_peer_id == _network_client.get_local_peer_id() and player.has_method("use_key"):
+
+	if _apply_player_key_counts(event):
+		return
+
+	var local_peer_id := int(_network_client.get_local_peer_id())
+	if event_peer_id == local_peer_id and player.has_method("use_key"):
 		player.use_key()
+
+
+func _apply_player_key_counts(event: Dictionary) -> bool:
+	var local_peer_id := int(_network_client.get_local_peer_id())
+	var raw_key_counts: Variant = event.get("player_key_counts", {})
+	if typeof(raw_key_counts) == TYPE_DICTIONARY and player.has_method("set_key_count"):
+		var key_counts: Dictionary = raw_key_counts
+		if key_counts.has(str(local_peer_id)):
+			player.set_key_count(int(key_counts[str(local_peer_id)]))
+			return true
+		if key_counts.has(local_peer_id):
+			player.set_key_count(int(key_counts[local_peer_id]))
+			return true
+	return false
 
 func _apply_player_died(event_peer_id: int) -> void:
 	# Respawn is now server-confirmed via player_respawned.
@@ -577,6 +767,18 @@ func _apply_player_respawned(event_peer_id: int) -> void:
 
 	if target_player.has_method("respawn"):
 		target_player.respawn()
+
+
+func _apply_oxygen_collected(sync_id: String, event_peer_id: int, event: Dictionary, state: Dictionary) -> void:
+	var oxygen_node := _find_node_by_sync_id(sync_id)
+	if oxygen_node != null and oxygen_node.has_method("apply_server_state"):
+		oxygen_node.apply_server_state(state, int(_network_client.get_local_peer_id()))
+
+	if event_peer_id != _network_client.get_local_peer_id():
+		return
+
+	if player.has_method("add_oxygen"):
+		player.add_oxygen(float(event.get("oxygen_amount", event.get("amount", 0.0))))
 
 func _apply_goal_enter(sync_id: String, peer_id: int) -> void:
 	if peer_id != _network_client.get_local_peer_id():
@@ -601,10 +803,14 @@ func _apply_object_state_changed(sync_id: String, state: Dictionary) -> void:
 
 	if state.has("active") and node.has_method("set_activation"):
 		node.set_activation(bool(state.get("active", false)))
+	if state.has("open") and node.has_method("set_open"):
+		node.set_open(bool(state.get("open", false)))
 	if state.has("opened") and node.has_method("set_open"):
 		node.set_open(bool(state.get("opened", false)))
 	if state.has("pressed") and node.has_method("apply_server_pressed"):
 		node.apply_server_pressed(bool(state.get("pressed", false)))
+	if (state.has("remaining_uses") or state.has("claimed_peer_ids")) and node.has_method("apply_server_state"):
+		node.apply_server_state(state, int(_network_client.get_local_peer_id()))
 
 
 func _apply_push_box_state(sync_id: String, event: Dictionary) -> void:
@@ -671,6 +877,14 @@ func _apply_match_state_snapshot(room: Dictionary) -> void:
 					_apply_push_box_state(target_id, {"position": state.get("position", {})})
 				"moving_platform":
 					_apply_object_state_changed(target_id, state)
+				"oxygen_tank", "oxygen_station":
+					_apply_object_state_changed(target_id, state)
+				"team_respawn_budget":
+					_update_respawn_budget_hud(state)
+				"water_jet_nozzle", "water_jet":
+					_apply_object_state_changed(target_id, state)
+				"extendable_barrier", "water_barrier", "barrier":
+					_apply_object_state_changed(target_id, state)
 	else:
 		var is_door_opened := bool(match_state.get("door_opened", false))
 		for node in _find_nodes_in_group(_current_level, "level_door"):
@@ -714,6 +928,12 @@ func _configure_pushables_for_online(level_root: Node) -> void:
 
 func _configure_buttons_for_online(level_root: Node) -> void:
 	for node in _find_nodes_in_group(level_root, "level_button"):
+		if node.has_method("set_online_authoritative"):
+			node.set_online_authoritative(true)
+
+
+func _configure_water_objects_for_online(level_root: Node) -> void:
+	for node in _find_nodes_in_group(level_root, "oxygen_pickup"):
 		if node.has_method("set_online_authoritative"):
 			node.set_online_authoritative(true)
 
@@ -859,11 +1079,15 @@ func _warn_missing_catalog_nodes() -> void:
 	var objects: Dictionary = objects_raw
 	for raw_target_id in objects.keys():
 		var target_id := String(raw_target_id)
+		var object_data: Dictionary = objects.get(raw_target_id, {})
+		var kind := String(object_data.get("kind", ""))
+		if kind == "team_respawn_budget":
+			continue
 		if not _synced_nodes.has(target_id):
 			push_warning("Catalog target_id %s is not present as sync_id in %s." % [target_id, _current_level_id])
 
 	var checked_nodes: Dictionary = {}
-	for group_name in ["level_key", "level_door", "level_goal", "level_hazard", "pushable", "level_button"]:
+	for group_name in ["level_key", "level_door", "level_goal", "level_hazard", "pushable", "level_button", "oxygen_pickup", "water_jet_nozzle", "extendable_barrier"]:
 		for node in _find_nodes_in_group(_current_level, StringName(group_name)):
 			var instance_id := node.get_instance_id()
 			if checked_nodes.has(instance_id):

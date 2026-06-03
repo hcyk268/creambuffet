@@ -327,6 +327,9 @@ func _handle_pushable_control(payload: Dictionary) -> void:
 func _handle_level_transition(payload: Dictionary) -> void:
 	var room = payload.get("room", {})
 	if typeof(room) == TYPE_DICTIONARY:
+		if bool(payload.get("restart", false)):
+			room["_restart_level"] = true
+			room["_transition_reason"] = String(payload.get("reason", ""))
 		_set_current_room(room)
 
 	var from_level_index := int(payload.get("from_level_index", _current_room.get("current_level_index", 0)))

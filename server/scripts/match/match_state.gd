@@ -7,10 +7,12 @@ const GoalMechanic = preload("res://scripts/match/mechanics/goal_mechanic.gd")
 const HazardRespawnMechanic = preload("res://scripts/match/mechanics/hazard_respawn_mechanic.gd")
 const PushBoxMechanic = preload("res://scripts/match/mechanics/push_box_mechanic.gd")
 const ButtonPlatformMechanic = preload("res://scripts/match/mechanics/button_platform_mechanic.gd")
+const OxygenMechanic = preload("res://scripts/match/mechanics/oxygen_mechanic.gd")
 
 const PUSH_BOX_OBSERVE_PADDING := 24.0
 const PUSH_BOX_SYNC_EPSILON := 0.5
 const HAZARD_RESPAWN_REARM_MS := 250
+const OXYGEN_RESPAWN_REARM_MS := 1000
 
 var map_id := GameCatalog.DEFAULT_MAP_ID
 var current_level := 0
@@ -22,12 +24,14 @@ var players_at_goal: Dictionary = {}
 var push_intents: Dictionary = {}
 var _mechanics: Dictionary = {}
 var _mechanic_handlers: Dictionary = {}
+var _rng := RandomNumberGenerator.new()
 
 
 func _init(peer_ids: Array[int] = [], start_level: int = 0, start_level_id: String = "", initial_map_id: String = GameCatalog.DEFAULT_MAP_ID) -> void:
 	map_id = GameCatalog.normalize_map_id(initial_map_id)
 	current_level = maxi(start_level, 0)
 	current_level_id = start_level_id if not start_level_id.is_empty() else GameCatalog.get_level_id_by_index(map_id, current_level)
+	_rng.randomize()
 	_register_mechanic_handlers()
 	_register_players(peer_ids)
 	_reset_level_state()
@@ -127,6 +131,52 @@ func apply_automatic_fall_reset(peer_id: int) -> Array[Dictionary]:
 		if typeof(hazard_events_raw) == TYPE_ARRAY:
 			events.assign(hazard_events_raw)
 		return events
+
+	return events
+
+
+func advance_timed_mechanics() -> Array[Dictionary]:
+	var events: Array[Dictionary] = []
+	var now_ms := Time.get_ticks_msec()
+
+	for raw_target_id in objects.keys():
+		var target_id := String(raw_target_id)
+		var object_data := _get_object(target_id)
+		if object_data.is_empty():
+			continue
+
+		var kind := String(object_data.get("kind", ""))
+		if kind != "water_jet_nozzle" and kind != "water_jet":
+			continue
+
+		var timer := _object_timer_data(object_data)
+		if timer.is_empty():
+			continue
+
+		var mode := String(timer.get("mode", "random_toggle")).strip_edges().to_lower()
+		if mode != "random_toggle" and mode != "toggle":
+			continue
+
+		var state: Dictionary = object_data.get("state", {})
+		if not state.has("active"):
+			state["active"] = true
+		if not state.has("next_toggle_at_ms"):
+			_schedule_water_jet_toggle(state, timer, now_ms)
+			object_data["state"] = state
+			objects[target_id] = object_data
+			continue
+
+		if now_ms < int(state.get("next_toggle_at_ms", 0)):
+			continue
+
+		state["active"] = not bool(state.get("active", true))
+		state["updated_at_ms"] = now_ms
+		_schedule_water_jet_toggle(state, timer, now_ms)
+		object_data["state"] = state
+		objects[target_id] = object_data
+		events.append(_event("object_state_changed", "timed_state", 0, target_id, {
+			"state": state.duplicate(true),
+		}))
 
 	return events
 
@@ -415,6 +465,7 @@ func _register_mechanic_handlers() -> void:
 	var hazard_respawn := HazardRespawnMechanic.new()
 	var push_box := PushBoxMechanic.new()
 	var button_platform := ButtonPlatformMechanic.new()
+	var oxygen := OxygenMechanic.new()
 
 	_mechanics = {
 		"key_door": key_door,
@@ -422,6 +473,7 @@ func _register_mechanic_handlers() -> void:
 		"hazard_respawn": hazard_respawn,
 		"push_box": push_box,
 		"button_platform": button_platform,
+		"oxygen": oxygen,
 	}
 
 	_mechanic_handlers = {
@@ -432,6 +484,8 @@ func _register_mechanic_handlers() -> void:
 		"hazard_respawn.player_death": Callable(hazard_respawn, "apply_player_death"),
 		"push_box.state": Callable(push_box, "apply_state"),
 		"button_platform.button_state": Callable(button_platform, "apply_button_state"),
+		"oxygen.collect": Callable(oxygen, "apply_collect"),
+		"oxygen.oxygen_depleted": Callable(oxygen, "apply_oxygen_depleted"),
 	}
 
 
@@ -478,6 +532,7 @@ func _reset_level_state() -> void:
 			var position_raw: Variant = transform.get("position", {})
 			if typeof(position_raw) == TYPE_DICTIONARY:
 				state["position"] = Dictionary(position_raw).duplicate(true)
+		_seed_water_object_state(object_def, state)
 		object_def["target_id"] = target_id
 		object_def["state"] = state
 		objects[target_id] = object_def
@@ -490,6 +545,9 @@ func _new_player_state() -> Dictionary:
 		"goal_target_id": "",
 		"hazard_rearm_at_ms": 0,
 		"key_count": 0,
+		"max_oxygen": 10.0,
+		"oxygen": 10.0,
+		"oxygen_depleted_rearm_at_ms": 0,
 		"previous_position": {},
 		"position": {},
 		"velocity": {},
@@ -512,6 +570,54 @@ func _merge_state_defaults(base: Dictionary, defaults_raw: Variant) -> Dictionar
 		else:
 			result[key] = value
 	return result
+
+
+func _seed_water_object_state(object_def: Dictionary, state: Dictionary) -> void:
+	var kind := String(object_def.get("kind", ""))
+	match kind:
+		"team_respawn_budget":
+			if not state.has("max"):
+				state["max"] = int(object_def.get("max_respawns", 3))
+			if not state.has("used"):
+				state["used"] = 0
+			if not state.has("failed"):
+				state["failed"] = false
+		"oxygen_tank", "oxygen_station":
+			if not state.has("remaining_uses"):
+				state["remaining_uses"] = _default_oxygen_uses(object_def)
+			if not state.has("claimed_peer_ids"):
+				state["claimed_peer_ids"] = []
+			if not state.has("collected"):
+				state["collected"] = int(state.get("remaining_uses", 0)) <= 0
+		"water_jet_nozzle", "water_jet":
+			if not state.has("active"):
+				state["active"] = bool(object_def.get("active", true))
+		"extendable_barrier", "water_barrier", "barrier":
+			if not state.has("open"):
+				state["open"] = bool(object_def.get("open", false))
+			if not state.has("active"):
+				state["active"] = not bool(state.get("open", false))
+
+
+func _default_oxygen_uses(object_def: Dictionary) -> int:
+	var oxygen_data: Dictionary = {}
+	var raw_oxygen: Variant = object_def.get("oxygen", {})
+	if typeof(raw_oxygen) == TYPE_DICTIONARY:
+		oxygen_data = raw_oxygen
+	return maxi(int(oxygen_data.get("uses", object_def.get("uses", 1))), 1)
+
+
+func _object_timer_data(object_data: Dictionary) -> Dictionary:
+	var raw_timer: Variant = object_data.get("timer", object_data.get("schedule", {}))
+	if typeof(raw_timer) != TYPE_DICTIONARY:
+		return {}
+	return Dictionary(raw_timer).duplicate(true)
+
+
+func _schedule_water_jet_toggle(state: Dictionary, timer: Dictionary, now_ms: int) -> void:
+	var min_interval := maxi(int(timer.get("min_interval_ms", timer.get("interval_min_ms", 900))), 1)
+	var max_interval := maxi(int(timer.get("max_interval_ms", timer.get("interval_max_ms", min_interval))), min_interval)
+	state["next_toggle_at_ms"] = now_ms + _rng.randi_range(min_interval, max_interval)
 
 
 func _get_required_object(target_id: String, allowed_kinds: Array, action: String) -> Dictionary:

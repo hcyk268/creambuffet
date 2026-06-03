@@ -1,0 +1,75 @@
+[gd_scene format=3 uid="uid://bgieeqom4m0mw"]
+
+[ext_resource type="Texture2D" uid="uid://2j0is7asnypx" path="res://assets/sprites/bubble.png" id="1_bubble"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_01"]
+atlas = ExtResource("1_bubble")
+region = Rect2(150, 115, 120, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_02"]
+atlas = ExtResource("1_bubble")
+region = Rect2(430, 100, 130, 120)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_03"]
+atlas = ExtResource("1_bubble")
+region = Rect2(700, 90, 140, 130)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_04"]
+atlas = ExtResource("1_bubble")
+region = Rect2(960, 75, 160, 140)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_05"]
+atlas = ExtResource("1_bubble")
+region = Rect2(140, 365, 140, 160)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_06"]
+atlas = ExtResource("1_bubble")
+region = Rect2(425, 355, 140, 170)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_07"]
+atlas = ExtResource("1_bubble")
+region = Rect2(700, 350, 150, 180)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bubble_08"]
+atlas = ExtResource("1_bubble")
+region = Rect2(970, 320, 160, 190)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_bubble_effect"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_01")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_02")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_03")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_04")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_05")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_06")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_07")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bubble_08")
+}],
+"loop": true,
+"name": &"bubble",
+"speed": 8.0
+}]
+
+[node name="BubbleEffect" type="AnimatedSprite2D"]
+visible = false
+z_index = 5
+position = Vector2(6, -38)
+scale = Vector2(0.1, 0.1)
+sprite_frames = SubResource("SpriteFrames_bubble_effect")
+animation = &"bubble"

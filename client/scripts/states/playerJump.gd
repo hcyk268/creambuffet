@@ -2,12 +2,15 @@ extends State
 class_name PlayerJump
 
 func enter() -> void:
-	var anim = parent.get_node("AnimationPlayer")
-	anim.play("air")
+	parent.play_player_animation("air")
 	
 	parent.velocity.y = parent.JUMP_VELOCITY
 
 func physics_update(delta: float) -> void:
+	if parent.is_in_water():
+		Transitioned.emit(self, "swim")
+		return
+
 	parent.velocity += parent.get_gravity() * delta
 
 	var direction = Input.get_axis("left", "right")

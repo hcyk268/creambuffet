@@ -35,6 +35,37 @@ offset_right = 226.0
 offset_bottom = 31.0
 text = "Level"
 
+[node name="WaterHud" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 36.0
+offset_right = 280.0
+offset_bottom = 88.0
+
+[node name="OxygenBar" type="ProgressBar" parent="CanvasLayer/WaterHud"]
+layout_mode = 0
+offset_right = 170.0
+offset_bottom = 18.0
+max_value = 10.0
+value = 10.0
+show_percentage = false
+
+[node name="OxygenLabel" type="Label" parent="CanvasLayer/WaterHud"]
+layout_mode = 0
+offset_left = 178.0
+offset_top = -2.0
+offset_right = 270.0
+offset_bottom = 21.0
+text = "O2: 10/10"
+
+[node name="RespawnLabel" type="Label" parent="CanvasLayer/WaterHud"]
+layout_mode = 0
+offset_top = 24.0
+offset_right = 270.0
+offset_bottom = 47.0
+text = "Respawn: 3/3"
+
 [node name="PauseMenu" parent="." instance=ExtResource("5_4f5g8")]
 pause_tree_on_open = false
 allow_restart = false

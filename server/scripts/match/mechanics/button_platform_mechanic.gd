@@ -74,11 +74,25 @@ func _apply_links_for_source(match_state, peer_id: int, source_target_id: String
 
 		var target_state: Dictionary = target.get("state", {})
 		var target_field := String(link.get("target_field", ""))
-		target_state[target_field] = link.get("target_value", true)
+		if target_field.is_empty():
+			continue
+
+		var operation := String(link.get("target_operation", link.get("operation", "set"))).strip_edges().to_lower()
+		match operation:
+			"toggle":
+				target_state[target_field] = not bool(target_state.get(target_field, false))
+			"increment":
+				target_state[target_field] = int(target_state.get(target_field, 0)) + int(link.get("target_value", 1))
+			"decrement":
+				target_state[target_field] = int(target_state.get(target_field, 0)) - int(link.get("target_value", 1))
+			_:
+				target_state[target_field] = link.get("target_value", true)
+
 		target["state"] = target_state
 		match_state.objects[target_id] = target
 		events.append(match_state._event("object_state_changed", "linked_state", peer_id, target_id, {
 			"state": target_state.duplicate(true),
+			"operation": operation,
 			"source_target_id": source_target_id,
 		}))
 

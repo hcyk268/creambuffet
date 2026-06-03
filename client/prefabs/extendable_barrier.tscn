@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://dm46hd22mdbrv"]
+
+[ext_resource type="Texture2D" uid="uid://g6toaswiry53" path="res://assets/sprites/watersprite.png" id="1_sprite"]
+[ext_resource type="Script" uid="uid://d2p14we4cidrs" path="res://scripts/water/extendable_barrier.gd" id="2_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_extendable_barrier"]
+atlas = ExtResource("1_sprite")
+region = Rect2(1296, 347, 64, 318)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_extendable_barrier"]
+size = Vector2(6.4, 31.8)
+
+[node name="ExtendableBarrier" type="StaticBody2D"]
+script = ExtResource("2_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 15.9)
+scale = Vector2(0.1, 0.1)
+texture = SubResource("AtlasTexture_extendable_barrier")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 15.9)
+shape = SubResource("RectangleShape2D_extendable_barrier")

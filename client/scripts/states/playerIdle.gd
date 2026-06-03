@@ -2,11 +2,14 @@ extends State
 class_name PlayerIdle
 
 func enter() -> void:
-	var anim_sprite = parent.get_node("AnimationPlayer")
-	anim_sprite.play("idle")
+	parent.play_player_animation("idle")
 	parent.velocity.x = 0
 
 func physics_update(delta: float) -> void:
+	if parent.is_in_water():
+		Transitioned.emit(self, "swim")
+		return
+
 	if not parent.is_on_floor():
 		parent.velocity += parent.get_gravity() * delta
 	else:

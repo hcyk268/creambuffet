@@ -243,8 +243,10 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 	var pushable_controls: Array[Dictionary] = []
 	var push_box_events: Array[Dictionary] = []
 	var hazard_events: Array[Dictionary] = []
+	var timed_events: Array[Dictionary] = []
 	if room.match_state != null:
 		room.match_state.update_player_runtime(peer_id, payload)
+		timed_events = room.match_state.advance_timed_mechanics()
 		hazard_events = room.match_state.apply_automatic_fall_reset(peer_id)
 		push_box_events = room.match_state.apply_push_box_observations(peer_id, payload.get("pushable_states", []))
 		var server_player_state := room.match_state.get_player_state(peer_id)
@@ -291,6 +293,18 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 		)
 
 	for event in hazard_events:
+		if typeof(event) != TYPE_DICTIONARY:
+			continue
+		_send_room_message(
+			room,
+			"world_event",
+			{"event": event},
+			-1,
+			null,
+			MultiplayerPeer.TRANSFER_MODE_RELIABLE
+		)
+
+	for event in timed_events:
 		if typeof(event) != TYPE_DICTIONARY:
 			continue
 		_send_room_message(
@@ -400,10 +414,13 @@ func _handle_world_action_request(peer_id: int, request_id, payload: Dictionary,
 		return
 
 	var events_to_broadcast: Array = result.get("events", [])
+	var level_failed := false
 	for event in events_to_broadcast:
 		if typeof(event) != TYPE_DICTIONARY:
 			continue
 		var event_dict: Dictionary = event
+		if String(event_dict.get("kind", "")) == "level_failed":
+			level_failed = true
 		print("[world_action_request] accept peer=%d action=%s room=%s event=%s level=%s target=%s" % [
 			peer_id,
 			action,
@@ -415,6 +432,10 @@ func _handle_world_action_request(peer_id: int, request_id, payload: Dictionary,
 		_send_room_message(room, "world_event", {
 			"event": event_dict,
 		})
+
+	if level_failed:
+		_restart_current_level(room, "level_failed")
+		return
 
 	_try_level_transition(room)
 
@@ -458,6 +479,26 @@ func _try_level_transition(room: Room) -> void:
 		"from_level_id": GameCatalog.get_level_id_by_index(room.map_id, from_level_index),
 		"to_level_id": room.current_level_id,
 		"match_complete": match_complete,
+		"room": room.snapshot(),
+	})
+	_publish_room_snapshot(room)
+
+
+func _restart_current_level(room: Room, reason: String) -> void:
+	if room == null:
+		return
+
+	var level_index := room.current_level_index
+	var from_level_id := room.current_level_id
+	room.set_level_index(level_index)
+	_send_room_message(room, "level_transition", {
+		"from_level_index": level_index,
+		"to_level_index": level_index,
+		"from_level_id": from_level_id,
+		"to_level_id": room.current_level_id,
+		"match_complete": false,
+		"restart": true,
+		"reason": reason,
 		"room": room.snapshot(),
 	})
 	_publish_room_snapshot(room)

@@ -8,8 +8,7 @@ var timer: float = 0.0
 var dash_direction: float = 1.0
 
 func enter() -> void:
-	var anim = parent.get_node("AnimationPlayer")
-	anim.play("dash")
+	parent.play_player_animation("dash")
 	timer = dash_duration # Bắt đầu đếm ngược thời gian lướt
 	
 	# 1. XÁC ĐỊNH HƯỚNG LƯỚT
@@ -26,6 +25,10 @@ func enter() -> void:
 	parent.velocity.x = dash_direction * dash_speed
 
 func physics_update(delta: float) -> void:
+	if parent.is_in_water():
+		Transitioned.emit(self, "swim")
+		return
+
 	# 1. TRỪ THỜI GIAN
 	timer -= delta
 	

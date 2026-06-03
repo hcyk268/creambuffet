@@ -2,10 +2,13 @@ extends State
 class_name PlayerRun
 
 func enter() -> void:
-	var anim = parent.get_node("AnimationPlayer")
-	anim.play("run")
+	parent.play_player_animation("run")
 
 func physics_update(delta: float) -> void:
+	if parent.is_in_water():
+		Transitioned.emit(self, "swim")
+		return
+
 	if not parent.is_on_floor():
 		parent.velocity += parent.get_gravity() * delta
 
