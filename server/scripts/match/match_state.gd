@@ -120,6 +120,8 @@ func apply_automatic_fall_reset(peer_id: int) -> Array[Dictionary]:
 		var object_kind := String(object_data.get("kind", ""))
 		if object_kind != "fall_reset" and object_kind != "hazard":
 			continue
+		if object_kind == "hazard" and not bool(object_data.get("automatic", true)):
+			continue
 		if not can_player_interact_with_trigger(peer_id, target_id) and not did_player_cross_trigger_since_last_update(peer_id, target_id):
 			continue
 
@@ -538,14 +540,15 @@ func _get_required_object(target_id: String, allowed_kinds: Array, action: Strin
 	}
 
 
-func register_hazard_death() -> void:
+func register_hazard_death() -> int:
 	var death_limit: Dictionary = failure_state.get("death_limit", {})
 	if death_limit.is_empty() or not bool(death_limit.get("enabled", false)):
-		return
+		return -1
 
 	var hearts_remaining := maxi(int(death_limit.get("hearts_remaining", 0)) - 1, 0)
 	death_limit["hearts_remaining"] = hearts_remaining
 	failure_state["death_limit"] = death_limit
+	return hearts_remaining
 
 
 func consume_level_failure(now_ms: int = Time.get_ticks_msec()) -> Dictionary:
@@ -560,7 +563,7 @@ func consume_level_failure(now_ms: int = Time.get_ticks_msec()) -> Dictionary:
 		}
 
 	var death_limit: Dictionary = failure_state.get("death_limit", {})
-	if not death_limit.is_empty() and int(death_limit.get("hearts_remaining", 0)) <= 0:
+	if not death_limit.is_empty() and int(death_limit.get("hearts_remaining", 0)) <= 0 and _all_players_dead():
 		_level_reset_pending = true
 		return {
 			"reason": "death_limit",
@@ -649,6 +652,18 @@ func _configure_failure_state() -> void:
 					"hearts_remaining": hearts,
 					"shared": bool(rule.get("shared", true)),
 				}
+
+
+func _all_players_dead() -> bool:
+	if players.is_empty():
+		return false
+
+	for raw_peer_id in players.keys():
+		var peer_id := int(raw_peer_id)
+		if is_player_alive(peer_id):
+			return false
+
+	return true
 
 
 func _failure_time_remaining_ms(now_ms: int) -> int:
