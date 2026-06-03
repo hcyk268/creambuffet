@@ -111,3 +111,4 @@ position = Vector2(-264, 72)
 [node name="Node2D" parent="." unique_id=1607020404 instance=ExtResource("11_6b0oy")]
 modulate = Color(0.8536935, 0.9484278, 1.353, 0.851)
 position = Vector2(-196, 120)
+sync_id = "level04_magma_07"
