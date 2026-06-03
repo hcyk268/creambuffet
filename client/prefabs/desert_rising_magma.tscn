@@ -41,10 +41,14 @@ _data = {
 }
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6104h"]
-size = Vector2(385.5, 16.125)
+size = Vector2(385.5, 64.0)
 
 [node name="Node2D" type="Area2D" unique_id=2570484]
 script = ExtResource("1_tx1cg")
+monitoring = true
+monitorable = true
+collision_layer = 1
+collision_mask = 1
 
 [node name="NinePatchRect" type="NinePatchRect" parent="." unique_id=624310602]
 offset_left = -192.0
@@ -62,4 +66,5 @@ autoplay = &"magma_idle_moving"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=419192196]
 modulate = Color(1, 1, 1, 0.29411766)
+position = Vector2(0, 24)
 shape = SubResource("RectangleShape2D_6104h")
