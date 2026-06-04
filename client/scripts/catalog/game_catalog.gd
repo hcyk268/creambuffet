@@ -1,6 +1,8 @@
 extends RefCounted
 class_name GameCatalog
 
+const CatalogContract = preload("res://scripts/catalog/catalog_contract.gd")
+
 const DEFAULT_MAP_ID := "beginner"
 const DEFAULT_PLAYER_TEMPLATE_ID := "default"
 const CATALOG_PATH := "res://data/game_catalog.json"
@@ -167,63 +169,37 @@ static func get_mechanic_definition(ruleset_id: String) -> Dictionary:
 
 
 static func get_allowed_actions(level_id: String, target_id: String) -> Array[String]:
-	var object_data := get_object(level_id, target_id)
-	var kind := String(object_data.get("kind", ""))
-	var level_rulesets := _level_ruleset_lookup(get_level(level_id))
-	var result: Array[String] = []
-
-	for ruleset_id in _rulesets_for_object_kind(kind):
-		if not level_rulesets.has(ruleset_id):
-			continue
-
-		var mechanic := get_mechanic_definition(ruleset_id)
-		var actions_raw: Variant = mechanic.get("actions", {})
-		if typeof(actions_raw) != TYPE_DICTIONARY:
-			continue
-
-		var actions: Dictionary = actions_raw
-		for raw_action in actions.keys():
-			var action := String(raw_action)
-			var action_def: Dictionary = Dictionary(actions[action])
-			if not _action_supports_kind(action_def, kind):
-				continue
-
-			result.append(action)
-			var aliases_raw: Variant = action_def.get("aliases", [])
-			if typeof(aliases_raw) == TYPE_ARRAY:
-				for alias in aliases_raw:
-					result.append(String(alias))
-
-	return result
+	return CatalogContract.get_allowed_actions(get_level(level_id), get_object(level_id, target_id), get_mechanic_definitions())
 
 
 static func normalize_world_action(action: String) -> String:
-	var raw_action := action.strip_edges().to_lower()
-	for mechanic_raw in get_mechanic_definitions().values():
-		if typeof(mechanic_raw) != TYPE_DICTIONARY:
-			continue
+	return CatalogContract.normalize_world_action(action, get_mechanic_definitions())
 
-		var mechanic: Dictionary = Dictionary(mechanic_raw)
-		var actions_raw: Variant = mechanic.get("actions", {})
-		if typeof(actions_raw) != TYPE_DICTIONARY:
-			continue
 
-		var actions: Dictionary = actions_raw
-		if actions.has(raw_action):
-			return raw_action
+static func validate_world_action(level_id: String, target_id: String, action: String, payload: Dictionary = {}) -> Dictionary:
+	return CatalogContract.validate_world_action(
+		level_id,
+		target_id,
+		action,
+		get_level(level_id),
+		get_object(level_id, target_id),
+		get_mechanic_definitions(),
+		payload
+	)
 
-		for raw_canonical in actions.keys():
-			var canonical := String(raw_canonical)
-			var action_def_raw: Variant = actions.get(canonical, {})
-			if typeof(action_def_raw) != TYPE_DICTIONARY:
-				continue
 
-			var action_def: Dictionary = Dictionary(action_def_raw)
-			var aliases_raw: Variant = action_def.get("aliases", [])
-			if typeof(aliases_raw) == TYPE_ARRAY and aliases_raw.has(raw_action):
-				return canonical
-
-	return raw_action
+static func validate_level_rulesets(map_id: String, level_id: String) -> Dictionary:
+	var map_data := get_map(map_id)
+	var allowed_lookup := _string_lookup(map_data.get("allowed_rulesets", []))
+	return CatalogContract.validate_level_rulesets(
+		map_id,
+		normalize_map_id(map_id),
+		level_id,
+		get_level(level_id),
+		allowed_lookup,
+		get_global_rulesets(),
+		get_mechanic_definitions()
+	)
 
 
 static func _catalog() -> Dictionary:
@@ -282,7 +258,7 @@ static func _resolve_level_definition(level: Dictionary) -> Dictionary:
 	if level.is_empty():
 		return {}
 
-	var resolved := level.duplicate(true)
+	var resolved: Dictionary = level.duplicate(true)
 	resolved["rulesets"] = _merged_rulesets_for_level(level)
 	resolved["player_state_defaults"] = _merged_player_state_defaults(level)
 	return resolved
@@ -357,7 +333,7 @@ static func _map_dictionary_field(map_id: String, field_name: String) -> Diction
 
 
 static func _merge_dictionaries(base: Dictionary, overrides_raw: Variant) -> Dictionary:
-	var result := base.duplicate(true)
+	var result: Dictionary = base.duplicate(true)
 	if typeof(overrides_raw) != TYPE_DICTIONARY:
 		return result
 
@@ -380,17 +356,3 @@ static func _remove_dictionary_keys(target: Dictionary, raw_keys: Variant) -> vo
 		target.erase(String(raw_key))
 
 
-static func _rulesets_for_object_kind(object_kind: String) -> Array[String]:
-	var result: Array[String] = []
-	for raw_ruleset_id in get_mechanic_definitions().keys():
-		var ruleset_id := String(raw_ruleset_id)
-		var mechanic: Dictionary = Dictionary(get_mechanic_definitions()[ruleset_id])
-		var kinds_raw: Variant = mechanic.get("object_kinds", [])
-		if typeof(kinds_raw) == TYPE_ARRAY and kinds_raw.has(object_kind):
-			result.append(ruleset_id)
-	return result
-
-
-static func _action_supports_kind(action_def: Dictionary, object_kind: String) -> bool:
-	var kinds_raw: Variant = action_def.get("object_kinds", [])
-	return typeof(kinds_raw) == TYPE_ARRAY and kinds_raw.has(object_kind)

@@ -1,13 +1,15 @@
 extends RefCounted
 class_name Protocol
 
-const SERVER_PROTOCOL_VERSION := 1
-const MAX_PACKET_BYTES := 16384
+const ProtocolConstants = preload("res://scripts/network/protocol_constants.gd")
 
-const FIELD_VERSION := "v"
-const FIELD_TYPE := "type"
-const FIELD_REQUEST_ID := "request_id"
-const FIELD_PAYLOAD := "payload"
+const SERVER_PROTOCOL_VERSION := ProtocolConstants.PROTOCOL_VERSION
+const MAX_PACKET_BYTES := ProtocolConstants.MAX_PACKET_BYTES
+
+const FIELD_VERSION := ProtocolConstants.FIELD_VERSION
+const FIELD_TYPE := ProtocolConstants.FIELD_TYPE
+const FIELD_REQUEST_ID := ProtocolConstants.FIELD_REQUEST_ID
+const FIELD_PAYLOAD := ProtocolConstants.FIELD_PAYLOAD
 
 
 static func decode_packet(packet: PackedByteArray) -> Dictionary:
@@ -46,7 +48,7 @@ static func decode_packet(packet: PackedByteArray) -> Dictionary:
 		}
 
 	var version = packet_dict.get(FIELD_VERSION, null)
-	if version == null and message_type != "world_event_request":
+	if version == null and message_type != ProtocolConstants.MESSAGE_WORLD_EVENT_REQUEST:
 		return {
 			"ok": false,
 			"code": "missing_protocol_version",
@@ -99,4 +101,4 @@ static func encode_error(code: String, message: String, request_id = null, detai
 	if not details.is_empty():
 		payload["details"] = details
 
-	return encode_message("error", payload, request_id)
+	return encode_message(ProtocolConstants.MESSAGE_ERROR, payload, request_id)

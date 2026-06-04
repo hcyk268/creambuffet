@@ -4,6 +4,7 @@ class_name RoomManager
 const PlayerSession = preload("res://scripts/lobby/player_session.gd")
 const Room = preload("res://scripts/lobby/room.gd")
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
+const GameIds = preload("res://scripts/catalog/game_ids.gd")
 
 const ROOM_CODE_ALPHABET := [
 	"A", "B", "C", "D", "E", "F", "G", "H",
@@ -29,7 +30,7 @@ func _init() -> void:
 
 
 func ensure_session(peer_id: int, requested_name: String = "") -> PlayerSession:
-	var session := sessions.get(peer_id) as PlayerSession
+	var session: PlayerSession = sessions.get(peer_id) as PlayerSession
 	if session == null:
 		session = PlayerSession.new(peer_id, requested_name)
 		sessions[peer_id] = session
@@ -62,7 +63,7 @@ func list_public_rooms() -> Array[Dictionary]:
 
 	for raw_room_id in room_ids:
 		var room_id := String(raw_room_id)
-		var room := rooms.get(room_id) as Room
+		var room: Room = rooms.get(room_id) as Room
 		if room != null and room.is_public and room.is_in_lobby():
 			snapshots.append(room.snapshot())
 
@@ -282,8 +283,8 @@ func _read_visibility(options: Dictionary) -> bool:
 	if options.has("is_public"):
 		return bool(options["is_public"])
 
-	var visibility := String(options.get("visibility", "public")).to_lower()
-	return visibility != "private"
+	var visibility := String(options.get("visibility", GameIds.ROOM_VISIBILITY_PUBLIC)).to_lower()
+	return visibility != GameIds.ROOM_VISIBILITY_PRIVATE
 
 
 func _create_unique_room_id() -> String:
@@ -313,7 +314,7 @@ func _build_room_level_ids(map_id: String, requested_world_count: int, randomize
 		MIN_WORLDS,
 		mini(MAX_WORLDS, available_level_ids.size())
 	)
-	var selected_level_ids := available_level_ids.duplicate()
+	var selected_level_ids: Array[String] = available_level_ids.duplicate()
 	if randomized and selected_level_ids.size() > 1:
 		_shuffle_level_ids(selected_level_ids)
 

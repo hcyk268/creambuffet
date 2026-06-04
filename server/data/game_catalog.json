@@ -4946,8 +4946,8 @@
           },
           "transform": {
             "position": {
-              "x": 502.0,
-              "y": 135.0
+              "x": 485.0,
+              "y": 130.0
             }
           },
           "trigger": {
@@ -4969,7 +4969,7 @@
           "transform": {
             "position": {
               "x": -109.0,
-              "y": -66.0
+              "y": -64.0
             }
           },
           "trigger": {
@@ -4990,8 +4990,8 @@
           "state": {},
           "transform": {
             "position": {
-              "x": 250.0,
-              "y": -67.0
+              "x": 251.0,
+              "y": -64.0
             }
           },
           "trigger": {
@@ -5012,9 +5012,121 @@
           "state": {},
           "transform": {
             "position": {
-              "x": 105.0,
-              "y": -35.0
+              "x": 106.00001,
+              "y": -32.0
             }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_d": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -185.0,
+              "y": 48.0
+            },
+            "rotation": 3.1415927
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_e": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -104.0,
+              "y": 96.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_f": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 280.0,
+              "y": 96.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_g": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 408.0,
+              "y": 80.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_h": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 316.0,
+              "y": 64.0
+            },
+            "rotation": 3.1415927
           },
           "trigger": {
             "shape": "rectangle",
@@ -5153,6 +5265,12 @@
         "x": -319.0,
         "y": 98.0
       },
+      "failure_rules": [
+        {
+          "type": "time_limit",
+          "seconds": 45
+        }
+      ],
       "extra_rulesets": [
         "button_platform_v1",
         "moving_platform_v1",

@@ -2,6 +2,7 @@ extends Node2D
 
 const PLAYER_SCENE := preload("res://scenes/player_soda.tscn")
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
+const GameIds = preload("res://scripts/catalog/game_ids.gd")
 const BODY_FONT := preload("res://assets/fonts/EXEPixelPerfect.ttf")
 const NETWORK_SEND_INTERVAL := 0.05
 
@@ -74,7 +75,7 @@ func _refresh_hud() -> void:
 	player_count_label.text = "%d/%d" % [current_players, max_players]
 	map_label.text = "Map: %s (%d levels)" % [map_title, level_count]
 
-	if room_status == "complete":
+	if room_status == GameIds.ROOM_STATUS_COMPLETE:
 		host_banner.text = "Match finished. Leave room to host or join a new game."
 		host_controls.visible = false
 	elif is_host:
@@ -88,7 +89,7 @@ func _refresh_hud() -> void:
 		host_controls.visible = false
 
 	if start_game_button != null:
-		start_game_button.disabled = not room_full or room_status != "lobby"
+		start_game_button.disabled = not room_full or room_status != GameIds.ROOM_STATUS_LOBBY
 
 	_refresh_member_list()
 
@@ -141,7 +142,7 @@ func _physics_process(delta: float) -> void:
 	if room.is_empty():
 		return
 
-	if String(room.get("status", "")) == "playing":
+	if String(room.get("status", "")) == GameIds.ROOM_STATUS_PLAYING:
 		return
 
 	_send_timer += delta
@@ -151,7 +152,7 @@ func _physics_process(delta: float) -> void:
 	_send_timer = 0.0
 	if player != null and player.has_method("get_network_state"):
 		var state: Dictionary = player.get_network_state(-1)
-		state["room_status"] = String(room.get("status", "lobby"))
+		state["room_status"] = String(room.get("status", GameIds.ROOM_STATUS_LOBBY))
 		_network_client().send_player_state(state)
 
 
@@ -218,7 +219,7 @@ func _on_remote_player_state(peer_id: int, state: Dictionary) -> void:
 		return
 
 	var room: Dictionary = _network_client().get_current_room()
-	if room.is_empty() or String(room.get("status", "")) == "playing":
+	if room.is_empty() or String(room.get("status", "")) == GameIds.ROOM_STATUS_PLAYING:
 		return
 
 	var remote := _ensure_remote_player(peer_id, _player_name_for_peer(peer_id), room)
@@ -230,7 +231,7 @@ func _maybe_enter_match(room: Dictionary) -> void:
 	if _entering_match or room.is_empty():
 		return
 
-	if String(room.get("status", "")) != "playing":
+	if String(room.get("status", "")) != GameIds.ROOM_STATUS_PLAYING:
 		return
 
 	_entering_match = true
