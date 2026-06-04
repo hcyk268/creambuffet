@@ -56,9 +56,9 @@ func _validate_level(level_id: String, errors: Array[String]) -> void:
 	level_root.free()
 
 
-func _collect_sync_coverage(node: Node, level_id: String, sync_id_paths: Dictionary, errors: Array[String]) -> void:
+func _collect_sync_coverage(node: Node, level_id: String, sync_id_paths: Dictionary, errors: Array[String], parent_path: String = "") -> void:
 	var sync_id := SyncedNodeRegistry.node_sync_id(node)
-	var node_path := str(node.get_path())
+	var node_path := _node_path_label(node, parent_path)
 
 	if not sync_id.is_empty():
 		if sync_id_paths.has(sync_id):
@@ -74,7 +74,7 @@ func _collect_sync_coverage(node: Node, level_id: String, sync_id_paths: Diction
 
 	for child in node.get_children():
 		if child is Node:
-			_collect_sync_coverage(child, level_id, sync_id_paths, errors)
+			_collect_sync_coverage(child, level_id, sync_id_paths, errors, node_path)
 
 
 func _validate_catalog_object_sync_ids(
@@ -136,3 +136,9 @@ func _object_kind_requires_sync_id(kind: String) -> bool:
 	if GameIds.is_hazard_kind(kind):
 		return true
 	return false
+
+
+func _node_path_label(node: Node, parent_path: String) -> String:
+	if parent_path.is_empty():
+		return str(node.name)
+	return "%s/%s" % [parent_path, node.name]

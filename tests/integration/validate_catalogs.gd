@@ -33,12 +33,12 @@ func _init() -> void:
 	var client_text := _read_text(CLIENT_CATALOG_PATH, errors)
 	var server_text := _read_text(SERVER_CATALOG_PATH, errors)
 
-	if not client_text.is_empty() and not server_text.is_empty() and client_text != server_text:
-		errors.append("client/server catalogs differ; keep %s and %s identical." % [CLIENT_CATALOG_PATH, SERVER_CATALOG_PATH])
-
 	_validate_mirrored_scripts(errors)
 
+	var client_catalog := _parse_json(CLIENT_CATALOG_PATH, client_text, errors)
 	var catalog := _parse_json(SERVER_CATALOG_PATH, server_text, errors)
+	if not client_catalog.is_empty() and not catalog.is_empty() and client_catalog != catalog:
+		errors.append("client/server catalogs differ; keep %s and %s identical." % [CLIENT_CATALOG_PATH, SERVER_CATALOG_PATH])
 	if not catalog.is_empty():
 		_validate_catalog(catalog, errors)
 
@@ -185,7 +185,7 @@ func _validate_objects(
 			errors.append("Object %s in level %s is missing kind." % [target_id, level_id])
 			continue
 
-		var kind_rulesets: Array[String] = object_kind_rulesets.get(kind, [])
+		var kind_rulesets := _string_array(object_kind_rulesets.get(kind, []))
 		if kind_rulesets.is_empty():
 			errors.append("Object %s in level %s uses unsupported kind %s." % [target_id, level_id, kind])
 			continue
@@ -279,7 +279,7 @@ func _object_kind_ruleset_lookup(mechanic_definitions: Dictionary, errors: Array
 			continue
 		for raw_kind in kinds_raw:
 			var kind := String(raw_kind)
-			var rulesets: Array[String] = lookup.get(kind, [])
+			var rulesets := _string_array(lookup.get(kind, []))
 			rulesets.append(ruleset_id)
 			lookup[kind] = rulesets
 	return lookup
@@ -347,3 +347,12 @@ func _string_lookup(raw_values: Variant) -> Dictionary:
 	for raw_value in raw_values:
 		lookup[String(raw_value)] = true
 	return lookup
+
+
+func _string_array(raw_values: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if typeof(raw_values) != TYPE_ARRAY:
+		return result
+	for raw_value in raw_values:
+		result.append(String(raw_value))
+	return result

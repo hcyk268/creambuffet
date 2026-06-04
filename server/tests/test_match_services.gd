@@ -243,8 +243,8 @@ func _test_geometry_service(failures: Array[String]) -> void:
 		},
 		{
 			1: {
-				"position": {"x": 0.0, "y": 0.0},
-				"previous_position": {"x": -80.0, "y": 0.0},
+				"position": {"x": 0.0, "y": 19.0},
+				"previous_position": {"x": -40.0, "y": 19.0},
 			},
 		}
 	)

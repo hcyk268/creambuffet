@@ -36,6 +36,7 @@ sync_id = "level04_goal_01"
 [node name="FallResetZone" type="Area2D" parent="." unique_id=63879187]
 position = Vector2(164, 320)
 script = ExtResource("4_4fi1l")
+sync_id = "level04_fall_reset_01"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FallResetZone" unique_id=1633318743]
 position = Vector2(-274, 14)
