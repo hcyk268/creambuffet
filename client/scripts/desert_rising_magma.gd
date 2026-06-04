@@ -89,7 +89,12 @@ func _sync_overlaps() -> void:
 		if _body_hits_magma(body_node):
 			seen_ids[body_id] = true
 			if _tracked_bodies.has(body_id):
-				continue
+				# A respawned player can still be inside the magma; allow
+				# the overlap to trigger again instead of being permanently
+				# suppressed by the previous death.
+				if body.has_method("is_eliminated") and bool(body.call("is_eliminated")):
+					continue
+				_tracked_bodies.erase(body_id)
 			_tracked_bodies[body_id] = body_node
 			_kill_player(body_node)
 
