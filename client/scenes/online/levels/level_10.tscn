@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://djffmhdu8byoo"]
+[gd_scene format=4]
 
 [ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="1_gw5sx"]
 [ext_resource type="PackedScene" path="res://prefabs/level_goal.tscn" id="2_gnb3t"]
@@ -34,6 +34,7 @@ sync_id = "level10_key_01"
 [node name="FallResetZone" type="Area2D" parent="." unique_id=1054913892]
 position = Vector2(-6, 302)
 script = ExtResource("1_gw5sx")
+sync_id = "level10_fall_reset_01"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FallResetZone" unique_id=47703437]
 shape = SubResource("RectangleShape2D_knxqw")

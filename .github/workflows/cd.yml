@@ -7,6 +7,11 @@ on:
     types:
       - completed
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Image tag to deploy from GHCR
+        required: false
+        default: production
 
 permissions:
   contents: read
@@ -26,6 +31,12 @@ jobs:
         github.event.workflow_run.head_branch == 'main'
       )
     environment: production
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/creambuffet-server
+      WORKFLOW_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+      MANUAL_IMAGE_TAG: ${{ inputs.image_tag }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
 
     steps:
       - name: Configure SSH
@@ -38,12 +49,58 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          ssh -i ~/.ssh/deploy_key -p '${{ secrets.VPS_PORT }}' '${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}' '
-            set -e
+          set -eu
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            DEPLOY_TAG="${MANUAL_IMAGE_TAG:-production}"
+          else
+            DEPLOY_TAG="$(printf '%.7s' "$WORKFLOW_HEAD_SHA")"
+          fi
+
+          echo "Deploying ${IMAGE_NAME}:${DEPLOY_TAG}"
+
+          ssh -i ~/.ssh/deploy_key -p '${{ secrets.VPS_PORT }}' '${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}' "IMAGE_NAME='${IMAGE_NAME}' IMAGE_TAG='${DEPLOY_TAG}' GHCR_USERNAME='${GHCR_USERNAME}' GHCR_TOKEN='${GHCR_TOKEN}' bash -s" <<'EOF'
+            set -eu
             cd /opt/creambuffet
-            docker compose pull
-            docker compose up -d
+
+            if [ -n "$GHCR_USERNAME" ] && [ -n "$GHCR_TOKEN" ]; then
+              printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            fi
+
+            export CREAMBUFFET_SERVER_IMAGE="$IMAGE_NAME"
+            export CREAMBUFFET_SERVER_TAG="$IMAGE_TAG"
+
+            docker compose pull server
+            docker compose up -d server
+
+            container_id="$(docker compose ps -q server)"
+            if [ -z "$container_id" ]; then
+              echo "Server container was not created." >&2
+              exit 1
+            fi
+
+            health_status=""
+            for attempt in $(seq 1 12); do
+              health_status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$container_id")"
+              if [ "$health_status" = "healthy" ]; then
+                break
+              fi
+
+              if [ "$health_status" = "unhealthy" ] || [ "$health_status" = "exited" ] || [ "$health_status" = "dead" ]; then
+                docker compose logs --tail=100 server
+                exit 1
+              fi
+
+              sleep 5
+            done
+
+            if [ "$health_status" != "healthy" ]; then
+              echo "Timed out waiting for server health; last status: $health_status" >&2
+              docker compose logs --tail=100 server
+              exit 1
+            fi
+
             docker compose ps
-            docker compose logs --tail=50
+            docker compose logs --tail=50 server
             docker image prune -f
-          '
+          EOF

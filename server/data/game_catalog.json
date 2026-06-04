@@ -42,6 +42,26 @@
       "ruleset_id": "moving_platform_v1",
       "mechanic_id": "moving_platform_v1",
       "title": "Moving Platform"
+    },
+    "water_environment_v1": {
+      "ruleset_id": "water_environment_v1",
+      "mechanic_id": "water_environment_v1",
+      "title": "Water Environment"
+    },
+    "oxygen_v1": {
+      "ruleset_id": "oxygen_v1",
+      "mechanic_id": "oxygen_v1",
+      "title": "Oxygen and Team Respawns"
+    },
+    "water_jet_v1": {
+      "ruleset_id": "water_jet_v1",
+      "mechanic_id": "water_jet_v1",
+      "title": "Water Jet"
+    },
+    "water_barrier_v1": {
+      "ruleset_id": "water_barrier_v1",
+      "mechanic_id": "water_barrier_v1",
+      "title": "Water Barrier"
     }
   },
   "mechanic_definitions": {
@@ -181,6 +201,64 @@
         "moving_platform"
       ],
       "actions": {}
+    },
+    "water_environment_v1": {
+      "mechanic_id": "water_environment_v1",
+      "object_kinds": [
+        "water_zone",
+        "water_body"
+      ],
+      "actions": {}
+    },
+    "oxygen_v1": {
+      "mechanic_id": "oxygen_v1",
+      "object_kinds": [
+        "oxygen_tank",
+        "oxygen_station",
+        "team_respawn_budget"
+      ],
+      "actions": {
+        "collect": {
+          "object_kinds": [
+            "oxygen_tank",
+            "oxygen_station"
+          ],
+          "aliases": [
+            "oxygen_collect",
+            "oxygen_collected"
+          ],
+          "required_payload": [],
+          "server_handler": "oxygen.collect"
+        },
+        "oxygen_depleted": {
+          "object_kinds": [
+            "team_respawn_budget"
+          ],
+          "aliases": [
+            "player_drowned",
+            "drown"
+          ],
+          "required_payload": [],
+          "server_handler": "oxygen.oxygen_depleted"
+        }
+      }
+    },
+    "water_jet_v1": {
+      "mechanic_id": "water_jet_v1",
+      "object_kinds": [
+        "water_jet_nozzle",
+        "water_jet"
+      ],
+      "actions": {}
+    },
+    "water_barrier_v1": {
+      "mechanic_id": "water_barrier_v1",
+      "object_kinds": [
+        "extendable_barrier",
+        "water_barrier",
+        "barrier"
+      ],
+      "actions": {}
     }
   },
   "maps": {
@@ -266,16 +344,18 @@
         "desert_05"
       ]
     },
-    "forest": {
-      "map_id": "forest",
-      "title": "Forest Temple",
-      "selectable": false,
+    "water": {
+      "map_id": "water",
+      "title": "Water World",
+      "selectable": true,
       "wip": true,
-      "thumbnail_path": "res://assets/sprites/maps/forest_map.png",
+      "thumbnail_path": "res://assets/sprites/maps/water_map.png",
       "default_rulesets": [
         "key_door_v1",
         "goal_all_v1",
-        "hazard_respawn_v1"
+        "hazard_respawn_v1",
+        "water_environment_v1",
+        "oxygen_v1"
       ],
       "allowed_rulesets": [
         "key_door_v1",
@@ -283,18 +363,24 @@
         "hazard_respawn_v1",
         "push_box_v1",
         "button_platform_v1",
-        "moving_platform_v1"
+        "moving_platform_v1",
+        "water_environment_v1",
+        "oxygen_v1",
+        "water_jet_v1",
+        "water_barrier_v1"
       ],
       "levels": [
-        "beginner_01"
+        "water_01",
+        "water_02",
+        "water_03"
       ]
     },
-    "sky": {
-      "map_id": "sky",
-      "title": "Sky Fortress",
+    "dark": {
+      "map_id": "dark",
+      "title": "Castle of Darkness",
       "selectable": false,
       "wip": true,
-      "thumbnail_path": "res://assets/sprites/maps/sky_map.png",
+      "thumbnail_path": "res://assets/sprites/maps/dark_map.png",
       "default_rulesets": [
         "key_door_v1",
         "goal_all_v1",
@@ -2039,8 +2125,8 @@
       "index": 0,
       "scene_path": "res://scenes/online/desert_levels/level_01_desert.tscn",
       "spawn_point": {
-        "x": -242.0,
-        "y": 34.0
+        "x": -302.0,
+        "y": 44.0
       },
       "objects": {
         "level01_key_01": {
@@ -2493,8 +2579,8 @@
       "index": 1,
       "scene_path": "res://scenes/online/desert_levels/level_02_desert.tscn",
       "spawn_point": {
-        "x": -302.0,
-        "y": 44.0
+        "x": -342.0,
+        "y": 50.0
       },
       "failure_rules": [
         {
@@ -4140,8 +4226,8 @@
           "state": {},
           "transform": {
             "position": {
-              "x": -196.0,
-              "y": 120.0
+              "x": -201.0,
+              "y": 152.0
             }
           },
           "trigger": {
@@ -4193,7 +4279,7 @@
           },
           "transform": {
             "position": {
-              "x": -61.0,
+              "x": -64.0,
               "y": -77.0
             }
           },
@@ -4217,7 +4303,7 @@
           },
           "transform": {
             "position": {
-              "x": -61.0,
+              "x": -64.0,
               "y": -77.0
             }
           },
@@ -4239,8 +4325,8 @@
           "state": {},
           "transform": {
             "position": {
-              "x": 170.0,
-              "y": 240.0
+              "x": 164.0,
+              "y": 320.0
             }
           },
           "trigger": {
@@ -4324,8 +4410,8 @@
           },
           "transform": {
             "position": {
-              "x": -213.0,
-              "y": -224.0
+              "x": -207.0,
+              "y": -220.0
             }
           },
           "trigger": {
@@ -4348,8 +4434,8 @@
           },
           "transform": {
             "position": {
-              "x": -213.0,
-              "y": -224.0
+              "x": -207.0,
+              "y": -220.0
             }
           },
           "trigger": {
@@ -4424,6 +4510,1098 @@
         }
       ],
       "links": []
+    },
+    "water_01": {
+      "level_id": "water_01",
+      "map_id": "water",
+      "index": 0,
+      "scene_path": "res://scenes/online/water/water_01.tscn",
+      "spawn_point": {
+        "x": -284.0,
+        "y": 32.0
+      },
+      "extra_rulesets": [
+        "push_box_v1",
+        "button_platform_v1",
+        "moving_platform_v1"
+      ],
+      "objects": {
+        "water01_respawn_budget": {
+          "kind": "team_respawn_budget",
+          "max_respawns": 3,
+          "state": {
+            "used": 0,
+            "max": 3,
+            "failed": false
+          }
+        },
+        "water01_key_land": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": -128.0,
+              "y": -49.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 9.6,
+              "y": 19.2
+            },
+            "margin": 2.0
+          }
+        },
+        "water01_key_underwater": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": -175.0,
+              "y": 123.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 9.6,
+              "y": 19.2
+            },
+            "margin": 2.0
+          }
+        },
+        "water01_door": {
+          "kind": "door",
+          "requires": {
+            "scope": "team",
+            "key_ids": [
+              "water01_key_land",
+              "water01_key_underwater"
+            ]
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 325.0,
+              "y": -43.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "water01_goal": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 325.0,
+              "y": -43.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "water01_fall_reset": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 190.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 121.0
+            },
+            "size": {
+              "x": 900.0,
+              "y": 48.0
+            },
+            "margin": 4.0
+          }
+        },
+        "water01_push_box": {
+          "kind": "push_box",
+          "state": {
+            "position": {
+              "x": -23.0,
+              "y": 7.0
+            }
+          },
+          "transform": {
+            "position": {
+              "x": -23.0,
+              "y": 7.0
+            }
+          },
+          "body": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 19.2,
+              "y": 19.2
+            }
+          }
+        },
+        "water01_button_platform": {
+          "kind": "button",
+          "state": {
+            "pressed": false
+          },
+          "transform": {
+            "position": {
+              "x": 40.0,
+              "y": -19.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 1.2
+            },
+            "size": {
+              "x": 12.0,
+              "y": 4.8
+            },
+            "margin": 3.0
+          }
+        },
+        "water01_exit_platform": {
+          "kind": "moving_platform",
+          "state": {
+            "active": false
+          },
+          "transform": {
+            "position": {
+              "x": 248.0,
+              "y": -22.75
+            }
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "water01_door",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "water01_goal"
+        }
+      ],
+      "links": [
+        {
+          "source_target_id": "water01_button_platform",
+          "source_field": "pressed",
+          "source_value": true,
+          "target_id": "water01_exit_platform",
+          "target_field": "active",
+          "target_value": true
+        }
+      ]
+    },
+    "water_02": {
+      "level_id": "water_02",
+      "map_id": "water",
+      "index": 1,
+      "scene_path": "res://scenes/online/water/water_02.tscn",
+      "spawn_point": {
+        "x": -364.0,
+        "y": -46.0
+      },
+      "extra_rulesets": [
+        "button_platform_v1",
+        "moving_platform_v1",
+        "water_barrier_v1"
+      ],
+      "objects": {
+        "water02_respawn_budget": {
+          "kind": "team_respawn_budget",
+          "max_respawns": 3,
+          "state": {
+            "used": 0,
+            "max": 3,
+            "failed": false
+          }
+        },
+        "water02_key": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": 67.0,
+              "y": -76.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 9.6,
+              "y": 19.2
+            },
+            "margin": 2.0
+          }
+        },
+        "water02_door": {
+          "kind": "door",
+          "requires": {
+            "scope": "team",
+            "key_ids": [
+              "water02_key"
+            ]
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 492.0,
+              "y": 21.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "water02_goal": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 492.0,
+              "y": 21.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "water02_fall_reset": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 200.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 13.5,
+              "y": 89.0
+            },
+            "size": {
+              "x": 1243.0,
+              "y": 48.0
+            },
+            "margin": 4.0
+          }
+        },
+        "water02_oxygen_a": {
+          "kind": "oxygen_tank",
+          "oxygen": {
+            "amount": 5.0,
+            "uses": 2
+          },
+          "state": {
+            "remaining_uses": 2,
+            "claimed_peer_ids": [],
+            "collected": false
+          },
+          "transform": {
+            "position": {
+              "x": -128.0,
+              "y": -82.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 13.3,
+              "y": 32.9
+            },
+            "margin": 4.0
+          }
+        },
+        "water02_oxygen_b": {
+          "kind": "oxygen_tank",
+          "oxygen": {
+            "amount": 5.0,
+            "uses": 3
+          },
+          "state": {
+            "remaining_uses": 3,
+            "claimed_peer_ids": [],
+            "collected": false
+          },
+          "transform": {
+            "position": {
+              "x": 248.0,
+              "y": 93.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 13.3,
+              "y": 32.9
+            },
+            "margin": 4.0
+          }
+        },
+        "water02_oxygen_c": {
+          "kind": "oxygen_tank",
+          "oxygen": {
+            "amount": 5.0,
+            "uses": 3
+          },
+          "state": {
+            "remaining_uses": 3,
+            "claimed_peer_ids": [],
+            "collected": false
+          },
+          "transform": {
+            "position": {
+              "x": 485.0,
+              "y": 130.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 13.3,
+              "y": 32.9
+            },
+            "margin": 4.0
+          }
+        },
+        "water02_spike_a": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -109.0,
+              "y": -64.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_b": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 251.0,
+              "y": -64.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_c": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 106.00001,
+              "y": -32.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_d": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -185.0,
+              "y": 48.0
+            },
+            "rotation": 3.1415927
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_e": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": -104.0,
+              "y": 96.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_f": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 280.0,
+              "y": 96.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_g": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 408.0,
+              "y": 80.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_spike_h": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 316.0,
+              "y": 64.0
+            },
+            "rotation": 3.1415927
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -4.8
+            },
+            "size": {
+              "x": 12.0,
+              "y": 12.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_oxygen_platform": {
+          "kind": "moving_platform",
+          "state": {
+            "active": false
+          },
+          "transform": {
+            "position": {
+              "x": 197.0,
+              "y": -52.0
+            }
+          }
+        },
+        "water02_orange_barrier": {
+          "kind": "extendable_barrier",
+          "state": {
+            "open": false,
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": 359.0,
+              "y": 64.0
+            }
+          }
+        },
+        "water02_barrier_button_a": {
+          "kind": "button",
+          "state": {
+            "pressed": false
+          },
+          "transform": {
+            "position": {
+              "x": 277.0,
+              "y": -69.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 1.5
+            },
+            "size": {
+              "x": 15.0,
+              "y": 6.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water02_barrier_button_b": {
+          "kind": "button",
+          "state": {
+            "pressed": false
+          },
+          "transform": {
+            "position": {
+              "x": 435.00003,
+              "y": 155.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 1.5
+            },
+            "size": {
+              "x": 15.0,
+              "y": 6.0
+            },
+            "margin": 3.0
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "water02_door",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "water02_goal"
+        }
+      ],
+      "links": [
+        {
+          "source_target_id": "water02_key",
+          "source_field": "collected",
+          "source_value": true,
+          "target_id": "water02_oxygen_platform",
+          "target_field": "active",
+          "target_value": true
+        },
+        {
+          "source_target_id": "water02_barrier_button_a",
+          "source_field": "pressed",
+          "source_value": true,
+          "target_id": "water02_orange_barrier",
+          "target_field": "open",
+          "target_operation": "toggle",
+          "target_value": true
+        },
+        {
+          "source_target_id": "water02_barrier_button_b",
+          "source_field": "pressed",
+          "source_value": true,
+          "target_id": "water02_orange_barrier",
+          "target_field": "open",
+          "target_operation": "toggle",
+          "target_value": true
+        }
+      ]
+    },
+    "water_03": {
+      "level_id": "water_03",
+      "map_id": "water",
+      "index": 2,
+      "scene_path": "res://scenes/online/water/water_03.tscn",
+      "spawn_point": {
+        "x": -319.0,
+        "y": 98.0
+      },
+      "failure_rules": [
+        {
+          "type": "time_limit",
+          "seconds": 45
+        }
+      ],
+      "extra_rulesets": [
+        "button_platform_v1",
+        "moving_platform_v1",
+        "water_jet_v1"
+      ],
+      "objects": {
+        "water03_respawn_budget": {
+          "kind": "team_respawn_budget",
+          "max_respawns": 3,
+          "state": {
+            "used": 0,
+            "max": 3,
+            "failed": false
+          }
+        },
+        "water03_key": {
+          "kind": "key",
+          "state": {
+            "collected": false,
+            "collector_peer_id": 0
+          },
+          "transform": {
+            "position": {
+              "x": -113.0,
+              "y": -25.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 12.0,
+              "y": 24.0
+            },
+            "margin": 2.0
+          }
+        },
+        "water03_door": {
+          "kind": "door",
+          "requires": {
+            "scope": "team",
+            "key_ids": [
+              "water03_key"
+            ]
+          },
+          "state": {
+            "opened": false
+          },
+          "transform": {
+            "position": {
+              "x": 436.0,
+              "y": 4.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 24.0,
+              "y": 24.0
+            },
+            "margin": 4.0
+          }
+        },
+        "water03_goal": {
+          "kind": "goal",
+          "state": {
+            "players_inside": []
+          },
+          "transform": {
+            "position": {
+              "x": 436.0,
+              "y": 4.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "size": {
+              "x": 20.0,
+              "y": 23.0
+            },
+            "margin": 6.0
+          }
+        },
+        "water03_fall_reset": {
+          "kind": "fall_reset",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 0.0,
+              "y": 220.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 21.0,
+              "y": 41.0
+            },
+            "size": {
+              "x": 1000.0,
+              "y": 48.0
+            },
+            "margin": 4.0
+          }
+        },
+        "water03_exit_platform": {
+          "kind": "moving_platform",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": 220.0,
+              "y": 78.0
+            }
+          }
+        },
+        "water03_mid_platform": {
+          "kind": "moving_platform",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": 52.0,
+              "y": 117.0
+            }
+          }
+        },
+        "water03_spike_a": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 285.0,
+              "y": 48.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -6.0
+            },
+            "size": {
+              "x": 15.0,
+              "y": 15.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water03_spike_b": {
+          "kind": "hazard",
+          "state": {},
+          "transform": {
+            "position": {
+              "x": 351.0,
+              "y": 47.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": -6.0
+            },
+            "size": {
+              "x": 15.0,
+              "y": 15.0
+            },
+            "margin": 3.0
+          }
+        },
+        "water03_jet_button": {
+          "kind": "button",
+          "state": {
+            "pressed": false
+          },
+          "transform": {
+            "position": {
+              "x": 111.0,
+              "y": -5.0
+            }
+          },
+          "trigger": {
+            "shape": "rectangle",
+            "offset": {
+              "x": 0.0,
+              "y": 1.5
+            },
+            "size": {
+              "x": 28.0,
+              "y": 14.0
+            },
+            "margin": 6.0
+          }
+        },
+        "water03_jet_top_a": {
+          "kind": "water_jet_nozzle",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": -156.0,
+              "y": -87.0
+            }
+          },
+          "timer": {
+            "mode": "random_toggle",
+            "min_interval_ms": 700,
+            "max_interval_ms": 1800
+          }
+        },
+        "water03_jet_top_b": {
+          "kind": "water_jet_nozzle",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": 9.0,
+              "y": 40.0
+            }
+          },
+          "timer": {
+            "mode": "random_toggle",
+            "min_interval_ms": 700,
+            "max_interval_ms": 1800
+          }
+        },
+        "water03_jet_top_c": {
+          "kind": "water_jet_nozzle",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": 88.0,
+              "y": 40.0
+            }
+          },
+          "timer": {
+            "mode": "random_toggle",
+            "min_interval_ms": 700,
+            "max_interval_ms": 1800
+          }
+        },
+        "water03_jet_top_d": {
+          "kind": "water_jet_nozzle",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": 248.0,
+              "y": 61.0
+            },
+            "rotation": 1.5707964
+          }
+        },
+        "water03_jet_floor": {
+          "kind": "water_jet_nozzle",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": 320.0,
+              "y": 40.0
+            },
+            "rotation": 3.1415927
+          },
+          "timer": {
+            "mode": "random_toggle",
+            "min_interval_ms": 900,
+            "max_interval_ms": 2200
+          }
+        },
+        "water03_jet_ledge": {
+          "kind": "water_jet_nozzle",
+          "state": {
+            "active": true
+          },
+          "transform": {
+            "position": {
+              "x": 436.0,
+              "y": -84.999985
+            },
+            "rotation": 0.27750736
+          },
+          "timer": {
+            "mode": "random_toggle",
+            "min_interval_ms": 900,
+            "max_interval_ms": 2200
+          }
+        }
+      },
+      "completion_rules": [
+        {
+          "type": "object_state_equals",
+          "target_id": "water03_door",
+          "field": "opened",
+          "value": true
+        },
+        {
+          "type": "all_players_at_goal",
+          "target_id": "water03_goal"
+        }
+      ],
+      "links": [
+        {
+          "source_target_id": "water03_jet_button",
+          "source_field": "pressed",
+          "source_value": true,
+          "target_id": "water03_jet_top_d",
+          "target_field": "active",
+          "target_value": false
+        }
+      ]
     }
   }
 }

@@ -102,8 +102,17 @@ Network-relevant level nodes need a `sync_id` that matches a catalog
 reset triggers, push boxes, buttons, pressure plates, and linked moving
 platforms.
 
-The online game warns at runtime when a catalog target is missing from the
-loaded scene or a network-relevant node has no `sync_id`.
+Validation commands:
+
+```bash
+godot --headless --script tests/integration/validate_catalogs.gd
+godot --headless --path client --script res://tests/validate_sync_ids.gd
+godot --headless --path client --script res://tests/validate_level_scene_data.gd
+```
+
+The online game still warns at runtime when a catalog target is missing from
+the loaded scene or a network-relevant node has no `sync_id`, but the headless
+sync validator now catches those issues before playtesting.
 
 ## Project Layout
 

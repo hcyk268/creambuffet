@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://bskjtkjjo0gh2"]
+
+[ext_resource type="Texture2D" uid="uid://g6toaswiry53" path="res://assets/sprites/watersprite.png" id="1_sprite"]
+[ext_resource type="Script" uid="uid://be6rf0nqtc3ct" path="res://scripts/water/oxygen_tank.gd" id="2_script"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oxygen_tank"]
+atlas = ExtResource("1_sprite")
+region = Rect2(125, 243, 187, 467)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_oxygen_tank"]
+size = Vector2(19, 47)
+
+[node name="OxygenTank" type="Area2D"]
+script = ExtResource("2_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.1, 0.1)
+texture = SubResource("AtlasTexture_oxygen_tank")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_oxygen_tank")

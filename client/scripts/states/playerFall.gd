@@ -1,30 +1,30 @@
 extends State
 class_name PlayerFall
 
+
 func enter() -> void:
-	var anim = parent.get_node("AnimationPlayer")
-	anim.play("fall")
+	controller.play_animation("fall")
+
 
 func physics_update(delta: float) -> void:
-	parent.velocity += parent.get_gravity() * delta
-
-	var direction = Input.get_axis("left", "right")
-	parent.velocity.x = direction * parent.SPEED
-	parent.move_and_push()
-	
-	if direction != 0:
-		var sprite = parent.get_node("Sprite2D")
-		if direction > 0:
-			sprite.flip_h = false
-		elif direction < 0:
-			sprite.flip_h = true
-			
-	if parent.is_on_floor():
-		if direction != 0:
-			Transitioned.emit(self, "run")
-		else:
-			Transitioned.emit(self, "idle")
-			
-	if Input.is_action_just_pressed("dash"):
-		Transitioned.emit(self, "dash")
+	if controller.is_in_water():
+		transitioned.emit(self, "swim")
 		return
+
+	controller.apply_gravity(delta)
+
+	var direction := controller.horizontal_input()
+	controller.set_horizontal_velocity(direction * controller.speed())
+	controller.move_and_push()
+
+	if not is_zero_approx(direction):
+		controller.face_direction(direction)
+
+	if controller.is_on_floor():
+		if not is_zero_approx(direction):
+			transitioned.emit(self, "run")
+		else:
+			transitioned.emit(self, "idle")
+
+	if controller.dash_just_pressed():
+		transitioned.emit(self, "dash")

@@ -30,9 +30,9 @@ position = Vector2(0, 86)
 sync_id = "level07_key_01"
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=1054913892]
-sync_id = "level07_fall_reset_01"
 position = Vector2(0, 270)
 script = ExtResource("1_iemrb")
+sync_id = "level07_fall_reset_01"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FallResetZone" unique_id=47703437]
 shape = SubResource("RectangleShape2D_knxqw")

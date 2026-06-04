@@ -4,10 +4,11 @@ class_name Room
 const PlayerSession = preload("res://scripts/lobby/player_session.gd")
 const MatchState = preload("res://scripts/match/match_state.gd")
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
+const GameIds = preload("res://scripts/catalog/game_ids.gd")
 
-const STATUS_LOBBY := "lobby"
-const STATUS_PLAYING := "playing"
-const STATUS_COMPLETE := "complete"
+const STATUS_LOBBY := GameIds.ROOM_STATUS_LOBBY
+const STATUS_PLAYING := GameIds.ROOM_STATUS_PLAYING
+const STATUS_COMPLETE := GameIds.ROOM_STATUS_COMPLETE
 
 var room_id := ""
 var host_peer_id := 0
@@ -59,15 +60,27 @@ func is_empty() -> bool:
 	return players.is_empty()
 
 
+func is_in_lobby() -> bool:
+	return status == STATUS_LOBBY
+
+
 func is_playing() -> bool:
 	return status == STATUS_PLAYING
+
+
+func is_complete() -> bool:
+	return status == STATUS_COMPLETE
+
+
+func can_accept_players() -> bool:
+	return is_in_lobby() and not is_full()
 
 
 func try_add_player(session: PlayerSession) -> Error:
 	if has_player(session.peer_id):
 		return ERR_ALREADY_EXISTS
 
-	if is_full():
+	if not can_accept_players():
 		return ERR_CANT_ACQUIRE_RESOURCE
 
 	players[session.peer_id] = session
@@ -85,7 +98,7 @@ func remove_player(peer_id: int) -> bool:
 	if not has_player(peer_id):
 		return false
 
-	var session := players.get(peer_id) as PlayerSession
+	var session: PlayerSession = players.get(peer_id) as PlayerSession
 	if session != null:
 		session.detach_room()
 
@@ -120,7 +133,7 @@ func player_ids() -> Array[int]:
 func player_snapshots() -> Array[Dictionary]:
 	var snapshots: Array[Dictionary] = []
 	for peer_id in player_ids():
-		var session := players.get(peer_id) as PlayerSession
+		var session: PlayerSession = players.get(peer_id) as PlayerSession
 		if session != null:
 			snapshots.append(session.snapshot())
 
@@ -160,6 +173,7 @@ func snapshot() -> Dictionary:
 		"room_id": room_id,
 		"host_peer_id": host_peer_id,
 		"is_public": is_public,
+		"joinable": can_accept_players(),
 		"max_players": max_players,
 		"world_count": world_count,
 		"map_id": map_id,

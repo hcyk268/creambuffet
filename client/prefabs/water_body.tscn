@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://cjmdihl0sh6t0"]
+
+[ext_resource type="Texture2D" uid="uid://dltqkwvfbntkm" path="res://assets/sprites/water.png" id="1_water"]
+[ext_resource type="Script" uid="uid://b4hipvymeqgh2" path="res://scripts/zones/water_zone.gd" id="2_zone"]
+[ext_resource type="Script" uid="uid://cb70ebqvjp2kh" path="res://scripts/zones/water_body.gd" id="3_body"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_water"]
+texture = ExtResource("1_water")
+texture_region_size = Vector2i(16, 16)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+6:3/0 = 0
+7:3/0 = 0
+0:4/0 = 0
+1:4/0 = 0
+2:4/0 = 0
+3:4/0 = 0
+0:5/0 = 0
+1:5/0 = 0
+2:5/0 = 0
+3:5/0 = 0
+0:6/0 = 0
+1:6/0 = 0
+2:6/0 = 0
+3:6/0 = 0
+0:7/0 = 0
+1:7/0 = 0
+2:7/0 = 0
+3:7/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_water"]
+tile_size = Vector2i(16, 16)
+sources/0 = SubResource("TileSetAtlasSource_water")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_editor_placeholder"]
+size = Vector2(16, 16)
+
+[node name="WaterBody" type="TileMapLayer"]
+modulate = Color(1, 1, 1, 0.78)
+tile_set = SubResource("TileSet_water")
+script = ExtResource("3_body")
+
+[node name="WaterArea" type="Area2D" parent="."]
+script = ExtResource("2_zone")
+
+[node name="EditorPlaceholderShape" type="CollisionShape2D" parent="WaterArea"]
+visible = false
+disabled = true
+shape = SubResource("RectangleShape2D_editor_placeholder")

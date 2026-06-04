@@ -22,6 +22,52 @@ region_rect = Rect2(16, 13, 32, 16)
 texture = ExtResource("5_btn")
 region_rect = Rect2(16, 36, 32, 16)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prompt_panel"]
+bg_color = Color(0.07, 0.06, 0.08, 0.94)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.92, 0.92, 0.94, 0.95)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_name_input"]
+bg_color = Color(0.1, 0.1, 0.12, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.82, 0.82, 0.86, 0.95)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_name_input_focus"]
+bg_color = Color(0.12, 0.12, 0.16, 0.98)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 17.0
+content_margin_top = 13.0
+content_margin_right = 17.0
+content_margin_bottom = 13.0
+
 [node name="Menu" type="Control" unique_id=1301062844]
 layout_mode = 3
 anchors_preset = 15
@@ -95,6 +141,120 @@ theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Quit
 "
 
+[node name="OnlineNameOverlay" type="ColorRect" parent="." unique_id=198228511]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.02, 0.02, 0.03, 0.78)
+
+[node name="PromptPanel" type="PanelContainer" parent="OnlineNameOverlay" unique_id=802846963]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -238.0
+offset_right = 420.0
+offset_bottom = 238.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_prompt_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="OnlineNameOverlay/PromptPanel" unique_id=457463703]
+layout_mode = 2
+theme_override_constants/margin_left = 52
+theme_override_constants/margin_top = 42
+theme_override_constants/margin_right = 52
+theme_override_constants/margin_bottom = 38
+
+[node name="VBoxContainer" type="VBoxContainer" parent="OnlineNameOverlay/PromptPanel/MarginContainer" unique_id=1471987991]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Eyebrow" type="Label" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=394920511]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.73, 0.73, 0.78, 1)
+text = "PLAYER PROFILE"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=672872653]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_4v6gu")
+theme_override_font_sizes/font_size = 84
+text = "Online Name"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=583756697]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.88, 0.88, 0.9, 0.92)
+text = "Choose the name other players will see in rooms and during online play."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="NameInput" type="LineEdit" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=457242496]
+custom_minimum_size = Vector2(0, 86)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 34
+theme_override_colors/font_color = Color(0.97, 0.97, 0.98, 1)
+theme_override_colors/font_placeholder_color = Color(0.62, 0.62, 0.67, 0.95)
+theme_override_colors/caret_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_name_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_name_input_focus")
+theme_override_styles/read_only = SubResource("StyleBoxFlat_name_input")
+placeholder_text = "Enter your online name"
+caret_blink = true
+max_length = 24
+
+[node name="StatusLabel" type="Label" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=483085135]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.74, 0.74, 0.79, 1)
+text = "Enter a name for online rooms."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=1395959928]
+layout_mode = 2
+theme_override_constants/separation = 42
+alignment = 1
+
+[node name="CancelButt" type="Button" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/Buttons" unique_id=1698159592]
+custom_minimum_size = Vector2(240, 108)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 46
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Back"
+
+[node name="ConfirmButt" type="Button" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/Buttons" unique_id=1476886699]
+custom_minimum_size = Vector2(240, 108)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 46
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Continue"
+
 [connection signal="pressed" from="CenterContainer/MainButtons/StartButt" to="." method="_on_start_butt_pressed"]
 [connection signal="pressed" from="CenterContainer/MainButtons/OfflineButt" to="." method="_on_offline_butt_pressed"]
 [connection signal="pressed" from="CenterContainer/MainButtons/QuitButt" to="." method="_on_quit_butt_pressed"]
+[connection signal="text_submitted" from="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/NameInput" to="." method="_on_name_input_text_submitted"]
+[connection signal="pressed" from="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/Buttons/CancelButt" to="." method="_on_name_cancel_pressed"]
+[connection signal="pressed" from="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/Buttons/ConfirmButt" to="." method="_on_name_confirm_pressed"]

@@ -29,6 +29,120 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Build Godot CLI image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: godot-downloader
+          load: true
+          tags: creambuffet-godot-cli:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Validate catalogs
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --script tests/integration/validate_catalogs.gd
+
+      - name: Test catalog contract helpers
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --script tests/integration/test_catalog_contract.gd
+
+      - name: Test protocol encode/decode
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path server --script res://tests/test_protocol.gd
+
+      - name: Test extracted match services
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path server --script res://tests/test_match_services.gd
+
+      - name: Test server runtime services
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path server --script res://tests/test_server_services.gd
+
+      - name: Import client resources
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path client --import
+
+      - name: Validate client sync ID coverage
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path client --script res://tests/validate_sync_ids.gd
+
+      - name: Validate client level scene data
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path client --script res://tests/validate_level_scene_data.gd
+
+      - name: Validate player state machine wiring
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path client --script res://tests/validate_player_state_machine.gd
+
+      - name: Test client network wire contract
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path client --script res://tests/test_network_wire_contract.gd
+
+      - name: Smoke test offline and online client scenes
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path client --script res://tests/test_game_scene_smoke.gd
+
+      - name: Parse-check client project
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path client --quit-after 1
+
+      - name: Parse-check server project
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path server --quit-after 1
+
       - name: Build smoke-test image
         uses: docker/build-push-action@v6
         with:

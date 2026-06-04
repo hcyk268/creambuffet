@@ -10,6 +10,9 @@ enum ActivationMode {
 @export var activation_mode: ActivationMode = ActivationMode.PRESS_ONCE
 @export var sync_id := ""
 @export var target_platform: AnimatableBody2D
+@export var target_activation_node: Node
+@export var target_activation_value := true
+@export var target_release_activation_value := false
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 var is_pressed := false
@@ -62,18 +65,23 @@ func _update_pressed_state() -> void:
 
 func _update_target_platform_state() -> void:
 	if _online_authoritative and not _applying_server_state:
+		_apply_activation_target(target_activation_node)
 		return
 
-	if target_platform == null:
+	_apply_activation_target(target_platform)
+	_apply_activation_target(target_activation_node)
+
+
+func _apply_activation_target(target: Node) -> void:
+	if target == null or not target.has_method("set_activation"):
 		return
 
-	if target_platform.has_method("set_activation"):
-		match activation_mode:
-			ActivationMode.PRESS_ONCE:
-				if is_pressed:
-					target_platform.set_activation(true)
-			ActivationMode.WHILE_HELD:
-				target_platform.set_activation(is_pressed)
+	match activation_mode:
+		ActivationMode.PRESS_ONCE:
+			if is_pressed:
+				target.set_activation(target_activation_value)
+		ActivationMode.WHILE_HELD:
+			target.set_activation(target_activation_value if is_pressed else target_release_activation_value)
 
 
 func apply_server_pressed(pressed: bool) -> void:

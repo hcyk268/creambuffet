@@ -27,6 +27,9 @@ func _on_back_butt_pressed() -> void:
 
 
 func _on_join_butt_pressed() -> void:
+	if _awaiting_join:
+		return
+
 	var room_id: String = id_input.text.strip_edges()
 	if room_id.is_empty():
 		_set_status("Please enter a room id.")

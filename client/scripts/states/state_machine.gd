@@ -1,49 +1,68 @@
 extends Node
 class_name StateMachine
 
-@export var initialState : State  # This var will appear in the Inspector tab
+const PlayerStateController = preload("res://scripts/states/player_state_controller.gd")
+
+@export var initialState : State
 
 var currentState : State
-
-# Populate the StateMachine using dictionary
 var states : Dictionary = {}
+var _controller: PlayerStateController
+
+
 func _ready() -> void:
-	
-	for child in get_children(): 
+	_controller = PlayerStateController.new(get_parent() as CharacterBody2D)
+
+	for child in get_children():
 		if child is State:
 			states[child.name.to_lower()] = child
-			child.Transitioned.connect(_state_transition) # Signal link with event
-			child.parent = get_parent()
-			
-	if initialState:
-		initialState.enter()
-		currentState = initialState
+			child.transitioned.connect(_state_transition)
+			child.controller = _controller
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+	var starting_state: State = _resolve_initial_state()
+	if starting_state == null:
+		push_warning("StateMachine could not resolve an initial state.")
+		return
+
+	starting_state.enter()
+	currentState = starting_state
+
+
 func _process(delta: float) -> void:
 	if currentState:
 		currentState.update(delta)
-		
+
+
 func _physics_process(delta: float) -> void:
 	if currentState:
 		currentState.physics_update(delta)
 
+
 func _unhandled_input(event: InputEvent) -> void:
-	currentState.handle_input(event)
-	
-func _state_transition(oldState, newStateName):
+	if currentState:
+		currentState.handle_input(event)
+
+
+func _state_transition(oldState: State, newStateName: String) -> void:
 	if oldState != currentState:
 		return
-	
-	var newState = states.get(newStateName.to_lower())
-	if !newState:
+
+	var newState: State = states.get(newStateName.to_lower(), null)
+	if newState == null:
 		return
-	
-	# Transition happens here
+
 	if currentState:
 		currentState.exit()
-		
+
 	newState.enter()
 	currentState = newState
 
-	
+
+func _resolve_initial_state() -> State:
+	if initialState == null:
+		push_warning("StateMachine has no initialState; falling back to Idle if available.")
+		return states.get("idle", null)
+	if initialState.get_parent() != self:
+		push_warning("StateMachine initialState is not a child of this StateMachine; falling back to Idle if available.")
+		return states.get("idle", null)
+	return initialState

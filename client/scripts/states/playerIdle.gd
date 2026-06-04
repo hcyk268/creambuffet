@@ -1,31 +1,35 @@
 extends State
 class_name PlayerIdle
 
+
 func enter() -> void:
-	var anim_sprite = parent.get_node("AnimationPlayer")
-	anim_sprite.play("idle")
-	parent.velocity.x = 0
+	controller.play_animation("idle")
+	controller.set_horizontal_velocity(0.0)
+
 
 func physics_update(delta: float) -> void:
-	if not parent.is_on_floor():
-		parent.velocity += parent.get_gravity() * delta
+	if controller.is_in_water():
+		transitioned.emit(self, "swim")
+		return
+
+	if not controller.is_on_floor():
+		controller.apply_gravity(delta)
 	else:
-		parent.velocity.y = 0
+		controller.set_vertical_velocity(0.0)
 
-	parent.velocity.x = 0
-	parent.move_and_push()
+	controller.set_horizontal_velocity(0.0)
+	controller.move_and_push()
 
-	if not parent.is_on_floor():
-		Transitioned.emit(self, "fall")
-		
-	if Input.is_action_just_pressed("jump"):
-		Transitioned.emit(self, "jump")
+	if not controller.is_on_floor():
+		transitioned.emit(self, "fall")
+
+	if controller.jump_just_pressed():
+		transitioned.emit(self, "jump")
 		return
-	
-	var direction = Input.get_axis("left", "right")
-	if direction != 0:
-		Transitioned.emit(self, "run")
-		
-	if Input.is_action_just_pressed("dash"):
-		Transitioned.emit(self, "dash")
-		return
+
+	var direction := controller.horizontal_input()
+	if not is_zero_approx(direction):
+		transitioned.emit(self, "run")
+
+	if controller.dash_just_pressed():
+		transitioned.emit(self, "dash")

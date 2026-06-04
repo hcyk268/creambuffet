@@ -11,8 +11,10 @@ signal level_transition(from_level_index, to_level_index, match_complete, room)
 signal world_event_received(event)
 
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
+const GameIds = preload("res://scripts/catalog/game_ids.gd")
+const ProtocolConstants = preload("res://scripts/network/protocol_constants.gd")
 
-const PROTOCOL_VERSION := 1
+const PROTOCOL_VERSION := ProtocolConstants.PROTOCOL_VERSION
 const STATE_DISCONNECTED := "disconnected"
 const STATE_CONNECTING := "connecting"
 const STATE_CONNECTED := "connected"
@@ -21,6 +23,7 @@ const DEFAULT_SERVER_HOST := "127.0.0.1"
 const DEFAULT_SERVER_PORT := 7000
 const CONFIG_PATH := "res://config/client_network.cfg"
 const SERVER_PEER_ID := 1
+const MAX_DISPLAY_NAME_LENGTH := 24
 
 var server_host := DEFAULT_SERVER_HOST
 var server_port := DEFAULT_SERVER_PORT
@@ -41,7 +44,8 @@ var _public_rooms: Array[Dictionary] = []
 
 func _ready() -> void:
 	_load_runtime_config()
-	_display_name = _configured_display_name if not _configured_display_name.is_empty() else _guess_display_name()
+	var initial_display_name := _configured_display_name if not _configured_display_name.is_empty() else _guess_display_name()
+	_display_name = _sanitize_display_name(initial_display_name)
 	connection_details = "Offline. Target server: %s:%d" % [server_host, server_port]
 
 	_scene_multiplayer = get_tree().get_multiplayer() as SceneMultiplayer
@@ -107,12 +111,24 @@ func get_local_peer_id() -> int:
 	return local_peer_id
 
 
+func get_display_name() -> String:
+	return _display_name
+
+
+func get_max_display_name_length() -> int:
+	return MAX_DISPLAY_NAME_LENGTH
+
+
+func set_display_name(requested_name: String) -> void:
+	_display_name = _sanitize_display_name(requested_name)
+
+
 func is_room_host() -> bool:
 	return not _current_room.is_empty() and int(_current_room.get("host_peer_id", -1)) == local_peer_id
 
 
 func is_match_active() -> bool:
-	return String(_current_room.get("status", "")) == "playing"
+	return String(_current_room.get("status", "")) == GameIds.ROOM_STATUS_PLAYING
 
 
 func get_public_rooms() -> Array[Dictionary]:
@@ -120,11 +136,11 @@ func get_public_rooms() -> Array[Dictionary]:
 
 
 func request_public_rooms() -> void:
-	_queue_or_send("list_rooms", {})
+	_queue_or_send(ProtocolConstants.MESSAGE_LIST_ROOMS, {})
 
 
-func create_room(max_players: int, world_count: int, randomized: bool, visibility: String = "public", map_id: String = "beginner") -> void:
-	_queue_or_send("create_room", {
+func create_room(max_players: int, world_count: int, randomized: bool, visibility: String = GameIds.ROOM_VISIBILITY_PUBLIC, map_id: String = "beginner") -> void:
+	_queue_or_send(ProtocolConstants.MESSAGE_CREATE_ROOM, {
 		"player_name": _display_name,
 		"visibility": visibility,
 		"max_players": max_players,
@@ -135,7 +151,7 @@ func create_room(max_players: int, world_count: int, randomized: bool, visibilit
 
 
 func join_room(room_id: String) -> void:
-	_queue_or_send("join_room", {
+	_queue_or_send(ProtocolConstants.MESSAGE_JOIN_ROOM, {
 		"player_name": _display_name,
 		"room_id": room_id.strip_edges().to_upper(),
 	})
@@ -146,11 +162,11 @@ func leave_room() -> void:
 		_set_current_room({})
 		return
 
-	_queue_or_send("leave_room", {})
+	_queue_or_send(ProtocolConstants.MESSAGE_LEAVE_ROOM, {})
 
 
 func start_match() -> void:
-	_queue_or_send("start_match", {})
+	_queue_or_send(ProtocolConstants.MESSAGE_START_MATCH, {})
 
 
 func set_room_map(map_id: String) -> void:
@@ -159,7 +175,7 @@ func set_room_map(map_id: String) -> void:
 		error_received.emit("missing_map_id", "Map id is required.")
 		return
 
-	_queue_or_send("set_room_map", {
+	_queue_or_send(ProtocolConstants.MESSAGE_SET_ROOM_MAP, {
 		"map_id": normalized,
 	})
 
@@ -168,13 +184,13 @@ func send_player_state(state: Dictionary) -> void:
 	if connection_state != STATE_CONNECTED:
 		return
 
-	_send_packet("player_state", state, "", MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED)
+	_send_packet(ProtocolConstants.MESSAGE_PLAYER_STATE, state, "", MultiplayerPeer.TRANSFER_MODE_UNRELIABLE_ORDERED)
 
 
 func send_world_event(event: Dictionary) -> void:
 	var action := String(event.get("action", event.get("kind", ""))).strip_edges()
 	var target_id := String(event.get("target_id", event.get("sync_id", ""))).strip_edges()
-	var payload := event.duplicate(true)
+	var payload: Dictionary = event.duplicate(true)
 	if target_id.is_empty():
 		target_id = _infer_legacy_target_id(action, payload)
 	payload.erase("kind")
@@ -191,7 +207,7 @@ func send_world_action(action: String, target_id: String = "", extra: Dictionary
 	if connection_state != STATE_CONNECTED:
 		return
 
-	var payload := extra.duplicate(true)
+	var payload: Dictionary = extra.duplicate(true)
 	payload["action"] = action
 	if not target_id.strip_edges().is_empty():
 		payload["target_id"] = target_id.strip_edges()
@@ -201,7 +217,7 @@ func send_world_action(action: String, target_id: String = "", extra: Dictionary
 		if not level_id.is_empty():
 			payload["level_id"] = level_id
 
-	_send_packet("world_action_request", payload, _next_request_id("act"))
+	_send_packet(ProtocolConstants.MESSAGE_WORLD_ACTION_REQUEST, payload, _next_request_id(ProtocolConstants.REQUEST_PREFIX_ACTION))
 
 
 func _bind_multiplayer_signals() -> void:
@@ -224,7 +240,7 @@ func _bind_multiplayer_signals() -> void:
 
 func _on_connected_to_server() -> void:
 	_set_connection_state(STATE_CONNECTED, "Connected to %s:%d." % [server_host, server_port])
-	_send_packet("hello", {
+	_send_packet(ProtocolConstants.MESSAGE_HELLO, {
 		"player_name": _display_name,
 	})
 	_flush_pending_packets()
@@ -256,29 +272,29 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 	var payload: Dictionary = decoded.get("payload", {})
 
 	match message_type:
-		"welcome":
+		ProtocolConstants.MESSAGE_WELCOME:
 			_handle_welcome(payload)
-		"pong":
+		ProtocolConstants.MESSAGE_PONG:
 			pass
-		"room_list":
+		ProtocolConstants.MESSAGE_ROOM_LIST:
 			_set_public_rooms(payload.get("rooms", []))
-		"room_created", "room_joined", "room_updated", "room_map_updated":
+		ProtocolConstants.MESSAGE_ROOM_CREATED, ProtocolConstants.MESSAGE_ROOM_JOINED, ProtocolConstants.MESSAGE_ROOM_UPDATED, ProtocolConstants.MESSAGE_ROOM_MAP_UPDATED:
 			_set_current_room(payload.get("room", {}))
-		"room_left":
+		ProtocolConstants.MESSAGE_ROOM_LEFT:
 			_set_current_room({})
-		"match_started":
+		ProtocolConstants.MESSAGE_MATCH_STARTED:
 			_handle_match_started(payload)
-		"player_state":
+		ProtocolConstants.MESSAGE_PLAYER_STATE:
 			_handle_player_state(payload)
-		"pushable_control":
+		ProtocolConstants.MESSAGE_PUSHABLE_CONTROL:
 			_handle_pushable_control(payload)
-		"level_transition":
+		ProtocolConstants.MESSAGE_LEVEL_TRANSITION:
 			_handle_level_transition(payload)
 		# Sprint 1 restores world state through room snapshots in room/match messages.
 		# There is intentionally no dedicated world_snapshot message flow on the client.
-		"world_event":
+		ProtocolConstants.MESSAGE_WORLD_EVENT:
 			_handle_world_event(payload)
-		"error":
+		ProtocolConstants.MESSAGE_ERROR:
 			_handle_server_error(payload)
 		_:
 			error_received.emit("unsupported_server_message", "Unsupported server message type: %s" % message_type)
@@ -307,7 +323,7 @@ func _handle_player_state(payload: Dictionary) -> void:
 	if typeof(state) != TYPE_DICTIONARY:
 		return
 
-	var state_dict := Dictionary(state).duplicate(true)
+	var state_dict: Dictionary = Dictionary(state).duplicate(true)
 	var peer_id := int(state_dict.get("peer_id", 0))
 	if peer_id <= 0 or peer_id == local_peer_id:
 		return
@@ -327,6 +343,9 @@ func _handle_pushable_control(payload: Dictionary) -> void:
 func _handle_level_transition(payload: Dictionary) -> void:
 	var room = payload.get("room", {})
 	if typeof(room) == TYPE_DICTIONARY:
+		if bool(payload.get("restart", false)):
+			room["_restart_level"] = true
+			room["_transition_reason"] = String(payload.get("reason", ""))
 		_set_current_room(room)
 
 	var from_level_index := int(payload.get("from_level_index", _current_room.get("current_level_index", 0)))
@@ -354,10 +373,10 @@ func _queue_or_send(message_type: String, payload: Dictionary) -> void:
 		return
 
 	var packet := {
-		"v": PROTOCOL_VERSION,
-		"type": message_type,
-		"payload": payload,
-		"request_id": _next_request_id(message_type),
+		ProtocolConstants.FIELD_VERSION: PROTOCOL_VERSION,
+		ProtocolConstants.FIELD_TYPE: message_type,
+		ProtocolConstants.FIELD_PAYLOAD: payload,
+		ProtocolConstants.FIELD_REQUEST_ID: _next_request_id(message_type),
 	}
 
 	if connection_state == STATE_CONNECTED:
@@ -370,7 +389,7 @@ func _flush_pending_packets() -> void:
 	if connection_state != STATE_CONNECTED:
 		return
 
-	var queued_packets := _pending_packets.duplicate(true)
+	var queued_packets: Array[Dictionary] = _pending_packets.duplicate(true)
 	_pending_packets.clear()
 
 	for packet in queued_packets:
@@ -384,13 +403,13 @@ func _send_packet(
 	transfer_mode: int = MultiplayerPeer.TRANSFER_MODE_RELIABLE
 ) -> void:
 	var packet := {
-		"v": PROTOCOL_VERSION,
-		"type": message_type,
-		"payload": payload,
+		ProtocolConstants.FIELD_VERSION: PROTOCOL_VERSION,
+		ProtocolConstants.FIELD_TYPE: message_type,
+		ProtocolConstants.FIELD_PAYLOAD: payload,
 	}
 
 	if not request_id.is_empty():
-		packet["request_id"] = request_id
+		packet[ProtocolConstants.FIELD_REQUEST_ID] = request_id
 
 	_send_packet_dict(packet, transfer_mode)
 
@@ -399,8 +418,8 @@ func _send_packet_dict(packet: Dictionary, transfer_mode: int = MultiplayerPeer.
 	if _scene_multiplayer == null or connection_state != STATE_CONNECTED:
 		return
 
-	if not packet.has("v"):
-		packet["v"] = PROTOCOL_VERSION
+	if not packet.has(ProtocolConstants.FIELD_VERSION):
+		packet[ProtocolConstants.FIELD_VERSION] = PROTOCOL_VERSION
 
 	var send_error := _scene_multiplayer.send_bytes(
 		JSON.stringify(packet).to_utf8_buffer(),
@@ -409,7 +428,7 @@ func _send_packet_dict(packet: Dictionary, transfer_mode: int = MultiplayerPeer.
 	)
 
 	if send_error != OK:
-		var message := "Failed to send %s (error %d)." % [String(packet.get("type", "packet")), send_error]
+		var message := "Failed to send %s (error %d)." % [String(packet.get(ProtocolConstants.FIELD_TYPE, "packet")), send_error]
 		error_received.emit("send_failed", message)
 
 
@@ -433,7 +452,7 @@ func _decode_packet(packet: PackedByteArray) -> Dictionary:
 		}
 
 	var decoded: Dictionary = data
-	var version = decoded.get("v", null)
+	var version = decoded.get(ProtocolConstants.FIELD_VERSION, null)
 	if version == null:
 		return {
 			"ok": false,
@@ -448,7 +467,7 @@ func _decode_packet(packet: PackedByteArray) -> Dictionary:
 			"message": "Server packet used an unsupported protocol version.",
 		}
 
-	var message_type := String(decoded.get("type", "")).strip_edges()
+	var message_type := String(decoded.get(ProtocolConstants.FIELD_TYPE, "")).strip_edges()
 	if message_type.is_empty():
 		return {
 			"ok": false,
@@ -456,7 +475,7 @@ func _decode_packet(packet: PackedByteArray) -> Dictionary:
 			"message": "Server packet is missing a type.",
 		}
 
-	var payload = decoded.get("payload", {})
+	var payload = decoded.get(ProtocolConstants.FIELD_PAYLOAD, {})
 	if typeof(payload) != TYPE_DICTIONARY:
 		return {
 			"ok": false,
@@ -469,7 +488,7 @@ func _decode_packet(packet: PackedByteArray) -> Dictionary:
 		"v": int(version),
 		"type": message_type,
 		"payload": payload,
-		"request_id": decoded.get("request_id", null),
+		"request_id": decoded.get(ProtocolConstants.FIELD_REQUEST_ID, null),
 	}
 
 
@@ -547,6 +566,16 @@ func _guess_display_name() -> String:
 	if username.is_empty():
 		return "Player"
 	return username
+
+
+func _sanitize_display_name(requested_name: String) -> String:
+	var cleaned := requested_name.strip_edges()
+	cleaned = cleaned.replace("\r", " ")
+	cleaned = cleaned.replace("\n", " ")
+	cleaned = cleaned.replace("\t", " ")
+	if cleaned.length() > MAX_DISPLAY_NAME_LENGTH:
+		cleaned = cleaned.substr(0, MAX_DISPLAY_NAME_LENGTH)
+	return cleaned
 
 
 func _next_request_id(prefix: String) -> String:

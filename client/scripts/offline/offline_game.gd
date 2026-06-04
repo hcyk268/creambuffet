@@ -70,6 +70,8 @@ func _setup_player_spawn(level_root: Node) -> void:
 
 	player.velocity = Vector2.ZERO
 	player.spawn_position = player.global_position
+	if player.has_method("reset_oxygen"):
+		player.reset_oxygen()
 	if player.has_method("set_key_count"):
 		player.set_key_count(0)
 	else:
@@ -117,8 +119,12 @@ func _on_key_collected(body: Node, key_node: Node) -> void:
 	if _game_complete or body != player:
 		return
 
+	var key_color := Color.WHITE
+	if key_node is CanvasItem:
+		key_color = (key_node as CanvasItem).modulate
+
 	if player.has_method("collect_key"):
-		player.collect_key()
+		player.collect_key(1, key_color)
 	if is_instance_valid(key_node):
 		key_node.queue_free()
 

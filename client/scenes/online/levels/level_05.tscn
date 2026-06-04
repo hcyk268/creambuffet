@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://ds6mgq30gss3o"]
+[gd_scene format=4]
 
 [ext_resource type="PackedScene" path="res://prefabs/online_push_box.tscn" id="2_pe0ra"]
 [ext_resource type="PackedScene" path="res://prefabs/level_goal.tscn" id="3_hqfam"]
@@ -34,9 +34,9 @@ sync_id = "level05_key_01"
 position = Vector2(221, 26)
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=1195527600]
-sync_id = "level05_fall_reset_01"
 position = Vector2(170, 240)
 script = ExtResource("6_hqfam")
+sync_id = "level05_fall_reset_01"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FallResetZone" unique_id=778111868]
 shape = SubResource("RectangleShape2D_836dv")

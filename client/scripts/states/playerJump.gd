@@ -1,29 +1,34 @@
 extends State
 class_name PlayerJump
 
+
 func enter() -> void:
-	var anim = parent.get_node("AnimationPlayer")
-	anim.play("air")
-	
-	parent.velocity.y = parent.JUMP_VELOCITY
+	controller.play_animation("air")
+	controller.set_vertical_velocity(controller.jump_velocity())
+
 
 func physics_update(delta: float) -> void:
-	parent.velocity += parent.get_gravity() * delta
-
-	var direction = Input.get_axis("left", "right")
-	parent.velocity.x = direction * parent.SPEED
-	
-	if direction != 0:
-		var sprite = parent.get_node("Sprite2D") 
-		if direction > 0:
-			sprite.flip_h = false
-		elif direction < 0:
-			sprite.flip_h = true
-	parent.move_and_push()
-	
-	if parent.velocity.y > 0:
-		Transitioned.emit(self, "fall")
-		
-	if Input.is_action_just_pressed("dash"):
-		Transitioned.emit(self, "dash")
+	if controller.is_in_water():
+		transitioned.emit(self, "swim")
 		return
+
+	controller.apply_gravity(delta)
+
+	var direction := controller.horizontal_input()
+	controller.set_horizontal_velocity(direction * controller.speed())
+	if not is_zero_approx(direction):
+		controller.face_direction(direction)
+	controller.move_and_push()
+
+	if controller.vertical_velocity() > 0.0:
+		transitioned.emit(self, "fall")
+
+	if controller.is_on_floor() and controller.vertical_velocity() >= 0.0:
+		if not is_zero_approx(direction):
+			transitioned.emit(self, "run")
+		else:
+			transitioned.emit(self, "idle")
+		return
+
+	if controller.dash_just_pressed():
+		transitioned.emit(self, "dash")

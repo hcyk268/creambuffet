@@ -102,6 +102,8 @@ func _setup_player_spawn(level_root: Node) -> void:
 
 	player.velocity = Vector2.ZERO
 	player.spawn_position = player.global_position
+	if player.has_method("reset_oxygen"):
+		player.reset_oxygen()
 	if player.has_method("set_key_count"):
 		player.set_key_count(0)
 	else:
