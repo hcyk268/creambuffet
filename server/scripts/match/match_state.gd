@@ -563,7 +563,7 @@ func consume_level_failure(now_ms: int = Time.get_ticks_msec()) -> Dictionary:
 		}
 
 	var death_limit: Dictionary = failure_state.get("death_limit", {})
-	if not death_limit.is_empty() and int(death_limit.get("hearts_remaining", 0)) <= 0 and _all_players_dead():
+	if not death_limit.is_empty() and int(death_limit.get("hearts_remaining", 0)) <= 0:
 		_level_reset_pending = true
 		return {
 			"reason": "death_limit",

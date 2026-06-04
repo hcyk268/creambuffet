@@ -3228,7 +3228,7 @@
       "failure_rules": [
         {
           "type": "time_limit",
-          "seconds": 60
+          "seconds": 30
         }
       ],
       "objects": {
@@ -3997,7 +3997,7 @@
       "failure_rules": [
         {
           "type": "death_limit",
-          "hearts": 3,
+          "hearts": 5,
           "shared": true
         }
       ],
