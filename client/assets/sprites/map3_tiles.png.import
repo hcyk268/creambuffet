@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ccxutf3b6bhpe"
-path="res://.godot/imported/forest_map.png-cabea286665f5e2433054f4fd6cc6f87.ctex"
+uid="uid://dvvalplpweh05"
+path="res://.godot/imported/map3_tiles.png-94553d559602e716b4cfe48f05d47fad.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/maps/forest_map.png"
-dest_files=["res://.godot/imported/forest_map.png-cabea286665f5e2433054f4fd6cc6f87.ctex"]
+source_file="res://assets/sprites/map3_tiles.png"
+dest_files=["res://.godot/imported/map3_tiles.png-94553d559602e716b4cfe48f05d47fad.ctex"]
 
 [params]
 

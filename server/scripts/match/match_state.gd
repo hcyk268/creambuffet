@@ -25,6 +25,9 @@ var push_intents: Dictionary = {}
 var _mechanics: Dictionary = {}
 var _mechanic_handlers: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
+var level_started_at_ms := 0
+var failure_state: Dictionary = {}
+var _level_reset_pending := false
 
 
 func _init(peer_ids: Array[int] = [], start_level: int = 0, start_level_id: String = "", initial_map_id: String = GameCatalog.DEFAULT_MAP_ID) -> void:
@@ -118,7 +121,10 @@ func apply_automatic_fall_reset(peer_id: int) -> Array[Dictionary]:
 		var object_data := _get_object(target_id)
 		if object_data.is_empty():
 			continue
-		if String(object_data.get("kind", "")) != "fall_reset":
+		var object_kind := String(object_data.get("kind", ""))
+		if object_kind != "fall_reset" and object_kind != "hazard":
+			continue
+		if object_kind == "hazard" and not bool(object_data.get("automatic", true)):
 			continue
 		if not can_player_interact_with_trigger(peer_id, target_id) and not did_player_cross_trigger_since_last_update(peer_id, target_id):
 			continue
@@ -276,6 +282,7 @@ func snapshot() -> Dictionary:
 		"current_level_id": current_level_id,
 		"level_definition": level_definition.duplicate(true),
 		"completion_rules": completion_rules,
+		"failure_state": failure_state_snapshot(),
 		"objects": objects.duplicate(true),
 		"key_collected": _any_object_state("key", "collected", true),
 		"door_opened": _any_object_state("door", "opened", true) or _any_object_state("exit_door", "opened", true),
@@ -514,6 +521,7 @@ func _reset_level_state() -> void:
 	objects.clear()
 	players_at_goal.clear()
 	push_intents.clear()
+	_configure_failure_state()
 
 	var raw_objects: Variant = level_definition.get("objects", {})
 	if typeof(raw_objects) != TYPE_DICTIONARY:
@@ -638,10 +646,140 @@ func _get_required_object(target_id: String, allowed_kinds: Array, action: Strin
 	}
 
 
+func register_hazard_death() -> int:
+	var death_limit: Dictionary = failure_state.get("death_limit", {})
+	if death_limit.is_empty() or not bool(death_limit.get("enabled", false)):
+		return -1
+
+	var hearts_remaining := maxi(int(death_limit.get("hearts_remaining", 0)) - 1, 0)
+	death_limit["hearts_remaining"] = hearts_remaining
+	failure_state["death_limit"] = death_limit
+	return hearts_remaining
+
+
+func consume_level_failure(now_ms: int = Time.get_ticks_msec()) -> Dictionary:
+	if _level_reset_pending:
+		return {}
+
+	var time_limit: Dictionary = failure_state.get("time_limit", {})
+	if not time_limit.is_empty() and _failure_time_remaining_ms(now_ms) <= 0:
+		_level_reset_pending = true
+		return {
+			"reason": "time_limit",
+		}
+
+	var death_limit: Dictionary = failure_state.get("death_limit", {})
+	if not death_limit.is_empty() and int(death_limit.get("hearts_remaining", 0)) <= 0:
+		_level_reset_pending = true
+		return {
+			"reason": "death_limit",
+		}
+
+	return {}
+
+
+func failure_state_snapshot(now_ms: int = Time.get_ticks_msec()) -> Dictionary:
+	var snapshot := {
+		"time_limit": {
+			"enabled": false,
+			"duration_ms": 0,
+			"started_at_ms": level_started_at_ms,
+			"remaining_ms": 0,
+		},
+		"death_limit": {
+			"enabled": false,
+			"hearts_max": 0,
+			"hearts_remaining": 0,
+			"shared": true,
+		},
+	}
+
+	var time_limit: Dictionary = failure_state.get("time_limit", {})
+	if not time_limit.is_empty():
+		snapshot["time_limit"] = {
+			"enabled": true,
+			"duration_ms": int(time_limit.get("duration_ms", 0)),
+			"started_at_ms": int(time_limit.get("started_at_ms", level_started_at_ms)),
+			"remaining_ms": _failure_time_remaining_ms(now_ms),
+		}
+
+	var death_limit: Dictionary = failure_state.get("death_limit", {})
+	if not death_limit.is_empty():
+		snapshot["death_limit"] = {
+			"enabled": true,
+			"hearts_max": int(death_limit.get("hearts_max", 0)),
+			"hearts_remaining": int(death_limit.get("hearts_remaining", 0)),
+			"shared": bool(death_limit.get("shared", true)),
+		}
+
+	return snapshot
+
+
 func _get_object(target_id: String) -> Dictionary:
 	if not objects.has(target_id):
 		return {}
 	return Dictionary(objects[target_id]).duplicate(true)
+
+
+func _configure_failure_state() -> void:
+	level_started_at_ms = Time.get_ticks_msec()
+	_level_reset_pending = false
+	failure_state = {
+		"time_limit": {},
+		"death_limit": {},
+	}
+
+	var raw_failure_rules: Variant = level_definition.get("failure_rules", [])
+	if typeof(raw_failure_rules) != TYPE_ARRAY:
+		return
+
+	for raw_rule in raw_failure_rules:
+		if typeof(raw_rule) != TYPE_DICTIONARY:
+			continue
+
+		var rule: Dictionary = raw_rule
+		match String(rule.get("type", "")):
+			"time_limit":
+				var seconds := maxf(float(rule.get("seconds", 0.0)), 0.0)
+				if seconds <= 0.0:
+					continue
+				failure_state["time_limit"] = {
+					"enabled": true,
+					"duration_ms": int(round(seconds * 1000.0)),
+					"started_at_ms": level_started_at_ms,
+				}
+			"death_limit":
+				var hearts := maxi(int(rule.get("hearts", rule.get("max_deaths", 0))), 0)
+				if hearts <= 0:
+					continue
+				failure_state["death_limit"] = {
+					"enabled": true,
+					"hearts_max": hearts,
+					"hearts_remaining": hearts,
+					"shared": bool(rule.get("shared", true)),
+				}
+
+
+func _all_players_dead() -> bool:
+	if players.is_empty():
+		return false
+
+	for raw_peer_id in players.keys():
+		var peer_id := int(raw_peer_id)
+		if is_player_alive(peer_id):
+			return false
+
+	return true
+
+
+func _failure_time_remaining_ms(now_ms: int) -> int:
+	var time_limit: Dictionary = failure_state.get("time_limit", {})
+	if time_limit.is_empty():
+		return 0
+
+	var duration_ms := int(time_limit.get("duration_ms", 0))
+	var started_at_ms := int(time_limit.get("started_at_ms", level_started_at_ms))
+	return maxi(duration_ms - (now_ms - started_at_ms), 0)
 
 
 func _any_object_state(kind: String, field: String, expected) -> bool:

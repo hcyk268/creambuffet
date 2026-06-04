@@ -68,6 +68,7 @@ var _applied_water_jet_velocity := Vector2.ZERO
 var _bubble_emit_timer := 0.0
 var _water_jet_side_sign := 1.0
 var _bubble_rng := RandomNumberGenerator.new()
+var _is_eliminated := false
 
 
 func _ready() -> void:
@@ -123,12 +124,23 @@ func set_input_enabled(enabled: bool) -> void:
 	_apply_network_control_mode()
 
 
+func set_eliminated(eliminated: bool) -> void:
+	_is_eliminated = eliminated
+	_update_elimination_state()
+
+
+func is_eliminated() -> bool:
+	return _is_eliminated
+
+
 func die() -> void:
 	died.emit()
 	respawn()
 
 
 func respawn() -> void:
+	_is_eliminated = false
+	_update_elimination_state()
 	global_position = spawn_position
 	velocity = Vector2.ZERO
 	_water_jet_velocity = Vector2.ZERO
@@ -394,6 +406,18 @@ func _apply_network_control_mode() -> void:
 		collision_layer = 1
 		collision_mask = 1
 		modulate = Color.WHITE
+	_update_elimination_state()
+
+
+func _update_elimination_state() -> void:
+	var collision_shape := get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if collision_shape != null:
+		collision_shape.set_deferred("disabled", _is_eliminated)
+
+	visible = not _is_eliminated
+	if _is_eliminated:
+		velocity = Vector2.ZERO
+		_remote_target_velocity = Vector2.ZERO
 
 	_update_bubble_effect()
 
@@ -439,7 +463,7 @@ func _update_name_label_position() -> void:
 
 
 func _update_oxygen(delta: float) -> void:
-	if is_remote_player or max_oxygen <= 0.0:
+	if is_remote_player or _is_eliminated or max_oxygen <= 0.0:
 		return
 
 	var previous_oxygen := oxygen

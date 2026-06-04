@@ -10,7 +10,9 @@ func apply_player_death(match_state, peer_id: int, target_id: String, _payload: 
 		var object_state: Dictionary = match_state._get_required_object(target_id, ["hazard", "fall_reset"], "player_death")
 		if not bool(object_state.get("ok", false)):
 			return object_state
-		if not match_state.can_player_interact_with_trigger(peer_id, target_id):
+		var object_data: Dictionary = object_state["object"]
+		var object_kind := String(object_data.get("kind", ""))
+		if object_kind == "fall_reset" and not match_state.can_player_interact_with_trigger(peer_id, target_id):
 			return match_state._error("death_rejected", "Player is not inside the hazard trigger.")
 
 	if not bool(player_state.get("alive", true)):
@@ -22,11 +24,18 @@ func apply_player_death(match_state, peer_id: int, target_id: String, _payload: 
 	match_state.players[peer_id] = player_state
 	match_state.players_at_goal.erase(peer_id)
 	match_state._sync_goal_object_states()
+	var hearts_remaining: int = match_state.register_hazard_death()
+	var has_death_limit := hearts_remaining >= 0
 
 	var events: Array[Dictionary] = []
-	events.append(match_state._event("player_died", "player_death", peer_id, target_id))
-	player_state["alive"] = true
-	player_state["hazard_rearm_at_ms"] = Time.get_ticks_msec() + match_state.HAZARD_RESPAWN_REARM_MS
-	match_state.players[peer_id] = player_state
-	events.append(match_state._event("player_respawned", "player_death", peer_id, target_id))
+	events.append(match_state._event("player_died", "player_death", peer_id, target_id, {
+		"eliminated": has_death_limit and hearts_remaining <= 0,
+	}))
+
+	if not has_death_limit or hearts_remaining > 0:
+		player_state["alive"] = true
+		player_state["hazard_rearm_at_ms"] = Time.get_ticks_msec() + match_state.HAZARD_RESPAWN_REARM_MS
+		match_state.players[peer_id] = player_state
+		events.append(match_state._event("player_respawned", "player_death", peer_id, target_id))
+
 	return match_state._ok(events)

@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://bp161lyj6wkk8"]
+
+[ext_resource type="Texture2D" uid="uid://dvvalplpweh05" path="res://assets/sprites/map3_tiles.png" id="1_dciep"]
+[ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="2_spike"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3lbc4"]
+atlas = ExtResource("1_dciep")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u2jw4"]
+atlas = ExtResource("1_dciep")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_goanw"]
+atlas = ExtResource("1_dciep")
+region = Rect2(32, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s61qk"]
+atlas = ExtResource("1_dciep")
+region = Rect2(48, 16, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3p4rc"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3lbc4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u2jw4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_goanw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s61qk")
+}],
+"loop": true,
+"name": &"magma_moving",
+"speed": 2.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6104h"]
+size = Vector2(16, 16)
+
+[node name="Node2D" type="Area2D" unique_id=1853100897]
+script = ExtResource("2_spike")
+monitoring = true
+monitorable = true
+collision_layer = 1
+collision_mask = 1
+
+[node name="Sprite2D" type="AnimatedSprite2D" parent="." unique_id=542463058]
+sprite_frames = SubResource("SpriteFrames_3p4rc")
+animation = &"magma_moving"
+autoplay = "magma_moving"
+frame_progress = 0.3685573
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=419192196]
+shape = SubResource("RectangleShape2D_6104h")

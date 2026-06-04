@@ -45,11 +45,15 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if exit_after_ms <= 0:
+		_poll_level_failures()
 		return
 
 	if Time.get_ticks_msec() - _started_at_ms >= exit_after_ms:
 		print("Exit timer reached, shutting down server.")
 		get_tree().quit()
+		return
+
+	_poll_level_failures()
 
 
 func _on_peer_connected(peer_id: int) -> void:
@@ -267,6 +271,7 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 		push_box_events = room.match_state.apply_push_box_observations(peer_id, payload.get("pushable_states", []))
 		var server_player_state := room.match_state.get_player_state(peer_id)
 		if not server_player_state.is_empty():
+			state["alive"] = bool(server_player_state.get("alive", true))
 			state["key_count"] = int(server_player_state.get("key_count", 0))
 		pushable_controls = room.match_state.apply_push_intents(peer_id, payload.get("push_intents", []))
 
@@ -331,6 +336,11 @@ func _handle_player_state(peer_id: int, payload: Dictionary) -> void:
 			null,
 			MultiplayerPeer.TRANSFER_MODE_RELIABLE
 		)
+
+	if not hazard_events.is_empty():
+		_publish_room_snapshot(room)
+
+	_maybe_reset_failed_level(room)
 
 
 func _handle_level_changed(peer_id: int, request_id, payload: Dictionary) -> void:
@@ -431,17 +441,21 @@ func _handle_world_action_request(peer_id: int, request_id, payload: Dictionary,
 
 	var events_to_broadcast: Array = result.get("events", [])
 	var level_failed := false
+	var should_publish_snapshot := false
 	for event in events_to_broadcast:
 		if typeof(event) != TYPE_DICTIONARY:
 			continue
 		var event_dict: Dictionary = event
-		if String(event_dict.get("kind", "")) == "level_failed":
+		var event_kind := String(event_dict.get("kind", ""))
+		if event_kind == "level_failed":
 			level_failed = true
+		if event_kind == "player_died" or event_kind == "player_respawned":
+			should_publish_snapshot = true
 		print("[world_action_request] accept peer=%d action=%s room=%s event=%s level=%s target=%s" % [
 			peer_id,
 			action,
 			room.room_id,
-			String(event_dict.get("kind", "")),
+			event_kind,
 			room.current_level_id,
 			String(event_dict.get("target_id", ""))
 		])
@@ -452,6 +466,9 @@ func _handle_world_action_request(peer_id: int, request_id, payload: Dictionary,
 	if level_failed:
 		_restart_current_level(room, "level_failed")
 		return
+
+	if should_publish_snapshot:
+		_publish_room_snapshot(room)
 
 	_try_level_transition(room)
 
@@ -518,6 +535,37 @@ func _restart_current_level(room: Room, reason: String) -> void:
 		"room": room.snapshot(),
 	})
 	_publish_room_snapshot(room)
+
+
+func _maybe_reset_failed_level(room: Room) -> void:
+	if room == null or room.match_state == null or not room.is_playing():
+		return
+
+	var failure := room.match_state.consume_level_failure(Time.get_ticks_msec())
+	if failure.is_empty():
+		return
+
+	var from_level_index := room.current_level_index
+	room.set_level_index(from_level_index)
+
+	_send_room_message(room, "level_transition", {
+		"from_level_index": from_level_index,
+		"to_level_index": room.current_level_index,
+		"from_level_id": GameCatalog.get_level_id_by_index(room.map_id, from_level_index),
+		"to_level_id": room.current_level_id,
+		"match_complete": false,
+		"room": room.snapshot(),
+	})
+	_publish_room_snapshot(room)
+
+
+func _poll_level_failures() -> void:
+	for raw_room_id in _room_manager.rooms.keys():
+		var room := _room_manager.rooms.get(String(raw_room_id)) as Room
+		if room == null or room.match_state == null or not room.is_playing():
+			continue
+
+		_maybe_reset_failed_level(room)
 
 
 func _publish_room_change(result: Dictionary) -> void:

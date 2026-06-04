@@ -1,0 +1,65 @@
+[gd_scene format=3 uid="uid://cvj2wah06rxpw"]
+
+[ext_resource type="Texture2D" uid="uid://dvvalplpweh05" path="res://assets/sprites/map3_tiles.png" id="1_y44fj"]
+[ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="2_spike"]
+
+[sub_resource type="Animation" id="Animation_q8cdt"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Rect2(0, 0, 16, 16)]
+}
+
+[sub_resource type="Animation" id="Animation_65vto"]
+resource_name = "magma_idle_moving"
+length = 1.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5, 1, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Rect2(0, 0, 16, 16), Rect2(16, 0, 16, 16), Rect2(0, 16, 16, 16), Rect2(16, 16, 16, 16)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_lpnm6"]
+_data = {
+&"RESET": SubResource("Animation_q8cdt"),
+&"magma_idle_moving": SubResource("Animation_65vto")
+}
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6104h"]
+size = Vector2(16, 16)
+
+[node name="Node2D" type="Node2D" unique_id=1607020404]
+script = ExtResource("2_spike")
+
+[node name="Sprite2D" type="NinePatchRect" parent="." unique_id=624310602]
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+texture = ExtResource("1_y44fj")
+region_rect = Rect2(0, 0, 16, 16)
+axis_stretch_horizontal = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1647596206]
+libraries/ = SubResource("AnimationLibrary_lpnm6")
+autoplay = &"magma_idle_moving"
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1813746883]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=419192196]
+shape = SubResource("RectangleShape2D_6104h")

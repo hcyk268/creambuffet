@@ -115,7 +115,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="BottomBar" type="VBoxContainer" parent="HUD"]
+[node name="BottomBar" type="VBoxContainer" parent="HUD" unique_id=336301834]
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -130,19 +130,19 @@ grow_vertical = 0
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="MapLabel" type="Label" parent="HUD/BottomBar"]
+[node name="MapLabel" type="Label" parent="HUD/BottomBar" unique_id=671428459]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 40
 text = "Map: Beginner (10 levels)"
 horizontal_alignment = 1
 
-[node name="HostControls" type="HBoxContainer" parent="HUD/BottomBar"]
+[node name="HostControls" type="HBoxContainer" parent="HUD/BottomBar" unique_id=919252597]
 layout_mode = 2
 theme_override_constants/separation = 48
 alignment = 1
 
-[node name="SelectMapButt" type="Button" parent="HUD/BottomBar/HostControls"]
+[node name="SelectMapButt" type="Button" parent="HUD/BottomBar/HostControls" unique_id=209631607]
 custom_minimum_size = Vector2(300, 100)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_font")
@@ -152,7 +152,7 @@ theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Select Map"
 
-[node name="StartGameButt" type="Button" parent="HUD/BottomBar/HostControls"]
+[node name="StartGameButt" type="Button" parent="HUD/BottomBar/HostControls" unique_id=950540055]
 custom_minimum_size = Vector2(300, 100)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_font")

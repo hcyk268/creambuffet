@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://dhgxxep4w4cs0"]
+
+[ext_resource type="Script" uid="uid://dsjb6wixylhbl" path="res://scripts/desert_rising_magma.gd" id="1_tx1cg"]
+[ext_resource type="Texture2D" uid="uid://dvvalplpweh05" path="res://assets/sprites/map3_tiles.png" id="2_krqgm"]
+
+[sub_resource type="Animation" id="Animation_q8cdt"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("NinePatchRect:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Rect2(0, 0, 16, 16)]
+}
+
+[sub_resource type="Animation" id="Animation_65vto"]
+resource_name = "magma_idle_moving"
+length = 1.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("NinePatchRect:region_rect")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5, 1, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Rect2(0, 0, 16, 16), Rect2(16, 0, 16, 16), Rect2(0, 16, 16, 16), Rect2(16, 16, 16, 16)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_lpnm6"]
+_data = {
+&"RESET": SubResource("Animation_q8cdt"),
+&"magma_idle_moving": SubResource("Animation_65vto")
+}
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6104h"]
+size = Vector2(385.5, 16.0)
+
+[node name="Node2D" type="Area2D" unique_id=2570484]
+script = ExtResource("1_tx1cg")
+monitoring = true
+monitorable = true
+collision_layer = 1
+collision_mask = 1
+
+[node name="NinePatchRect" type="NinePatchRect" parent="." unique_id=624310602]
+offset_left = -192.0
+offset_top = -8.0
+offset_right = 193.0
+offset_bottom = 8.0
+texture = ExtResource("2_krqgm")
+region_rect = Rect2(0, 0, 16, 16)
+axis_stretch_horizontal = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1647596206]
+libraries/ = SubResource("AnimationLibrary_lpnm6")
+autoplay = &"magma_idle_moving"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=419192196]
+modulate = Color(1, 1, 1, 0.29411766)
+shape = SubResource("RectangleShape2D_6104h")

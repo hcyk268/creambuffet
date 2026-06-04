@@ -3,6 +3,7 @@ extends Node2D
 const PLAYER_SCENE := preload("res://scenes/player_soda.tscn")
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const NETWORK_SEND_INTERVAL := 0.05
+const LOCAL_HAZARD_RESPAWN_REARM_MS := 300
 
 @export var levels: Array[PackedScene] = []
 @export var start_level_index := 0
@@ -14,10 +15,12 @@ const NETWORK_SEND_INTERVAL := 0.05
 @onready var oxygen_bar: ProgressBar = $CanvasLayer/WaterHud/OxygenBar
 @onready var oxygen_label: Label = $CanvasLayer/WaterHud/OxygenLabel
 @onready var respawn_label: Label = $CanvasLayer/WaterHud/RespawnLabel
+@onready var time_label: Label = $CanvasLayer/TimeLabel
 
 var _current_level: Node
 var _current_level_index := -1
 var _current_level_id := ""
+var _online_level_ids: Array[String] = []
 var _network_client: Node
 var _is_online_session := false
 var _remote_container: Node2D
@@ -26,6 +29,12 @@ var _send_timer := 0.0
 var _match_complete := false
 var _applying_remote_world_event := false
 var _synced_nodes: Dictionary = {}
+var _hud_failure_state: Dictionary = {}
+var _hud_failure_fallback_state: Dictionary = {}
+var _hud_failure_snapshot_ms := 0
+var _pending_local_death_decrement := false
+var _pending_local_elimination := false
+var _local_hazard_rearm_until_ms := 0
 
 
 func _ready() -> void:
@@ -44,6 +53,7 @@ func _ready() -> void:
 		_bind_network_signals()
 		_setup_local_network_identity()
 		_connect_player_runtime_events()
+		_configure_online_levels()
 
 	var safe_start_index := clampi(start_level_index, 0, levels.size() - 1)
 	if _is_online_session:
@@ -52,10 +62,19 @@ func _ready() -> void:
 
 	load_level(safe_start_index)
 	_sync_remote_roster()
+	if _is_online_session:
+		_cache_failure_state(_network_client.get_current_room())
+	else:
+		_cache_failure_state({})
+	_update_failure_hud()
 
 
 func _exit_tree() -> void:
 	_unbind_network_signals()
+
+
+func _process(_delta: float) -> void:
+	_update_failure_hud()
 
 
 func _physics_process(delta: float) -> void:
@@ -106,8 +125,11 @@ func load_level(index: int) -> void:
 	_configure_pushables_for_online(_current_level)
 	_configure_buttons_for_online(_current_level)
 	_configure_water_objects_for_online(_current_level)
+	_refresh_hud_failure_fallback_state()
 	_update_level_label(false)
 	_refresh_water_hud_for_level()
+	_update_failure_hud()
+	call_deferred("_finalize_level_spawn")
 
 
 func _level_scene_for_index(index: int) -> PackedScene:
@@ -127,11 +149,52 @@ func _level_scene_for_index(index: int) -> PackedScene:
 	return null
 
 
+func _configure_online_levels() -> void:
+	if not _is_online_session:
+		return
+
+	var room: Dictionary = _network_client.get_current_room()
+	var map_id := String(room.get("map_id", GameCatalog.DEFAULT_MAP_ID))
+	var level_ids := GameCatalog.get_level_ids(map_id)
+	var runtime_levels: Array[PackedScene] = []
+	_online_level_ids = []
+
+	for level_id in level_ids:
+		var level_def := GameCatalog.get_level(level_id)
+		var scene_path := String(level_def.get("scene_path", "")).strip_edges()
+		if scene_path.is_empty():
+			push_warning("Skipping level %s because scene_path is missing." % level_id)
+			continue
+
+		var packed_scene := load(scene_path) as PackedScene
+		if packed_scene == null:
+			push_warning("Skipping level %s because scene could not be loaded: %s" % [level_id, scene_path])
+			continue
+
+		runtime_levels.append(packed_scene)
+		_online_level_ids.append(level_id)
+
+	if runtime_levels.is_empty():
+		push_warning("No online levels could be resolved for map %s." % map_id)
+		return
+
+	levels = runtime_levels
+
+
 func restart_level() -> void:
 	if _current_level_index < 0:
 		return
 
 	load_level(_current_level_index)
+
+
+func _finalize_level_spawn() -> void:
+	if not is_instance_valid(_current_level):
+		return
+
+	if player.has_method("respawn"):
+		player.respawn()
+	_reset_remote_players_to_spawn()
 
 
 func _setup_player_spawn(level_root: Node) -> void:
@@ -141,10 +204,17 @@ func _setup_player_spawn(level_root: Node) -> void:
 	else:
 		player.global_position = Vector2.ZERO
 
+	if player.has_method("set_input_enabled"):
+		player.set_input_enabled(true)
+	if player.has_method("set_eliminated"):
+		player.set_eliminated(false)
 	player.velocity = Vector2.ZERO
 	player.spawn_position = player.global_position
 	if player.has_method("reset_oxygen"):
 		player.reset_oxygen()
+	_pending_local_death_decrement = false
+	_pending_local_elimination = false
+	_local_hazard_rearm_until_ms = 0
 	if player.has_method("set_key_count"):
 		player.set_key_count(0)
 	else:
@@ -227,10 +297,18 @@ func _update_level_label(game_complete: bool) -> void:
 			total_levels = room_level_ids.size()
 		suffix = " | Room %s | %s" % [String(room.get("room_id", "")), _current_level_id]
 
-	level_label.text = "Level %d / %d%s" % [_current_level_index + 1, total_levels, suffix]
+	var hearts_text := _failure_hearts_text()
+	var hearts_suffix := ""
+	if not hearts_text.is_empty():
+		hearts_suffix = " %s" % hearts_text
+
+	level_label.text = "Level %d / %d%s%s" % [_current_level_index + 1, total_levels, hearts_suffix, suffix]
 
 
 func _refresh_water_hud_for_level() -> void:
+	if water_hud == null or oxygen_bar == null or oxygen_label == null or respawn_label == null:
+		return
+
 	var has_oxygen := _current_level_uses_ruleset("oxygen_v1")
 	var respawn_state := _team_respawn_budget_state_for_current_level()
 	var has_respawn_budget := not respawn_state.is_empty()
@@ -483,11 +561,15 @@ func _on_remote_player_state(peer_id: int, state: Dictionary) -> void:
 func _on_current_room_changed(room: Dictionary) -> void:
 	if room.is_empty():
 		_remove_remote_players()
+		_cache_failure_state({})
+		_update_failure_hud()
 		return
 
 	_sync_remote_roster(room)
 	_apply_match_state_snapshot(room)
 	_update_level_label(_match_complete)
+	_cache_failure_state(room)
+	_update_failure_hud()
 
 
 func _on_level_transition(_from_level_index: int, to_level_index: int, match_complete: bool, room: Dictionary) -> void:
@@ -496,15 +578,19 @@ func _on_level_transition(_from_level_index: int, to_level_index: int, match_com
 		_sync_remote_roster(room)
 		_apply_match_state_snapshot(room)
 		_update_level_label(true)
+		_cache_failure_state(room)
+		_update_failure_hud()
 		return
 
 	var target_level_id := String(room.get("current_level_id", ""))
 	var target_index := _index_for_level_id(target_level_id, to_level_index)
-	if bool(room.get("_restart_level", false)) or target_index != _current_level_index:
+	if bool(room.get("_restart_level", false)) or target_index != _current_level_index or _from_level_index == to_level_index:
 		load_level(target_index)
 
 	_sync_remote_roster(room)
 	_apply_match_state_snapshot(room)
+	_cache_failure_state(room)
+	_update_failure_hud()
 
 
 func _on_pushable_control_received(level_index: int, controls: Array) -> void:
@@ -606,10 +692,34 @@ func _on_player_death(body: Node, spike_node: Node) -> void:
 	if body != player:
 		return
 
+	var now_ms: int = Time.get_ticks_msec()
+	if now_ms < _local_hazard_rearm_until_ms:
+		return
+	if _pending_local_death_decrement or _pending_local_elimination:
+		_pending_local_death_decrement = false
+		_pending_local_elimination = false
+	if player.has_method("is_eliminated") and bool(player.call("is_eliminated")):
+		return
+
 	var target_id := _node_sync_id(spike_node)
 	if target_id.is_empty():
 		push_warning("Ignoring player_death request because hazard sync_id is missing.")
 		return
+
+	var will_eliminate := _will_eliminate_on_next_death()
+	_pending_local_death_decrement = true
+	_pending_local_elimination = will_eliminate
+	_local_hazard_rearm_until_ms = now_ms + LOCAL_HAZARD_RESPAWN_REARM_MS
+	_decrement_shared_hud_hearts()
+	if will_eliminate:
+		if player.has_method("set_eliminated"):
+			player.set_eliminated(true)
+		if player.has_method("set_input_enabled"):
+			player.set_input_enabled(false)
+	else:
+		if player.has_method("respawn"):
+			player.respawn()
+	_update_failure_hud()
 
 	_network_client.send_world_event({
 		"action": "player_death",
@@ -617,6 +727,7 @@ func _on_player_death(body: Node, spike_node: Node) -> void:
 		"target_id": target_id,
 		"position": _vector_to_packet(player.global_position),
 		"velocity": _vector_to_packet(player.velocity),
+		"target_position": _vector_to_packet((spike_node as Node2D).global_position if spike_node is Node2D else Vector2.ZERO),
 	})
 
 
@@ -666,7 +777,7 @@ func _on_world_event_received(event: Dictionary) -> void:
 		"door_key_deposited":
 			_apply_player_key_counts(event)
 		"player_died":
-			_apply_player_died(int(event.get("peer_id", -1)))
+			_apply_player_died(int(event.get("peer_id", -1)), bool(event.get("eliminated", false)))
 		"player_respawned":
 			_apply_player_respawned(int(event.get("peer_id", -1)))
 		"goal_entered":
@@ -741,7 +852,6 @@ func _apply_door_opened(sync_id: String, event_peer_id: int, event: Dictionary =
 	if event_peer_id == local_peer_id and player.has_method("use_key"):
 		player.use_key()
 
-
 func _apply_player_key_counts(event: Dictionary) -> bool:
 	var local_peer_id := int(_network_client.get_local_peer_id())
 	var raw_key_counts: Variant = event.get("player_key_counts", {})
@@ -755,10 +865,30 @@ func _apply_player_key_counts(event: Dictionary) -> bool:
 			return true
 	return false
 
-func _apply_player_died(event_peer_id: int) -> void:
-	# Respawn is now server-confirmed via player_respawned.
+func _apply_player_died(event_peer_id: int, eliminated: bool = false) -> void:
+	var target_player := _player_for_peer(event_peer_id)
+	if target_player != null and eliminated and target_player.has_method("set_input_enabled"):
+		target_player.set_input_enabled(false)
+	if target_player != null and eliminated and target_player.has_method("set_eliminated"):
+		target_player.set_eliminated(true)
+	if target_player != null:
+		target_player.velocity = Vector2.ZERO
+
+	if event_peer_id == _network_client.get_local_peer_id() and _pending_local_death_decrement:
+		_pending_local_death_decrement = false
+	else:
+		_decrement_shared_hud_hearts()
+		_update_failure_hud()
+	if event_peer_id == _network_client.get_local_peer_id() and _pending_local_elimination:
+		_pending_local_elimination = false
+	if event_peer_id == _network_client.get_local_peer_id() and eliminated:
+		if player.has_method("set_input_enabled"):
+			player.set_input_enabled(false)
 	if event_peer_id == _network_client.get_local_peer_id():
-		print("Local player death acknowledged by server; waiting for respawn event.")
+		if eliminated:
+			print("Local player eliminated until the level resets.")
+		else:
+			print("Local player death acknowledged by server.")
 
 func _apply_player_respawned(event_peer_id: int) -> void:
 	var target_player := _player_for_peer(event_peer_id)
@@ -767,6 +897,38 @@ func _apply_player_respawned(event_peer_id: int) -> void:
 
 	if target_player.has_method("respawn"):
 		target_player.respawn()
+	if target_player.has_method("set_input_enabled"):
+		target_player.set_input_enabled(true)
+	if target_player.has_method("set_eliminated"):
+		target_player.set_eliminated(false)
+	if event_peer_id == _network_client.get_local_peer_id():
+		_pending_local_death_decrement = false
+		_pending_local_elimination = false
+		_local_hazard_rearm_until_ms = Time.get_ticks_msec() + LOCAL_HAZARD_RESPAWN_REARM_MS
+
+
+func _decrement_shared_hud_hearts() -> void:
+	var failure_state := _hud_failure_state if not _hud_failure_state.is_empty() else _hud_failure_fallback_state
+	var death_limit: Dictionary = failure_state.get("death_limit", {})
+	if death_limit.is_empty() or not bool(death_limit.get("enabled", false)):
+		return
+
+	var hearts_remaining := maxi(int(death_limit.get("hearts_remaining", 0)) - 1, 0)
+	death_limit["hearts_remaining"] = hearts_remaining
+	failure_state["death_limit"] = death_limit
+	if _hud_failure_state.is_empty():
+		_hud_failure_fallback_state = failure_state
+	else:
+		_hud_failure_state = failure_state
+
+
+func _will_eliminate_on_next_death() -> bool:
+	var failure_state := _hud_failure_display_state()
+	var death_limit: Dictionary = failure_state.get("death_limit", {})
+	if death_limit.is_empty() or not bool(death_limit.get("enabled", false)):
+		return false
+
+	return int(death_limit.get("hearts_remaining", 0)) <= 1
 
 
 func _apply_oxygen_collected(sync_id: String, event_peer_id: int, event: Dictionary, state: Dictionary) -> void:
@@ -910,6 +1072,7 @@ func _apply_match_state_snapshot(room: Dictionary) -> void:
 	if typeof(pushables_raw) == TYPE_ARRAY:
 		_apply_pushable_controls(pushables_raw)
 	_applying_remote_world_event = false
+	_cache_failure_state(room)
 
 func _player_for_peer(peer_id: int) -> CharacterBody2D:
 	if peer_id == _network_client.get_local_peer_id():
@@ -1001,6 +1164,8 @@ func _level_has_door() -> bool:
 
 func _level_id_for_index(index: int) -> String:
 	if _is_online_session and _network_client != null:
+		if index >= 0 and index < _online_level_ids.size():
+			return _online_level_ids[index]
 		var room: Dictionary = _network_client.get_current_room()
 		var level_ids = room.get("level_ids", [])
 		if typeof(level_ids) == TYPE_ARRAY and index >= 0 and index < level_ids.size():
@@ -1018,6 +1183,8 @@ func _index_for_level_id(level_id: String, fallback_index: int) -> int:
 		return fallback_index
 
 	if _is_online_session and _network_client != null:
+		if level_id in _online_level_ids:
+			return _online_level_ids.find(level_id)
 		var room: Dictionary = _network_client.get_current_room()
 		var level_ids = room.get("level_ids", [])
 		if typeof(level_ids) == TYPE_ARRAY:
@@ -1040,6 +1207,141 @@ func _event_matches_current_level(event: Dictionary) -> bool:
 
 func _event_target_id(event: Dictionary) -> String:
 	return String(event.get("target_id", event.get("sync_id", "")))
+
+
+func _cache_failure_state(room: Dictionary) -> void:
+	if room.is_empty():
+		_hud_failure_state = {}
+		_hud_failure_snapshot_ms = 0
+		_refresh_hud_failure_fallback_state()
+		return
+
+	var match_state_raw = room.get("match_state", {})
+	if typeof(match_state_raw) != TYPE_DICTIONARY:
+		_hud_failure_state = {}
+		_hud_failure_snapshot_ms = 0
+		return
+
+	var match_state: Dictionary = match_state_raw
+	var failure_state_raw = match_state.get("failure_state", {})
+	if typeof(failure_state_raw) != TYPE_DICTIONARY:
+		_hud_failure_state = {}
+		_hud_failure_snapshot_ms = 0
+		return
+
+	_hud_failure_state = Dictionary(failure_state_raw).duplicate(true)
+	_hud_failure_snapshot_ms = Time.get_ticks_msec()
+
+
+func _update_failure_hud() -> void:
+	if level_label == null:
+		return
+
+	if _match_complete:
+		if time_label != null:
+			time_label.visible = false
+		_update_level_label(true)
+		return
+
+	var failure_display_state := _hud_failure_display_state()
+	var time_limit: Dictionary = failure_display_state.get("time_limit", {})
+	if time_label != null:
+		if bool(time_limit.get("enabled", false)):
+			time_label.visible = true
+			var remaining_ms := _failure_time_remaining_ms(failure_display_state)
+			time_label.text = "TIME %s" % _format_time_ms(remaining_ms)
+		else:
+			time_label.visible = false
+
+	_update_level_label(_match_complete)
+
+
+func _failure_hearts_text() -> String:
+	var death_limit: Dictionary = _hud_failure_display_state().get("death_limit", {})
+	if not bool(death_limit.get("enabled", false)):
+		return ""
+
+	var hearts_max := maxi(int(death_limit.get("hearts_max", 0)), 0)
+	var hearts_remaining := maxi(int(death_limit.get("hearts_remaining", 0)), 0)
+	if hearts_max <= 0:
+		return ""
+
+	var hearts := ""
+	for index in range(hearts_max):
+		hearts += "\u2665" if index < hearts_remaining else "\u2661"
+	return hearts
+
+
+func _format_time_ms(remaining_ms: int) -> String:
+	var total_seconds := maxi(int(remaining_ms / 1000), 0)
+	var minutes := int(total_seconds / 60)
+	var seconds := int(total_seconds % 60)
+	return "%02d:%02d" % [minutes, seconds]
+
+
+func _hud_failure_display_state() -> Dictionary:
+	if not _hud_failure_state.is_empty():
+		return Dictionary(_hud_failure_state).duplicate(true)
+	return Dictionary(_hud_failure_fallback_state).duplicate(true)
+
+
+func _failure_time_remaining_ms(state: Dictionary) -> int:
+	var time_limit: Dictionary = state.get("time_limit", {})
+	if time_limit.is_empty():
+		return 0
+
+	var duration_ms := int(time_limit.get("duration_ms", 0))
+	var started_at_ms := int(time_limit.get("started_at_ms", 0))
+	if started_at_ms <= 0:
+		return maxi(int(time_limit.get("remaining_ms", 0)), 0)
+
+	return maxi(duration_ms - (Time.get_ticks_msec() - started_at_ms), 0)
+
+
+func _refresh_hud_failure_fallback_state() -> void:
+	_hud_failure_fallback_state = {
+		"time_limit": {},
+		"death_limit": {},
+	}
+
+	if _current_level_id.is_empty():
+		return
+
+	var level_def := GameCatalog.get_level(_current_level_id)
+	if level_def.is_empty():
+		return
+
+	var raw_rules: Variant = level_def.get("failure_rules", [])
+	if typeof(raw_rules) != TYPE_ARRAY:
+		return
+
+	for raw_rule in raw_rules:
+		if typeof(raw_rule) != TYPE_DICTIONARY:
+			continue
+
+		var rule: Dictionary = raw_rule
+		match String(rule.get("type", "")):
+			"time_limit":
+				var seconds := maxf(float(rule.get("seconds", 0.0)), 0.0)
+				if seconds <= 0.0:
+					continue
+				var duration_ms := int(round(seconds * 1000.0))
+				_hud_failure_fallback_state["time_limit"] = {
+					"enabled": true,
+					"duration_ms": duration_ms,
+					"started_at_ms": Time.get_ticks_msec(),
+					"remaining_ms": duration_ms,
+				}
+			"death_limit":
+				var hearts := maxi(int(rule.get("hearts", rule.get("max_deaths", 0))), 0)
+				if hearts <= 0:
+					continue
+				_hud_failure_fallback_state["death_limit"] = {
+					"enabled": true,
+					"hearts_max": hearts,
+					"hearts_remaining": hearts,
+					"shared": bool(rule.get("shared", true)),
+				}
 
 
 func _node_sync_id(node: Node) -> String:
