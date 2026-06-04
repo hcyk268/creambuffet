@@ -79,6 +79,14 @@ jobs:
             creambuffet-godot-cli:test \
             godot --headless --path server --script res://tests/test_server_services.gd
 
+      - name: Import client resources
+        run: |
+          docker run --rm \
+            -v "${PWD}:/workspace" \
+            -w /workspace \
+            creambuffet-godot-cli:test \
+            godot --headless --path client --import
+
       - name: Validate client sync ID coverage
         run: |
           docker run --rm \
