@@ -13,7 +13,6 @@
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_08.tscn" id="11_h4npa"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_09.tscn" id="12_t8vce"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_10.tscn" id="13_x1mkr"]
-[ext_resource type="Texture2D" path="res://assets/sprites/time_icon.png" id="14_timei"]
 
 [node name="OnlineGame" type="Node2D"]
 script = ExtResource("1_xeoup")
@@ -49,19 +48,6 @@ offset_bottom = 31.0
 horizontal_alignment = 1
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "TIME 01:00"
-
-[node name="TimeIcon" type="TextureRect" parent="CanvasLayer"]
-anchor_left = 0.5
-anchor_top = 0.0
-anchor_right = 0.5
-anchor_bottom = 0.0
-offset_left = -90.0
-offset_top = 10.0
-offset_right = -74.0
-offset_bottom = 26.0
-texture = ExtResource("14_timei")
-expand_mode = 1
-stretch_mode = 5
 
 [node name="PauseMenu" parent="." instance=ExtResource("5_4f5g8")]
 pause_tree_on_open = false

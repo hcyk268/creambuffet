@@ -229,12 +229,18 @@
 	"lava": {
 	  "map_id": "lava",
 	  "title": "Lava Cave",
-	  "selectable": false,
-	  "wip": true,
+	  "selectable": true,
+	  "wip": false,
 	  "thumbnail_path": "res://assets/sprites/maps/lava_map.png",
 	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
 	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
-	  "levels": ["beginner_01"]
+	  "levels": [
+		"desert_01",
+		"desert_02",
+		"desert_03",
+		"desert_04",
+		"desert_05"
+	  ]
 	},
 	"water": {
 	  "map_id": "water",
@@ -244,13 +250,7 @@
 	  "thumbnail_path": "res://assets/sprites/maps/water_map.png",
 	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
 	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
-	  "levels": [
-		"desert_01",
-		"desert_02",
-		"desert_03",
-		"desert_04",
-        "desert_05"
-	  ]
+	  "levels": ["beginner_01"]
 	},
 	"dark": {
 	  "map_id": "dark",
@@ -1985,7 +1985,7 @@
 	},
 	"desert_01": {
 	  "level_id": "desert_01",
-	  "map_id": "desert",
+	  "map_id": "lava",
 	  "index": 0,
 	  "scene_path": "res://scenes/online/desert_levels/level_01_desert.tscn",
 	  "spawn_point": {
@@ -2439,7 +2439,7 @@
 	},
 	"desert_02": {
 	  "level_id": "desert_02",
-	  "map_id": "desert",
+	  "map_id": "lava",
 	  "index": 1,
 	  "scene_path": "res://scenes/online/desert_levels/level_02_desert.tscn",
 	  "spawn_point": {
@@ -3164,7 +3164,7 @@
 	},
 	"desert_03": {
 	  "level_id": "desert_03",
-	  "map_id": "desert",
+	  "map_id": "lava",
 	  "index": 2,
 	  "scene_path": "res://scenes/online/desert_levels/level_03_desert.tscn",
 	  "spawn_point": {
@@ -3937,7 +3937,7 @@
 	},
 	"desert_04": {
 	  "level_id": "desert_04",
-	  "map_id": "desert",
+	  "map_id": "lava",
 	  "index": 3,
 	  "scene_path": "res://scenes/online/desert_levels/level_04_desert.tscn",
 	  "spawn_point": {
@@ -4223,7 +4223,7 @@
 	},
 	"desert_05": {
 	  "level_id": "desert_05",
-	  "map_id": "desert",
+	  "map_id": "lava",
 	  "index": 4,
 	  "scene_path": "res://scenes/online/desert_levels/level_05_desert.tscn",
 	  "spawn_point": {
