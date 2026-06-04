@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: creambuffet-server
+    image: "${CREAMBUFFET_SERVER_IMAGE:-creambuffet-server}:${CREAMBUFFET_SERVER_TAG:-local}"
     container_name: creambuffet-server
     env_file:
       - .env

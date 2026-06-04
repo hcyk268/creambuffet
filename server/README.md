@@ -29,7 +29,15 @@ from the selected catalog map.
 project.godot                         Godot project entrypoint.
 scenes/server_main.tscn               Root headless server scene.
 data/game_catalog.json                Server gameplay catalog.
-scripts/server_main.gd                Boot, ENet setup, routing, broadcasts.
+scripts/server_main.gd                Scene lifecycle entrypoint.
+scripts/server/server_runtime.gd      ENet bootstrap and runtime lifecycle.
+scripts/server/server_config.gd       Runtime env config loader.
+scripts/server/server_debug_context.gd Shared server log/debug formatting.
+scripts/server/message_router.gd      Packet routing and request handling.
+scripts/server/lobby_message_handler.gd Lobby/session message handling.
+scripts/server/match_message_handler.gd Match/runtime message handling.
+scripts/server/room_broadcaster.gd    Outbound room snapshots and messages.
+scripts/server/match_coordinator.gd   Match and level transition coordination.
 scripts/network/protocol.gd           Packet encoding and validation.
 scripts/catalog/game_catalog.gd       Catalog loading and action validation.
 scripts/lobby/player_session.gd       Connected peer metadata.
@@ -37,6 +45,9 @@ scripts/lobby/room.gd                 Room state and match lifecycle.
 scripts/lobby/room_manager.gd         Session and room registry.
 scripts/match/match_state.gd          Server-side match state.
 scripts/match/mechanics/*.gd          Server-side world action handlers.
+tests/test_protocol.gd                Protocol encode/decode coverage.
+tests/test_match_services.gd          Match service unit coverage.
+tests/test_server_services.gd         Server runtime/service unit coverage.
 ```
 
 ## Run Locally
@@ -66,6 +77,22 @@ On PowerShell, set the variable first:
 ```powershell
 $env:CREAMBUFFET_SERVER_EXIT_AFTER_MS = "3000"
 godot --headless --path .\server
+```
+
+## Server Tests
+
+Run the server-only headless tests from the repository root:
+
+```bash
+godot --headless --path server --script res://tests/test_protocol.gd
+godot --headless --path server --script res://tests/test_match_services.gd
+godot --headless --path server --script res://tests/test_server_services.gd
+```
+
+Cross-repo contract checks still live outside the server project in:
+
+```text
+../tests/integration
 ```
 
 ## Run With Docker
@@ -130,7 +157,7 @@ client code should send `world_action_request`.
 
 ## Client Message Types
 
-Accepted by `server_main.gd`:
+Accepted by `message_router.gd`:
 
 ```text
 hello
