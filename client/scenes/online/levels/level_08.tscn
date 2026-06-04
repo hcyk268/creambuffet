@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://bdps660kifmaj"]
+[gd_scene format=4]
 
 [ext_resource type="PackedScene" path="res://prefabs/level_goal.tscn" id="1_pohdg"]
 [ext_resource type="PackedScene" path="res://prefabs/door.tscn" id="2_80sek"]

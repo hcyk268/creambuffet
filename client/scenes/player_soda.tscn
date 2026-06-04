@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ndowmvi0t40t" path="res://scripts/player_soda.gd" id="1_0uk0a"]
 [ext_resource type="Texture2D" uid="uid://dmfcd2takxaxd" path="res://assets/sprites/Player-Soda.png" id="1_uw6r1"]
-[ext_resource type="Texture2D" uid="uid://csdmjac2fejsd" path="res://assets/sprites/playerswim.png" id="2_swim"]
+[ext_resource type="Texture2D" path="res://assets/sprites/playerswim.png" id="2_swim"]
 [ext_resource type="Texture2D" uid="uid://c7aike7ymbsfy" path="res://assets/sprites/IconPackage1.png" id="2_keyicon"]
 [ext_resource type="Script" uid="uid://dqitemhmwuaox" path="res://scripts/states/state_machine.gd" id="3_aiy33"]
 [ext_resource type="Script" uid="uid://deyoy86v8lc52" path="res://scripts/states/playerIdle.gd" id="4_3cfqc"]

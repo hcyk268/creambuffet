@@ -67,24 +67,6 @@ texture = ExtResource("2_m4fk7")
 [sub_resource type="TileSet" id="TileSet_water"]
 sources/0 = SubResource("TileSetAtlasSource_water")
 
-[sub_resource type="TileMapPattern" id="TileMapPattern_6woeq"]
-tile_data = PackedInt32Array(0, 0, 0, 1, 65536, 0, 2, 131072, 0)
-
-[sub_resource type="TileMapPattern" id="TileMapPattern_6rn2v"]
-tile_data = PackedInt32Array(0, 0, 1, 1, 65536, 1, 2, 131072, 1)
-
-[sub_resource type="TileMapPattern" id="TileMapPattern_esna4"]
-tile_data = PackedInt32Array(0, 0, 2, 1, 65536, 2, 2, 131072, 2)
-
-[sub_resource type="TileMapPattern" id="TileMapPattern_cna1c"]
-tile_data = PackedInt32Array(0, 65536, 0, 65536, 65536, 1, 131072, 65536, 2)
-
-[sub_resource type="TileMapPattern" id="TileMapPattern_wv8iw"]
-tile_data = PackedInt32Array(0, 0, 5, 1, 131072, 5)
-
-[sub_resource type="TileMapPattern" id="TileMapPattern_t5h8e"]
-tile_data = PackedInt32Array(0, 0, 6, 1, 131072, 6)
-
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6rn2v"]
 texture = ExtResource("5_ta3cf")
 0:0/0 = 0
@@ -131,12 +113,6 @@ texture = ExtResource("5_ta3cf")
 [sub_resource type="TileSet" id="TileSet_esna4"]
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_6rn2v")
-pattern_0 = SubResource("TileMapPattern_6woeq")
-pattern_1 = SubResource("TileMapPattern_6rn2v")
-pattern_2 = SubResource("TileMapPattern_esna4")
-pattern_3 = SubResource("TileMapPattern_cna1c")
-pattern_4 = SubResource("TileMapPattern_wv8iw")
-pattern_5 = SubResource("TileMapPattern_t5h8e")
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_l2cq2"]
 size = Vector2(1000, 48)

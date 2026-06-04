@@ -8,6 +8,9 @@ signal oxygen_depleted
 const LAND_SPRITE_TEXTURE := preload("res://assets/sprites/Player-Soda.png")
 const SWIM_SPRITE_TEXTURE := preload("res://assets/sprites/playerswim.png")
 const BUBBLE_EFFECT_SCENE := preload("res://prefabs/bubble_effect.tscn")
+const PlayerBubbleEffects = preload("res://scripts/player_bubble_effects.gd")
+const PlayerNetworkRuntime = preload("res://scripts/player_network_runtime.gd")
+const PlayerWaterRuntime = preload("res://scripts/player_water_runtime.gd")
 const LAND_SPRITE_HFRAMES := 5
 const LAND_SPRITE_VFRAMES := 6
 const SWIM_SPRITE_HFRAMES := 4
@@ -47,6 +50,10 @@ const NAME_LABEL_OFFSET := Vector2(-120.0, -95.0)
 @onready var carried_key_sprite: Sprite2D = get_node_or_null("CarriedKey") as Sprite2D
 @onready var bubble_effect: AnimatedSprite2D = get_node_or_null("BubbleEffect") as AnimatedSprite2D
 @onready var name_label: Label = get_node_or_null("NameLabel") as Label
+@onready var sprite: Sprite2D = get_node_or_null("Sprite2D") as Sprite2D
+@onready var animation_player: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
+@onready var state_machine: Node = get_node_or_null("StateMachine")
+@onready var player_collision_shape: CollisionShape2D = get_node_or_null("CollisionShape2D") as CollisionShape2D
 
 var spawn_position: Vector2
 var oxygen := 10.0
@@ -58,22 +65,53 @@ var is_remote_player := false
 var input_enabled := true
 var _carried_key_bob_time := 0.0
 var _push_intents: Dictionary = {}
-var _remote_target_position := Vector2.ZERO
-var _remote_target_velocity := Vector2.ZERO
-var _has_remote_target := false
-var _water_zones: Array[Area2D] = []
-var _oxygen_depleted_pending := false
-var _water_jet_velocity := Vector2.ZERO
-var _applied_water_jet_velocity := Vector2.ZERO
-var _bubble_emit_timer := 0.0
-var _water_jet_side_sign := 1.0
 var _bubble_rng := RandomNumberGenerator.new()
 var _is_eliminated := false
+var _bubble_effects: PlayerBubbleEffects
+var _network_runtime: PlayerNetworkRuntime
+var _water_runtime: PlayerWaterRuntime
 
 
 func _ready() -> void:
 	_bubble_rng.randomize()
-	_water_jet_side_sign = -1.0 if _bubble_rng.randi_range(0, 1) == 0 else 1.0
+	_bubble_effects = PlayerBubbleEffects.new()
+	_bubble_effects.setup(
+		self,
+		bubble_effect,
+		BUBBLE_EFFECT_SCENE,
+		bubble_breath_interval,
+		bubble_swim_interval,
+		bubble_swim_velocity_threshold,
+		bubble_trail_lifetime
+	)
+	_network_runtime = PlayerNetworkRuntime.new()
+	_network_runtime.setup(
+		self,
+		state_machine,
+		player_collision_shape,
+		sprite,
+		animation_player,
+		remote_snap_distance,
+		remote_reconciliation_gain
+	)
+	_water_runtime = PlayerWaterRuntime.new()
+	_water_runtime.setup(
+		self,
+		Callable(self, "_update_bubble_effect"),
+		default_oxygen_drain_rate,
+		oxygen_recovery_rate,
+		water_jet_response,
+		water_jet_cross_drag,
+		water_jet_max_velocity,
+		water_jet_upward_lift_ratio,
+		water_jet_upward_max_lift_speed,
+		water_jet_upward_lift_stop_speed,
+		water_jet_upward_side_ratio,
+		water_jet_upward_side_min_speed,
+		water_jet_upward_side_max_speed,
+		WATER_JET_BLOCKED_DOT_EPSILON
+	)
+	_water_runtime.set_water_jet_side_sign(_random_water_jet_side_sign())
 	_apply_network_control_mode()
 	if name_label != null:
 		name_label.top_level = true
@@ -101,10 +139,10 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not is_remote_player or not _has_remote_target:
+	if not is_remote_player or _network_runtime == null or not _network_runtime.has_remote_target():
 		return
 
-	_follow_remote_target(delta)
+	_network_runtime.follow_remote_target(delta)
 
 
 func set_network_identity(peer_id: int, player_name: String = "") -> void:
@@ -143,52 +181,31 @@ func respawn() -> void:
 	_update_elimination_state()
 	global_position = spawn_position
 	velocity = Vector2.ZERO
-	_water_jet_velocity = Vector2.ZERO
-	_applied_water_jet_velocity = Vector2.ZERO
-	_water_jet_side_sign = -1.0 if _bubble_rng.randi_range(0, 1) == 0 else 1.0
-	_bubble_emit_timer = 0.0
-	var was_in_water := is_in_water()
-	_water_zones.clear()
+	if _water_runtime != null:
+		_water_runtime.set_water_jet_side_sign(_random_water_jet_side_sign())
+	if _bubble_effects != null:
+		_bubble_effects.reset()
+	var was_in_water := _water_runtime.reset_after_respawn() if _water_runtime != null else false
 	if was_in_water:
 		water_state_changed.emit(false)
 	_update_bubble_effect()
-	reset_oxygen()
-	_remote_target_position = global_position
-	_remote_target_velocity = Vector2.ZERO
-	_has_remote_target = is_remote_player
+	if _network_runtime != null:
+		_network_runtime.sync_remote_target_with_owner(is_remote_player)
 
 
 func reset_oxygen() -> void:
-	_oxygen_depleted_pending = false
-	oxygen = max_oxygen
-	oxygen_changed.emit(oxygen, max_oxygen)
+	if _water_runtime != null:
+		_water_runtime.reset_oxygen()
 
 
 func enter_water_zone(zone: Area2D) -> void:
-	if zone == null:
-		return
-
-	_prune_water_zones()
-	var was_in_water := is_in_water()
-	if not _water_zones.has(zone):
-		_water_zones.append(zone)
-
-	if not was_in_water and is_in_water():
-		water_state_changed.emit(true)
-		_update_bubble_effect()
+	if _water_runtime != null:
+		_water_runtime.enter_water_zone(zone)
 
 
 func exit_water_zone(zone: Area2D) -> void:
-	if zone == null:
-		return
-
-	var was_in_water := is_in_water()
-	_water_zones.erase(zone)
-	_prune_water_zones()
-
-	if was_in_water and not is_in_water():
-		water_state_changed.emit(false)
-		_update_bubble_effect()
+	if _water_runtime != null:
+		_water_runtime.exit_water_zone(zone)
 
 
 func enter_water(zone: Area2D) -> void:
@@ -200,82 +217,78 @@ func exit_water(zone: Area2D) -> void:
 
 
 func is_in_water() -> bool:
-	_prune_water_zones()
-	return not _water_zones.is_empty()
+	return _water_runtime != null and _water_runtime.is_in_water()
 
 
 func get_water_current_velocity() -> Vector2:
-	_prune_water_zones()
-	var current := Vector2.ZERO
-	for zone in _water_zones:
-		var raw_current = zone.get("current_velocity")
-		if typeof(raw_current) == TYPE_VECTOR2:
-			current += raw_current
-	return current
+	return _water_runtime.get_water_current_velocity() if _water_runtime != null else Vector2.ZERO
 
 
 func get_water_swim_speed_multiplier() -> float:
-	_prune_water_zones()
-	var multiplier := 1.0
-	for zone in _water_zones:
-		var raw_multiplier = zone.get("swim_speed_multiplier")
-		if typeof(raw_multiplier) == TYPE_FLOAT or typeof(raw_multiplier) == TYPE_INT:
-			multiplier *= float(raw_multiplier)
-	return maxf(multiplier, 0.05)
+	return _water_runtime.get_water_swim_speed_multiplier() if _water_runtime != null else 1.0
 
 
 func get_water_oxygen_drain_rate() -> float:
-	_prune_water_zones()
-	var rate := 0.0
-	for zone in _water_zones:
-		var raw_rate = zone.get("oxygen_drain_rate")
-		if typeof(raw_rate) == TYPE_FLOAT or typeof(raw_rate) == TYPE_INT:
-			rate += float(raw_rate)
-		else:
-			rate += default_oxygen_drain_rate
-	return maxf(rate, 0.0)
+	return _water_runtime.get_water_oxygen_drain_rate() if _water_runtime != null else 0.0
 
 
 func add_oxygen(amount: float) -> void:
-	if max_oxygen <= 0.0:
-		return
-
-	var previous_oxygen := oxygen
-	oxygen = clampf(oxygen + amount, 0.0, max_oxygen)
-	if oxygen > 0.0:
-		_oxygen_depleted_pending = false
-	if not is_equal_approx(previous_oxygen, oxygen):
-		oxygen_changed.emit(oxygen, max_oxygen)
+	if _water_runtime != null:
+		_water_runtime.add_oxygen(amount)
 
 
 func apply_water_jet_velocity(jet_velocity: Vector2, delta: float) -> void:
-	if is_remote_player:
-		return
-
-	_water_jet_velocity += jet_velocity
-	_water_jet_velocity = _water_jet_velocity.limit_length(water_jet_max_velocity)
+	if _water_runtime != null:
+		_water_runtime.apply_water_jet_velocity(jet_velocity, is_remote_player)
 
 
 func consume_water_jet_velocity() -> Vector2:
-	var result: Vector2 = _water_jet_velocity
-	_water_jet_velocity = Vector2.ZERO
-	return result
+	return _water_runtime.consume_water_jet_velocity() if _water_runtime != null else Vector2.ZERO
 
 
 func move_and_push() -> void:
-	_applied_water_jet_velocity = Vector2.ZERO
-	_apply_pending_water_jet(get_physics_process_delta_time())
+	if _water_runtime != null:
+		_water_runtime.prepare_move(get_physics_process_delta_time())
 	move_and_slide()
 	if _uses_network_push_intents():
 		_collect_push_intents()
 	else:
 		apply_push_forces()
-	_remove_blocked_water_jet_velocity()
+	if _water_runtime != null:
+		_water_runtime.finish_move()
 
 
 func set_key_count(value: int) -> void:
 	key_count = max(value, 0)
 	_update_key_indicator()
+
+
+func set_max_oxygen(value: float) -> void:
+	_apply_oxygen_runtime_state(oxygen, value)
+
+
+func set_oxygen(value: float) -> void:
+	_apply_oxygen_runtime_state(value, max_oxygen)
+
+
+func apply_runtime_state(state: Dictionary) -> void:
+	if state.is_empty():
+		return
+
+	if state.has("key_count"):
+		set_key_count(int(state.get("key_count", key_count)))
+
+	var next_oxygen := oxygen
+	var next_max_oxygen := max_oxygen
+	var has_oxygen_state := false
+	if state.has("oxygen"):
+		next_oxygen = float(state.get("oxygen", oxygen))
+		has_oxygen_state = true
+	if state.has("max_oxygen"):
+		next_max_oxygen = float(state.get("max_oxygen", max_oxygen))
+		has_oxygen_state = true
+	if has_oxygen_state:
+		_apply_oxygen_runtime_state(next_oxygen, next_max_oxygen)
 
 
 func collect_key(amount: int = 1, key_color: Color = Color.WHITE) -> void:
@@ -303,13 +316,31 @@ func use_key(amount: int = 1) -> bool:
 
 
 func play_player_animation(animation: String) -> void:
-	var anim_player := get_node_or_null("AnimationPlayer") as AnimationPlayer
-	if anim_player == null or not anim_player.has_animation(animation):
+	if animation_player == null or not animation_player.has_animation(animation):
 		return
 
 	_apply_sprite_sheet_for_animation(animation)
-	if anim_player.current_animation != animation or not anim_player.is_playing():
-		anim_player.play(animation)
+	if animation_player.current_animation != animation or not animation_player.is_playing():
+		animation_player.play(animation)
+
+
+func set_facing_direction(direction: float) -> void:
+	if sprite == null or is_zero_approx(direction):
+		return
+	sprite.flip_h = direction < 0.0
+
+
+func get_facing_direction() -> float:
+	if sprite != null:
+		return -1.0 if sprite.flip_h else 1.0
+	if not is_zero_approx(velocity.x):
+		return signf(velocity.x)
+	return 1.0
+
+
+func set_sprite_vertical_flip(flipped: bool) -> void:
+	if sprite != null:
+		sprite.flip_v = flipped
 
 
 func consume_push_intents() -> Array[Dictionary]:
@@ -324,100 +355,28 @@ func consume_push_intents() -> Array[Dictionary]:
 
 
 func get_network_state(level_index: int) -> Dictionary:
-	var animation := ""
-	var anim_player := get_node_or_null("AnimationPlayer") as AnimationPlayer
-	if anim_player != null:
-		animation = anim_player.current_animation
-
-	var flip_h := false
-	var sprite := get_node_or_null("Sprite2D") as Sprite2D
-	if sprite != null:
-		flip_h = sprite.flip_h
-
-	return {
-		"level_index": level_index,
-		"position": _vector_to_packet(global_position),
-		"velocity": _vector_to_packet(velocity),
-		"animation": animation,
-		"flip_h": flip_h,
-		"carried_key_color": _color_to_packet(carried_key_color),
-	}
+	if _network_runtime != null:
+		return _network_runtime.get_network_state(level_index, carried_key_color)
+	return {}
 
 
 func apply_network_state(state: Dictionary) -> void:
-	var next_position := _packet_to_vector(state.get("position", {}), global_position)
-	var next_velocity := _packet_to_vector(state.get("velocity", {}), velocity)
-	if is_remote_player:
-		_remote_target_position = next_position
-		_remote_target_velocity = next_velocity
-		_has_remote_target = true
-		if global_position.distance_to(_remote_target_position) > remote_snap_distance:
-			global_position = _remote_target_position
-			velocity = _remote_target_velocity
-	else:
-		global_position = next_position
-		velocity = next_velocity
-
-	var sprite := get_node_or_null("Sprite2D") as Sprite2D
-	if sprite != null:
-		sprite.flip_h = bool(state.get("flip_h", sprite.flip_h))
-
-	var animation := String(state.get("animation", ""))
-	var anim_player := get_node_or_null("AnimationPlayer") as AnimationPlayer
-	if anim_player != null and not animation.is_empty() and anim_player.has_animation(animation):
-		if anim_player.current_animation != animation:
-			play_player_animation(animation)
-		else:
-			_apply_sprite_sheet_for_animation(animation)
-
-	key_count = int(state.get("key_count", key_count))
-	carried_key_color = _packet_to_color(state.get("carried_key_color", {}), carried_key_color)
-	_update_key_indicator()
+	if _network_runtime != null:
+		_network_runtime.apply_network_state(state, is_remote_player, Callable(self, "_update_key_indicator"))
 
 
 func _apply_network_control_mode() -> void:
-	if is_remote_player:
-		remove_from_group("player")
-		add_to_group("remote_player")
-	else:
-		remove_from_group("remote_player")
-		add_to_group("player")
-
-	var state_machine := get_node_or_null("StateMachine")
-	var controls_enabled := not is_remote_player and input_enabled
-	if state_machine != null:
-		state_machine.set_process(controls_enabled)
-		state_machine.set_physics_process(controls_enabled)
-		state_machine.set_process_unhandled_input(controls_enabled)
-
-	var collision_shape := get_node_or_null("CollisionShape2D") as CollisionShape2D
-	if collision_shape != null:
-		collision_shape.set_deferred("disabled", false)
-
-	if is_remote_player:
-		_remote_target_position = global_position
-		_remote_target_velocity = Vector2.ZERO
-		_has_remote_target = true
-		collision_layer = 1
-		collision_mask = 1
-		modulate = Color(0.65, 0.9, 1.0, 0.85)
-	else:
-		_has_remote_target = false
-		collision_layer = 1
-		collision_mask = 1
-		modulate = Color.WHITE
-	_update_elimination_state()
+	if _network_runtime != null:
+		_network_runtime.apply_control_mode(is_remote_player, input_enabled, Callable(self, "_update_elimination_state"))
 
 
 func _update_elimination_state() -> void:
-	var collision_shape := get_node_or_null("CollisionShape2D") as CollisionShape2D
-	if collision_shape != null:
-		collision_shape.set_deferred("disabled", _is_eliminated)
+	if player_collision_shape != null:
+		player_collision_shape.set_deferred("disabled", _is_eliminated)
 
 	visible = not _is_eliminated
 	if _is_eliminated:
 		velocity = Vector2.ZERO
-		_remote_target_velocity = Vector2.ZERO
 
 	_update_bubble_effect()
 
@@ -463,230 +422,40 @@ func _update_name_label_position() -> void:
 
 
 func _update_oxygen(delta: float) -> void:
-	if is_remote_player or _is_eliminated or max_oxygen <= 0.0:
-		return
+	if _water_runtime != null:
+		_water_runtime.update_oxygen(delta, is_remote_player, _is_eliminated, _is_online_session())
 
-	var previous_oxygen := oxygen
-	if is_in_water():
-		oxygen = maxf(oxygen - get_water_oxygen_drain_rate() * delta, 0.0)
-		if previous_oxygen > 0.0 and oxygen <= 0.0:
-			if _is_online_session():
-				if not _oxygen_depleted_pending:
-					_oxygen_depleted_pending = true
-					oxygen_depleted.emit()
-			else:
-				die()
+
+func _apply_oxygen_runtime_state(current: float, maximum: float) -> void:
+	var safe_maximum := maxf(maximum, 0.0)
+	var safe_current := clampf(current, 0.0, safe_maximum)
+	var changed := not is_equal_approx(max_oxygen, safe_maximum) or not is_equal_approx(oxygen, safe_current)
+	if _water_runtime != null:
+		_water_runtime.sync_oxygen_state(safe_current, safe_maximum)
 	else:
-		oxygen = minf(oxygen + oxygen_recovery_rate * delta, max_oxygen)
-		if oxygen > 0.0:
-			_oxygen_depleted_pending = false
-
-	if not is_equal_approx(previous_oxygen, oxygen):
+		max_oxygen = safe_maximum
+		oxygen = safe_current
+	if changed:
 		oxygen_changed.emit(oxygen, max_oxygen)
 
 
 func _update_bubble_effect() -> void:
-	if bubble_effect == null:
-		return
-
-	var should_play := is_in_water()
-	bubble_effect.visible = should_play
-	if should_play:
-		if not bubble_effect.is_playing():
-			bubble_effect.play("bubble")
-	else:
-		bubble_effect.stop()
-
-
-func _apply_pending_water_jet(delta: float) -> void:
-	if _water_jet_velocity.is_zero_approx():
-		return
-
-	var jet_velocity: Vector2 = consume_water_jet_velocity()
-	jet_velocity = _remove_blocked_components_from_water_jet(jet_velocity)
-	jet_velocity = _shape_water_jet_velocity(jet_velocity)
-	if jet_velocity.is_zero_approx():
-		return
-
-	_applied_water_jet_velocity = jet_velocity
-	var jet_direction: Vector2 = jet_velocity.normalized()
-	var target_speed: float = minf(jet_velocity.length(), water_jet_max_velocity)
-	var current_along: float = velocity.dot(jet_direction)
-	var next_along: float = lerpf(
-		current_along,
-		maxf(current_along, target_speed),
-		clampf(water_jet_response * delta, 0.0, 1.0)
-	)
-	var lateral_velocity: Vector2 = velocity - jet_direction * current_along
-	lateral_velocity = lateral_velocity.lerp(
-		Vector2.ZERO,
-		clampf(water_jet_cross_drag * delta, 0.0, 1.0)
-	)
-	velocity = lateral_velocity + jet_direction * next_along
-
-
-func _shape_water_jet_velocity(jet_velocity: Vector2) -> Vector2:
-	if jet_velocity.is_zero_approx():
-		return Vector2.ZERO
-
-	var upward_amount := maxf(-jet_velocity.y, 0.0)
-	var horizontal_amount := absf(jet_velocity.x)
-	if upward_amount <= horizontal_amount * 0.55:
-		return jet_velocity
-
-	var shaped := jet_velocity
-	if velocity.y < -water_jet_upward_lift_stop_speed:
-		shaped.y = 0.0
-	else:
-		shaped.y = -minf(upward_amount * water_jet_upward_lift_ratio, water_jet_upward_max_lift_speed)
-
-	var side_sign := signf(jet_velocity.x)
-	if is_zero_approx(side_sign):
-		side_sign = _preferred_water_jet_lateral_sign()
-
-	var side_speed := clampf(
-		maxf(maxf(horizontal_amount, upward_amount * water_jet_upward_side_ratio), water_jet_upward_side_min_speed),
-		0.0,
-		water_jet_upward_side_max_speed
-	)
-	shaped.x = side_sign * side_speed
-	return shaped
-
-
-func _preferred_water_jet_lateral_sign() -> float:
-	if not is_zero_approx(velocity.x):
-		_water_jet_side_sign = signf(velocity.x)
-	return _water_jet_side_sign
-
-
-func _remove_blocked_components_from_water_jet(jet_velocity: Vector2) -> Vector2:
-	if jet_velocity.is_zero_approx():
-		return Vector2.ZERO
-
-	var result := jet_velocity
-	for i in range(get_slide_collision_count()):
-		var collision := get_slide_collision(i)
-		if collision == null:
-			continue
-
-		var normal := collision.get_normal()
-		if normal.is_zero_approx():
-			continue
-
-		var blocked_amount := result.dot(normal)
-		if blocked_amount < -WATER_JET_BLOCKED_DOT_EPSILON:
-			result -= normal * blocked_amount
-
-	return result
-
-
-func _remove_blocked_water_jet_velocity() -> void:
-	if _applied_water_jet_velocity.is_zero_approx():
-		return
-
-	for i in range(get_slide_collision_count()):
-		var collision := get_slide_collision(i)
-		if collision == null:
-			continue
-
-		var normal := collision.get_normal()
-		if normal.is_zero_approx():
-			continue
-
-		if _applied_water_jet_velocity.dot(normal) >= -WATER_JET_BLOCKED_DOT_EPSILON:
-			continue
-
-		var velocity_into_surface := velocity.dot(normal)
-		if velocity_into_surface < 0.0:
-			velocity -= normal * velocity_into_surface
+	if _bubble_effects != null:
+		_bubble_effects.update_visibility(is_in_water())
 
 
 func _process_bubble_effects(delta: float) -> void:
-	if bubble_effect == null:
-		return
-
-	if not is_in_water():
-		_bubble_emit_timer = 0.0
-		return
-
-	_bubble_emit_timer -= delta
-	if _bubble_emit_timer > 0.0:
-		return
-
-	var is_swimming: bool = velocity.length() >= bubble_swim_velocity_threshold
-	var interval: float = bubble_swim_interval if is_swimming else bubble_breath_interval
-	_bubble_emit_timer = interval * _bubble_rng.randf_range(0.75, 1.25)
-	_spawn_bubble_burst(is_swimming)
+	if _bubble_effects != null:
+		_bubble_effects.process(delta, is_in_water(), velocity, get_facing_direction())
 
 
-func _spawn_bubble_burst(is_swimming: bool) -> void:
-	var count: int = _bubble_rng.randi_range(2, 4) if is_swimming else 1
-	for index in range(count):
-		var bubble: AnimatedSprite2D = bubble_effect.duplicate() as AnimatedSprite2D
-		if bubble == null:
-			bubble = BUBBLE_EFFECT_SCENE.instantiate() as AnimatedSprite2D
-		if bubble == null:
-			continue
-
-		bubble.name = "BubbleTrail"
-		add_child(bubble)
-		bubble.visible = true
-		bubble.position = _get_bubble_spawn_offset(is_swimming)
-		bubble.scale = bubble_effect.scale * _bubble_rng.randf_range(0.65, 1.25)
-		bubble.speed_scale = _bubble_rng.randf_range(0.75, 1.35)
-		bubble.modulate = Color(1.0, 1.0, 1.0, _bubble_rng.randf_range(0.55, 0.9))
-		bubble.play("bubble")
-
-		var drift: Vector2 = _get_bubble_drift(is_swimming)
-		var lifetime: float = bubble_trail_lifetime * _bubble_rng.randf_range(0.75, 1.25)
-		var tween: Tween = create_tween()
-		tween.tween_property(bubble, "position", bubble.position + drift, lifetime)
-		tween.parallel().tween_property(bubble, "modulate:a", 0.0, lifetime)
-		tween.tween_callback(bubble.queue_free)
-
-
-func _get_bubble_spawn_offset(is_swimming: bool) -> Vector2:
-	if not is_swimming:
-		return Vector2(
-			_bubble_rng.randf_range(-5.0, 5.0),
-			_bubble_rng.randf_range(-38.0, -28.0)
-		)
-
-	var trail_side: float = -1.0
-	if not is_zero_approx(velocity.x):
-		trail_side = -signf(velocity.x)
-	else:
-		var sprite: Sprite2D = get_node_or_null("Sprite2D") as Sprite2D
-		if sprite != null:
-			trail_side = -1.0 if sprite.flip_h else 1.0
-
-	return Vector2(
-		trail_side * _bubble_rng.randf_range(8.0, 18.0),
-		_bubble_rng.randf_range(-34.0, -16.0)
-	)
-
-
-func _get_bubble_drift(is_swimming: bool) -> Vector2:
-	if not is_swimming:
-		return Vector2(
-			_bubble_rng.randf_range(-12.0, 12.0),
-			_bubble_rng.randf_range(-42.0, -22.0)
-		)
-
-	var horizontal_drift: float = -signf(velocity.x) * _bubble_rng.randf_range(10.0, 28.0)
-	if is_zero_approx(velocity.x):
-		horizontal_drift = _bubble_rng.randf_range(-14.0, 14.0)
-
-	return Vector2(
-		horizontal_drift,
-		_bubble_rng.randf_range(-28.0, -10.0)
-	)
+func _random_water_jet_side_sign() -> float:
+	return -1.0 if _bubble_rng.randi_range(0, 1) == 0 else 1.0
 
 
 func _prune_water_zones() -> void:
-	for index in range(_water_zones.size() - 1, -1, -1):
-		if not is_instance_valid(_water_zones[index]):
-			_water_zones.remove_at(index)
+	if _water_runtime != null:
+		_water_runtime.prune_water_zones()
 
 
 func _is_online_session() -> bool:
@@ -736,7 +505,6 @@ func _apply_sprite_sheet(
 	sprite_position: Vector2,
 	sprite_scale: Vector2
 ) -> void:
-	var sprite := get_node_or_null("Sprite2D") as Sprite2D
 	if sprite == null:
 		return
 
@@ -816,55 +584,3 @@ func _collect_push_intents() -> void:
 			"direction": signf(lateral_push),
 			"strength": clampf(absf(velocity.x) / maxf(SPEED, 0.001), 0.35, 1.0),
 		}
-
-
-func _follow_remote_target(delta: float) -> void:
-	var offset := _remote_target_position - global_position
-	if offset.length() > remote_snap_distance:
-		global_position = _remote_target_position
-		velocity = _remote_target_velocity
-		return
-
-	var desired_velocity := _remote_target_velocity + (offset / maxf(delta, 0.001)) / remote_reconciliation_gain
-	velocity = desired_velocity
-	move_and_slide()
-
-
-func _vector_to_packet(value: Vector2) -> Dictionary:
-	return {
-		"x": value.x,
-		"y": value.y,
-	}
-
-
-func _color_to_packet(value: Color) -> Dictionary:
-	return {
-		"r": value.r,
-		"g": value.g,
-		"b": value.b,
-		"a": value.a,
-	}
-
-
-func _packet_to_color(raw_value, fallback: Color) -> Color:
-	if typeof(raw_value) != TYPE_DICTIONARY:
-		return fallback
-
-	var data: Dictionary = raw_value
-	return Color(
-		float(data.get("r", fallback.r)),
-		float(data.get("g", fallback.g)),
-		float(data.get("b", fallback.b)),
-		float(data.get("a", fallback.a))
-	)
-
-
-func _packet_to_vector(raw_value, fallback: Vector2) -> Vector2:
-	if typeof(raw_value) == TYPE_DICTIONARY:
-		var data: Dictionary = raw_value
-		return Vector2(float(data.get("x", fallback.x)), float(data.get("y", fallback.y)))
-
-	if typeof(raw_value) == TYPE_ARRAY and raw_value.size() >= 2:
-		return Vector2(float(raw_value[0]), float(raw_value[1]))
-
-	return fallback

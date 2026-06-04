@@ -98,6 +98,6 @@ func _set_state(next_state: String) -> void:
 
 func _set_visuals(visible: bool) -> void:
 	sprite.visible = visible
-	collision_shape.disabled = not visible
-	stand_detector.monitoring = visible
-	stand_detector.monitorable = visible
+	collision_shape.set_deferred("disabled", not visible)
+	stand_detector.set_deferred("monitoring", visible)
+	stand_detector.set_deferred("monitorable", visible)

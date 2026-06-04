@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="GameONL"
+config/name="CreamBuffetClient"
 run/main_scene="uid://bxn8god0m4o7j"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"

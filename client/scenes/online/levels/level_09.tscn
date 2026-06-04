@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://5rm70agokmvt"]
+[gd_scene format=4]
 
 [ext_resource type="PackedScene" path="res://prefabs/level_goal.tscn" id="1_33ykn"]
 [ext_resource type="PackedScene" path="res://prefabs/door.tscn" id="2_c73jh"]

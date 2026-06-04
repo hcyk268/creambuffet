@@ -1,20 +1,27 @@
 extends Node
 class_name State
 
-signal Transitioned
-var parent: CharacterBody2D
+const PlayerStateController = preload("res://scripts/states/player_state_controller.gd")
 
-func enter():
+signal transitioned
+var controller: PlayerStateController
+
+
+func enter() -> void:
 	pass
 
-func exit():
+
+func exit() -> void:
 	pass
 
-func update(delta: float):
-	pass
-	
-func physics_update(delta: float):
+
+func update(_delta: float) -> void:
 	pass
 
-func handle_input(event):
+
+func physics_update(_delta: float) -> void:
+	pass
+
+
+func handle_input(_event: InputEvent) -> void:
 	pass
