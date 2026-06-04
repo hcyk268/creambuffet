@@ -74,7 +74,7 @@ rotation = 1.5707964
 sync_id = "level04_magma_06"
 
 [node name="MovingPlatform" parent="." unique_id=1025752984 instance=ExtResource("7_qh3qc")]
-position = Vector2(-88, -13.5)
+position = Vector2(-88, -13.25)
 movement_mode = 1
 activation = true
 

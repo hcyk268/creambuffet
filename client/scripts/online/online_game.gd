@@ -117,6 +117,7 @@ func load_level(index: int) -> void:
 	_refresh_hud_failure_fallback_state()
 	_update_level_label(false)
 	_update_failure_hud()
+	call_deferred("_finalize_level_spawn")
 
 
 func _configure_online_levels() -> void:
@@ -155,6 +156,15 @@ func restart_level() -> void:
 		return
 
 	load_level(_current_level_index)
+
+
+func _finalize_level_spawn() -> void:
+	if not is_instance_valid(_current_level):
+		return
+
+	if player.has_method("respawn"):
+		player.respawn()
+	_reset_remote_players_to_spawn()
 
 
 func _setup_player_spawn(level_root: Node) -> void:
