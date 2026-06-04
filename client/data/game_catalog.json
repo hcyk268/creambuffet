@@ -239,78 +239,35 @@
         "beginner_01"
 	  ]
 	},
-	"desert": {
-	  "map_id": "desert",
-	  "title": "Desert Ruins",
+	"lava": {
+	  "map_id": "lava",
+	  "title": "Lava ruin",
 	  "selectable": true,
-	  "wip": false,
-	  "thumbnail_path": "res://assets/sprites/maps/desert_map.png",
-	  "default_rulesets": [
-		"key_door_v1",
-		"goal_all_v1",
-        "hazard_respawn_v1"
-	  ],
-	  "allowed_rulesets": [
-		"key_door_v1",
-		"goal_all_v1",
-		"hazard_respawn_v1",
-		"push_box_v1",
-		"button_platform_v1",
-        "moving_platform_v1"
-	  ],
-	  "levels": [
-		"desert_01",
-		"desert_02",
-		"desert_03",
-		"desert_04",
-        "desert_05"
-	  ]
+	  "wip": true,
+	  "thumbnail_path": "res://assets/sprites/maps/lava_map.png",
+	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
+	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
+	  "levels": ["beginner_01"]
 	},
-	"forest": {
-	  "map_id": "forest",
-	  "title": "Forest Temple",
+	"water": {
+	  "map_id": "water",
+	  "title": "Waterworks",
 	  "selectable": false,
 	  "wip": true,
-	  "thumbnail_path": "res://assets/sprites/maps/forest_map.png",
-	  "default_rulesets": [
-		"key_door_v1",
-		"goal_all_v1",
-        "hazard_respawn_v1"
-	  ],
-	  "allowed_rulesets": [
-		"key_door_v1",
-		"goal_all_v1",
-		"hazard_respawn_v1",
-		"push_box_v1",
-		"button_platform_v1",
-        "moving_platform_v1"
-	  ],
-	  "levels": [
-        "beginner_01"
-	  ]
+	  "thumbnail_path": "res://assets/sprites/maps/water_map.png",
+	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
+	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
+	  "levels": ["beginner_01"]
 	},
-	"sky": {
-	  "map_id": "sky",
-	  "title": "Sky Fortress",
+	"dark": {
+	  "map_id": "dark",
+	  "title": "Castle of Darkness",
 	  "selectable": false,
 	  "wip": true,
-	  "thumbnail_path": "res://assets/sprites/maps/sky_map.png",
-	  "default_rulesets": [
-		"key_door_v1",
-		"goal_all_v1",
-        "hazard_respawn_v1"
-	  ],
-	  "allowed_rulesets": [
-		"key_door_v1",
-		"goal_all_v1",
-		"hazard_respawn_v1",
-		"push_box_v1",
-		"button_platform_v1",
-        "moving_platform_v1"
-	  ],
-	  "levels": [
-        "beginner_01"
-	  ]
+	  "thumbnail_path": "res://assets/sprites/maps/dark_map.png",
+	  "default_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1"],
+	  "allowed_rulesets": ["key_door_v1", "goal_all_v1", "hazard_respawn_v1", "push_box_v1", "button_platform_v1", "moving_platform_v1"],
+	  "levels": ["beginner_01"]
 	}
   },
   "levels": {

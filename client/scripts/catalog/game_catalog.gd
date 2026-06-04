@@ -30,7 +30,8 @@ static func get_map_ids() -> Array[String]:
 	var result: Array[String] = []
 	var maps := _maps()
 	var raw_ids := maps.keys()
-	raw_ids.sort()
+	# raw_ids.sort()
+	# No sorting is needed if you want to display in the order: beginner -> ice -> lava -> water -> dark
 	for raw_id in raw_ids:
 		result.append(String(raw_id))
 	return result
