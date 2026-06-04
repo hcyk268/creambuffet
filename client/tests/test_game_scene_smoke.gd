@@ -29,12 +29,19 @@ class StubNetworkClient:
 	func send_world_event(_event: Dictionary) -> void:
 		pass
 
+	func send_world_action(_action: String, _target_id: String, _payload: Dictionary) -> void:
+		pass
+
 
 func _init() -> void:
+	await _run()
+
+
+func _run() -> void:
 	var failures: Array[String] = []
-	_test_offline_scene_smoke(failures)
-	_test_online_scene_smoke(failures)
-	_test_online_map_loading_smoke(failures)
+	await _test_offline_scene_smoke(failures)
+	await _test_online_scene_smoke(failures)
+	await _test_online_map_loading_smoke(failures)
 
 	if failures.is_empty():
 		print("Game scene smoke tests passed.")
@@ -49,6 +56,7 @@ func _init() -> void:
 func _test_offline_scene_smoke(failures: Array[String]) -> void:
 	var offline_game := OfflineGameScene.instantiate()
 	root.add_child(offline_game)
+	await _settle_frames()
 
 	var current_level = offline_game.get("_current_level")
 	if not is_instance_valid(current_level):
@@ -57,8 +65,10 @@ func _test_offline_scene_smoke(failures: Array[String]) -> void:
 	var player := offline_game.get_node_or_null("Player") as CharacterBody2D
 	if player == null:
 		failures.append("OfflineGame did not keep its local player node.")
-	elif player.spawn_position != player.global_position:
-		failures.append("OfflineGame did not align player spawn_position with the loaded spawn point.")
+	else:
+		var spawn_point := current_level.get_node_or_null("SpawnPoint") as Node2D if is_instance_valid(current_level) else null
+		if spawn_point == null or not player.spawn_position.is_equal_approx(spawn_point.global_position):
+			failures.append("OfflineGame did not align player spawn_position with the loaded spawn point.")
 
 	var key_node := _find_node_by_sync_id(current_level, "level01_key_01")
 	if key_node == null:
@@ -75,17 +85,17 @@ func _test_offline_scene_smoke(failures: Array[String]) -> void:
 		failures.append("OfflineGame smoke could not find the expected goal node in offline_level_001.")
 	elif player != null:
 		goal_node.emit_signal("goal_reached", player)
+		await _settle_frames(1)
 		var completion_screen := offline_game.get_node_or_null("CompletionScreen")
 		if completion_screen == null or not completion_screen.call("is_open"):
 			failures.append("OfflineGame did not open the completion screen after reaching the only offline goal.")
 
 	offline_game.queue_free()
+	await _settle_frames(1)
 
 
 func _test_online_scene_smoke(failures: Array[String]) -> void:
-	var network_client := StubNetworkClient.new()
-	network_client.name = "NetworkClient"
-	network_client._current_room = {
+	var network_client := await _install_stub_network_client({
 		"map_id": "beginner",
 		"status": "playing",
 		"current_level_index": 0,
@@ -101,11 +111,11 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 			"players": {},
 			"pushables": [],
 		},
-	}
-	root.add_child(network_client)
+	})
 
 	var online_game := OnlineGameScene.instantiate()
 	root.add_child(online_game)
+	await _settle_frames()
 
 	if String(online_game.get("_current_level_id")) != "beginner_01":
 		failures.append("OnlineGame did not load the room's current_level_id on startup.")
@@ -131,6 +141,7 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 				"velocity": {"x": 0.0, "y": 0.0},
 				"display_name": "Remote",
 			})
+			await _settle_frames(1)
 			if not remote_player.is_remote_player:
 				failures.append("RemotePlayerRegistry did not configure synced remote players as remote-controlled.")
 			elif not remote_player.global_position.is_equal_approx(Vector2(320.0, -12.0)):
@@ -152,9 +163,10 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 			"sync_id": "level01_key_01",
 			"state": {"collected": true},
 		})
+		await _settle_frames(1)
 		if int(local_player.get("key_count")) != 1:
 			failures.append("OnlineGame did not apply key_collected world events to the local player state.")
-		if not key_node.is_queued_for_deletion():
+		if is_instance_valid(key_node):
 			failures.append("OnlineGame did not remove the collected key node after a key_collected event.")
 
 		network_client.world_event_received.emit({
@@ -167,6 +179,7 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 			"sync_id": "level01_door_01",
 			"state": {"opened": true},
 		})
+		await _settle_frames(1)
 		if not bool(door_node.get("is_open")):
 			failures.append("OnlineGame did not apply door_opened world events to the synced door node.")
 		if int(local_player.get("key_count")) != 0:
@@ -204,6 +217,7 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 	var restart_room := network_client.get_current_room()
 	restart_room["_restart_level"] = true
 	network_client.level_transition.emit(0, 0, false, restart_room)
+	await _settle_frames()
 	if int(online_game.get("_current_level_index")) != 0:
 		failures.append("OnlineGame did not keep a stable level index across a restart transition.")
 
@@ -213,6 +227,7 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 	next_room.erase("_restart_level")
 	network_client._current_room = next_room.duplicate(true)
 	network_client.level_transition.emit(0, 1, false, next_room)
+	await _settle_frames()
 	if int(online_game.get("_current_level_index")) != 1 or String(online_game.get("_current_level_id")) != "beginner_02":
 		failures.append("OnlineGame did not transition to the next online level from the room payload.")
 
@@ -234,6 +249,7 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 			"pressed": true,
 			"state": {"pressed": true},
 		})
+		await _settle_frames(1)
 		if not bool(button_node.get("is_pressed")):
 			failures.append("OnlineGame did not apply button_state world events on level_02.")
 
@@ -264,11 +280,14 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 		}
 		network_client._current_room = level_two_snapshot.duplicate(true)
 		network_client.current_room_changed.emit(level_two_snapshot)
+		await _settle_frames(1)
 		if not bool(platform_node.get("activation")):
 			failures.append("OnlineGame did not apply moving-platform activation from a level_02 snapshot.")
 
 	online_game.queue_free()
+	await _settle_frames(1)
 	network_client.queue_free()
+	await _settle_frames(1)
 
 
 func _test_online_map_loading_smoke(failures: Array[String]) -> void:
@@ -296,16 +315,16 @@ func _test_online_map_loading_smoke(failures: Array[String]) -> void:
 		}
 
 		var network_client := StubNetworkClient.new()
-		network_client.name = "NetworkClient"
-		network_client._current_room = room.duplicate(true)
-		root.add_child(network_client)
+		network_client = await _install_stub_network_client(room)
 
 		var online_game := OnlineGameScene.instantiate()
 		root.add_child(online_game)
+		await _settle_frames()
 
 		for index in range(level_ids.size()):
 			if index > 0:
 				online_game.load_level(index)
+				await _settle_frames()
 			if String(online_game.get("_current_level_id")) != String(level_ids[index]):
 				failures.append("OnlineGame did not resolve level %s for map %s through the catalog runtime." % [String(level_ids[index]), map_id])
 				break
@@ -326,13 +345,15 @@ func _test_online_map_loading_smoke(failures: Array[String]) -> void:
 					failures.append("OnlineGame did not enable the respawn-budget HUD for water maps.")
 
 		online_game.queue_free()
+		await _settle_frames(1)
 		network_client.queue_free()
+		await _settle_frames(1)
 
 
 func _find_node_by_sync_id(root_node: Node, sync_id: String) -> Node:
 	if not is_instance_valid(root_node):
 		return null
-	if String(root_node.get("sync_id")) == sync_id:
+	if str(root_node.get("sync_id")) == sync_id:
 		return root_node
 
 	for child in root_node.get_children():
@@ -342,3 +363,22 @@ func _find_node_by_sync_id(root_node: Node, sync_id: String) -> Node:
 				return match
 
 	return null
+
+
+func _settle_frames(count: int = 2) -> void:
+	for _index in range(count):
+		await process_frame
+
+
+func _install_stub_network_client(room: Dictionary) -> StubNetworkClient:
+	var existing := root.get_node_or_null("NetworkClient")
+	if existing != null:
+		existing.queue_free()
+		await _settle_frames()
+
+	var network_client := StubNetworkClient.new()
+	network_client.name = "NetworkClient"
+	network_client._current_room = room.duplicate(true)
+	root.add_child(network_client)
+	await _settle_frames(1)
+	return network_client

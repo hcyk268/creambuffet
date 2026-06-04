@@ -2125,8 +2125,8 @@
       "index": 0,
       "scene_path": "res://scenes/online/desert_levels/level_01_desert.tscn",
       "spawn_point": {
-        "x": -242.0,
-        "y": 34.0
+        "x": -302.0,
+        "y": 44.0
       },
       "objects": {
         "level01_key_01": {
@@ -2579,8 +2579,8 @@
       "index": 1,
       "scene_path": "res://scenes/online/desert_levels/level_02_desert.tscn",
       "spawn_point": {
-        "x": -302.0,
-        "y": 44.0
+        "x": -342.0,
+        "y": 50.0
       },
       "failure_rules": [
         {
@@ -4226,8 +4226,8 @@
           "state": {},
           "transform": {
             "position": {
-              "x": -196.0,
-              "y": 120.0
+              "x": -201.0,
+              "y": 152.0
             }
           },
           "trigger": {
@@ -4279,7 +4279,7 @@
           },
           "transform": {
             "position": {
-              "x": -61.0,
+              "x": -64.0,
               "y": -77.0
             }
           },
@@ -4303,7 +4303,7 @@
           },
           "transform": {
             "position": {
-              "x": -61.0,
+              "x": -64.0,
               "y": -77.0
             }
           },
@@ -4325,8 +4325,8 @@
           "state": {},
           "transform": {
             "position": {
-              "x": 170.0,
-              "y": 240.0
+              "x": 164.0,
+              "y": 320.0
             }
           },
           "trigger": {
@@ -4410,8 +4410,8 @@
           },
           "transform": {
             "position": {
-              "x": -213.0,
-              "y": -224.0
+              "x": -207.0,
+              "y": -220.0
             }
           },
           "trigger": {
@@ -4434,8 +4434,8 @@
           },
           "transform": {
             "position": {
-              "x": -213.0,
-              "y": -224.0
+              "x": -207.0,
+              "y": -220.0
             }
           },
           "trigger": {

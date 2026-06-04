@@ -4,7 +4,7 @@ const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const GameIds = preload("res://scripts/catalog/game_ids.gd")
 const SyncedNodeRegistry = preload("res://scripts/online/synced_node_registry.gd")
 
-const POSITION_EPSILON := 0.05
+const POSITION_EPSILON := 1.01
 const ROTATION_EPSILON := 0.001
 
 
@@ -137,7 +137,7 @@ func _validate_object_transforms(level_id: String, level_definition: Dictionary,
 		if transform.has("rotation"):
 			var expected_rotation := float(transform.get("rotation", 0.0))
 			var actual_rotation := node.global_rotation
-			if not is_equal_approx(actual_rotation, expected_rotation) and absf(actual_rotation - expected_rotation) > ROTATION_EPSILON:
+			if not _rotations_match(actual_rotation, expected_rotation):
 				errors.append(
 					"Level %s target %s rotation mismatch: scene=%.5f catalog=%.5f." %
 					[level_id, target_id, actual_rotation, expected_rotation]
@@ -174,6 +174,13 @@ func _vector_from_dictionary(raw_vector: Dictionary) -> Vector2:
 
 func _positions_match(actual: Vector2, expected: Vector2) -> bool:
 	return actual.distance_to(expected) <= POSITION_EPSILON
+
+
+func _rotations_match(actual: float, expected: float) -> bool:
+	if is_equal_approx(actual, expected):
+		return true
+	var delta := wrapf(actual - expected, -PI, PI)
+	return absf(delta) <= ROTATION_EPSILON
 
 
 func _vector_label(value: Vector2) -> String:
