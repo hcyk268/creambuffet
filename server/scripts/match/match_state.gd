@@ -2,12 +2,19 @@ extends RefCounted
 class_name MatchState
 
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
-const KeyDoorMechanic = preload("res://scripts/match/mechanics/key_door_mechanic.gd")
-const GoalMechanic = preload("res://scripts/match/mechanics/goal_mechanic.gd")
-const HazardRespawnMechanic = preload("res://scripts/match/mechanics/hazard_respawn_mechanic.gd")
-const PushBoxMechanic = preload("res://scripts/match/mechanics/push_box_mechanic.gd")
-const ButtonPlatformMechanic = preload("res://scripts/match/mechanics/button_platform_mechanic.gd")
-const OxygenMechanic = preload("res://scripts/match/mechanics/oxygen_mechanic.gd")
+const GameIds = preload("res://scripts/catalog/game_ids.gd")
+const MechanicRegistry = preload("res://scripts/match/mechanic_registry.gd")
+const LevelStateFactory = preload("res://scripts/match/level_state_factory.gd")
+const CompletionRuleEvaluator = preload("res://scripts/match/completion_rule_evaluator.gd")
+const GeometryService = preload("res://scripts/match/geometry_service.gd")
+const FailureRuleService = preload("res://scripts/match/failure_rule_service.gd")
+const TimedObjectService = preload("res://scripts/match/timed_object_service.gd")
+const SnapshotBuilder = preload("res://scripts/match/snapshot_builder.gd")
+const PushIntentService = preload("res://scripts/match/push_intent_service.gd")
+const WorldActionDispatcher = preload("res://scripts/match/world_action_dispatcher.gd")
+const MatchStateContext = preload("res://scripts/match/match_state_context.gd")
+const ObjectStateStore = preload("res://scripts/match/object_state_store.gd")
+const PlayerStateStore = preload("res://scripts/match/player_state_store.gd")
 
 const PUSH_BOX_OBSERVE_PADDING := 24.0
 const PUSH_BOX_SYNC_EPSILON := 0.5
@@ -24,10 +31,13 @@ var players_at_goal: Dictionary = {}
 var push_intents: Dictionary = {}
 var _mechanics: Dictionary = {}
 var _mechanic_handlers: Dictionary = {}
+var _mechanic_hooks: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 var level_started_at_ms := 0
 var failure_state: Dictionary = {}
 var _level_reset_pending := false
+var _object_store: ObjectStateStore
+var _player_store: PlayerStateStore
 
 
 func _init(peer_ids: Array[int] = [], start_level: int = 0, start_level_id: String = "", initial_map_id: String = GameCatalog.DEFAULT_MAP_ID) -> void:
@@ -35,20 +45,22 @@ func _init(peer_ids: Array[int] = [], start_level: int = 0, start_level_id: Stri
 	current_level = maxi(start_level, 0)
 	current_level_id = start_level_id if not start_level_id.is_empty() else GameCatalog.get_level_id_by_index(map_id, current_level)
 	_rng.randomize()
+	_object_store = ObjectStateStore.new(objects)
+	_player_store = PlayerStateStore.new(players)
 	_register_mechanic_handlers()
 	_register_players(peer_ids)
 	_reset_level_state()
 
 
 func has_player(peer_id: int) -> bool:
-	return players.has(peer_id)
+	return _player_store.has(peer_id)
 
 
 func is_player_alive(peer_id: int) -> bool:
 	if not has_player(peer_id):
 		return false
 
-	var player_state: Dictionary = players[peer_id]
+	var player_state: Dictionary = _player_store.get_state(peer_id)
 	return bool(player_state.get("alive", true))
 
 
@@ -56,7 +68,7 @@ func add_player(peer_id: int) -> void:
 	if has_player(peer_id):
 		return
 
-	players[peer_id] = _new_player_state()
+	_player_store.set_state(peer_id, _new_player_state())
 
 
 func remove_player(peer_id: int) -> void:
@@ -73,124 +85,96 @@ func get_player_state(peer_id: int) -> Dictionary:
 	if not has_player(peer_id):
 		return {}
 
-	return Dictionary(players[peer_id]).duplicate(true)
+	return _player_store.get_state(peer_id)
+
+
+func get_player_runtime(peer_id: int) -> Dictionary:
+	return get_player_state(peer_id)
+
+
+func set_player_state(peer_id: int, player_state: Dictionary) -> void:
+	_player_store.set_state(peer_id, player_state)
+
+
+func patch_player_state(peer_id: int, updates: Dictionary) -> Dictionary:
+	return _player_store.patch_state(peer_id, updates)
+
+
+func player_ids() -> Array[int]:
+	return _player_store.ids()
+
+
+func set_player_alive(peer_id: int, alive: bool) -> Dictionary:
+	return _player_store.set_alive(peer_id, alive)
+
+
+func set_player_goal(peer_id: int, target_id: String) -> Dictionary:
+	players_at_goal[peer_id] = true
+	return _player_store.set_goal(peer_id, target_id)
+
+
+func clear_player_goal(peer_id: int) -> Dictionary:
+	players_at_goal.erase(peer_id)
+	return _player_store.clear_goal(peer_id)
+
+
+func player_key_count(peer_id: int) -> int:
+	return _player_store.key_count(peer_id)
+
+
+func add_player_keys(peer_id: int, amount: int) -> Dictionary:
+	return _player_store.add_key_count(peer_id, amount)
+
+
+func consume_player_keys(peer_id: int, amount: int) -> Dictionary:
+	return _player_store.consume_key_count(peer_id, amount)
+
+
+func set_player_oxygen(peer_id: int, oxygen: float) -> Dictionary:
+	return _player_store.set_oxygen(peer_id, oxygen)
+
+
+func set_player_max_oxygen(peer_id: int, max_oxygen: float) -> Dictionary:
+	return _player_store.set_max_oxygen(peer_id, max_oxygen)
 
 
 func set_level(level_index: int, level_id: String = "") -> void:
 	current_level = maxi(level_index, 0)
 	current_level_id = level_id if not level_id.is_empty() else GameCatalog.get_level_id_by_index(map_id, current_level)
 	_reset_level_state()
-	for raw_peer_id in players.keys():
-		var peer_id := int(raw_peer_id)
-		players[peer_id] = _new_player_state()
+	for peer_id in player_ids():
+		_player_store.set_state(peer_id, _new_player_state())
 
 
 func update_player_runtime(peer_id: int, payload: Dictionary) -> void:
 	if not has_player(peer_id):
 		return
 
-	var player_state: Dictionary = players[peer_id]
+	var player_state: Dictionary = _player_store.get_state(peer_id)
 	var previous_position: Dictionary = {}
 	var previous_position_raw = player_state.get("position", {})
 	if typeof(previous_position_raw) == TYPE_DICTIONARY:
 		previous_position = Dictionary(previous_position_raw).duplicate(true)
 	player_state["previous_position"] = previous_position
-	player_state["position"] = _packet_vector(payload.get("position", player_state.get("position", {})))
-	player_state["velocity"] = _packet_vector(payload.get("velocity", player_state.get("velocity", {})))
+	player_state["position"] = GeometryService.packet_vector(payload.get("position", player_state.get("position", {})))
+	player_state["velocity"] = GeometryService.packet_vector(payload.get("velocity", player_state.get("velocity", {})))
 	player_state["updated_at_ms"] = Time.get_ticks_msec()
-	players[peer_id] = player_state
+	_player_store.set_state(peer_id, player_state)
 
 
 func apply_automatic_fall_reset(peer_id: int) -> Array[Dictionary]:
-	var events: Array[Dictionary] = []
-	if not has_player(peer_id):
-		return events
-	if not is_player_alive(peer_id):
-		return events
-
-	var player_state: Dictionary = players[peer_id]
-	if Time.get_ticks_msec() < int(player_state.get("hazard_rearm_at_ms", 0)):
-		return events
-
-	var hazard_handler: Callable = _mechanic_handlers.get("hazard_respawn.player_death", Callable())
-	if not hazard_handler.is_valid():
-		return events
-
-	for raw_target_id in objects.keys():
-		var target_id := String(raw_target_id)
-		var object_data := _get_object(target_id)
-		if object_data.is_empty():
-			continue
-		var object_kind := String(object_data.get("kind", ""))
-		if object_kind != "fall_reset" and object_kind != "hazard":
-			continue
-		if object_kind == "hazard" and not bool(object_data.get("automatic", true)):
-			continue
-		if not can_player_interact_with_trigger(peer_id, target_id) and not did_player_cross_trigger_since_last_update(peer_id, target_id):
-			continue
-
-		var result = hazard_handler.call(self, peer_id, target_id, {})
-		if typeof(result) != TYPE_DICTIONARY or not bool(result.get("ok", false)):
-			return events
-
-		var hazard_events_raw = result.get("events", [])
-		if typeof(hazard_events_raw) == TYPE_ARRAY:
-			events.assign(hazard_events_raw)
-		return events
-
-	return events
+	return _run_mechanic_event_hooks("automatic_player_runtime", [MatchStateContext.new(self), peer_id])
 
 
 func advance_timed_mechanics() -> Array[Dictionary]:
-	var events: Array[Dictionary] = []
-	var now_ms := Time.get_ticks_msec()
-
-	for raw_target_id in objects.keys():
-		var target_id := String(raw_target_id)
-		var object_data := _get_object(target_id)
-		if object_data.is_empty():
-			continue
-
-		var kind := String(object_data.get("kind", ""))
-		if kind != "water_jet_nozzle" and kind != "water_jet":
-			continue
-
-		var timer := _object_timer_data(object_data)
-		if timer.is_empty():
-			continue
-
-		var mode := String(timer.get("mode", "random_toggle")).strip_edges().to_lower()
-		if mode != "random_toggle" and mode != "toggle":
-			continue
-
-		var state: Dictionary = object_data.get("state", {})
-		if not state.has("active"):
-			state["active"] = true
-		if not state.has("next_toggle_at_ms"):
-			_schedule_water_jet_toggle(state, timer, now_ms)
-			object_data["state"] = state
-			objects[target_id] = object_data
-			continue
-
-		if now_ms < int(state.get("next_toggle_at_ms", 0)):
-			continue
-
-		state["active"] = not bool(state.get("active", true))
-		state["updated_at_ms"] = now_ms
-		_schedule_water_jet_toggle(state, timer, now_ms)
-		object_data["state"] = state
-		objects[target_id] = object_data
-		events.append(_event("object_state_changed", "timed_state", 0, target_id, {
-			"state": state.duplicate(true),
-		}))
-
-	return events
+	return TimedObjectService.advance(self, _rng)
 
 
 func apply_push_box_observations(peer_id: int, raw_states) -> Array[Dictionary]:
 	var events: Array[Dictionary] = []
 	if not has_player(peer_id) or typeof(raw_states) != TYPE_ARRAY:
 		return events
+	var context := MatchStateContext.new(self)
 
 	for raw_state in raw_states:
 		if typeof(raw_state) != TYPE_DICTIONARY:
@@ -201,179 +185,61 @@ func apply_push_box_observations(peer_id: int, raw_states) -> Array[Dictionary]:
 		if target_id.is_empty():
 			continue
 
-		var object_state := _get_object(target_id)
-		if object_state.is_empty() or String(object_state.get("kind", "")) != "push_box":
+		var object_state := get_object_data(target_id)
+		if object_state.is_empty() or String(object_state.get("kind", "")) != GameIds.OBJECT_KIND_PUSH_BOX:
 			continue
 
 		var raw_position = state.get("position", {})
 		if typeof(raw_position) != TYPE_DICTIONARY:
 			continue
 
-		var observed_position := _packet_vector(raw_position)
+		var observed_position := GeometryService.packet_vector(raw_position)
 		var object_data: Dictionary = object_state
 		var object_runtime_state: Dictionary = object_data.get("state", {})
 		var previous_position: Dictionary = {}
 		var raw_previous_position: Variant = object_runtime_state.get("position", {})
 		if typeof(raw_previous_position) == TYPE_DICTIONARY:
 			previous_position = Dictionary(raw_previous_position).duplicate(true)
-		if not _positions_match(previous_position, observed_position, PUSH_BOX_SYNC_EPSILON):
+		if not GeometryService.positions_match(previous_position, observed_position, PUSH_BOX_SYNC_EPSILON):
 			object_runtime_state["position"] = observed_position
 			object_runtime_state["updated_by_peer_id"] = peer_id
 			object_data["state"] = object_runtime_state
-			objects[target_id] = object_data
+			set_object_data(target_id, object_data)
 
-			events.append(_event("push_box_state", "push_box_state", peer_id, target_id, {
+			events.append(_event(GameIds.EVENT_PUSH_BOX_STATE, GameIds.ACTION_PUSH_BOX_STATE, peer_id, target_id, {
 				"position": observed_position.duplicate(true),
 			}))
-		var button_platform = _mechanics.get("button_platform", null)
-		if button_platform != null and button_platform.has_method("refresh_button_states"):
-			events.append_array(button_platform.refresh_button_states(self, peer_id))
+		events.append_array(_run_mechanic_event_hooks("post_push_box_observation", [context, peer_id]))
 
 	return events
 
 
 func apply_world_action(peer_id: int, action: String, target_id: String, payload: Dictionary) -> Dictionary:
-	if not has_player(peer_id):
-		return _error("unknown_peer", "Peer is not part of this match.")
+	return WorldActionDispatcher.dispatch(self, peer_id, action, target_id, payload)
 
-	var validation := GameCatalog.validate_world_action(current_level_id, target_id, action, payload)
-	if not bool(validation.get("ok", false)):
-		return validation
 
-	var handler_id := String(validation.get("server_handler", ""))
-	var handler: Callable = _mechanic_handlers.get(handler_id, Callable())
-	if handler_id.is_empty() or not handler.is_valid():
-		return _error("missing_world_action_handler", "No server handler registered for action: %s" % action)
-
-	var result = handler.call(self, peer_id, target_id, payload)
-	if typeof(result) != TYPE_DICTIONARY:
-		return _error("bad_world_action_handler", "World action handler did not return a dictionary: %s" % handler_id)
-
-	return result
+func get_mechanic_handler(handler_id: String) -> Callable:
+	return _mechanic_handlers.get(handler_id, Callable())
 
 
 func can_complete_level() -> bool:
-	var raw_rules: Variant = level_definition.get("completion_rules", [])
-	if typeof(raw_rules) != TYPE_ARRAY:
-		return _all_players_at_goal()
-
-	var rules: Array = raw_rules
-	if rules.is_empty():
-		return _all_players_at_goal()
-
-	for raw_rule in rules:
-		if typeof(raw_rule) != TYPE_DICTIONARY:
-			return false
-		if not _evaluate_completion_rule(raw_rule):
-			return false
-
-	return true
+	return CompletionRuleEvaluator.can_complete_level(self)
 
 
 func snapshot() -> Dictionary:
-	var completion_rules: Array = []
-	var raw_completion_rules: Variant = level_definition.get("completion_rules", [])
-	if typeof(raw_completion_rules) == TYPE_ARRAY:
-		completion_rules = raw_completion_rules.duplicate(true)
-
-	return {
-		"map_id": map_id,
-		"current_level": current_level,
-		"current_level_id": current_level_id,
-		"level_definition": level_definition.duplicate(true),
-		"completion_rules": completion_rules,
-		"failure_state": failure_state_snapshot(),
-		"objects": objects.duplicate(true),
-		"key_collected": _any_object_state("key", "collected", true),
-		"door_opened": _any_object_state("door", "opened", true) or _any_object_state("exit_door", "opened", true),
-		"goal_requires_opened_door": _has_door_completion_rule(),
-		"pushables": pushable_control_snapshot(),
-		"players": players.duplicate(true),
-		"players_at_goal": players_at_goal.keys(),
-		"can_complete_level": can_complete_level(),
-	}
+	return SnapshotBuilder.build(self)
 
 
 func apply_push_intents(peer_id: int, raw_intents) -> Array[Dictionary]:
-	if not has_player(peer_id):
-		return pushable_control_snapshot()
-
-	var next_peer_intents: Dictionary = {}
-	if typeof(raw_intents) == TYPE_ARRAY:
-		for raw_intent in raw_intents:
-			if typeof(raw_intent) != TYPE_DICTIONARY:
-				continue
-
-			var intent: Dictionary = Dictionary(raw_intent).duplicate(true)
-			var target_id := String(intent.get("target_id", intent.get("node_name", ""))).strip_edges()
-			if target_id.is_empty():
-				continue
-
-			var object_state := _get_object(target_id)
-			if object_state.is_empty():
-				continue
-			if not object_state.is_empty() and String(object_state.get("kind", "")) != "push_box":
-				continue
-			if not can_player_observe_push_box(peer_id, target_id):
-				continue
-
-			next_peer_intents[target_id] = {
-				"target_id": target_id,
-				"node_name": String(intent.get("node_name", target_id)),
-				"direction": clampf(float(intent.get("direction", 0.0)), -1.0, 1.0),
-				"strength": clampf(float(intent.get("strength", 1.0)), 0.0, 1.0),
-				"updated_at_ms": Time.get_ticks_msec(),
-			}
-
-	push_intents[peer_id] = next_peer_intents
-	return pushable_control_snapshot()
+	return PushIntentService.apply(self, peer_id, raw_intents)
 
 
 func pushable_control_snapshot() -> Array[Dictionary]:
-	var controls_by_target: Dictionary = {}
-	var now_ms := Time.get_ticks_msec()
-
-	for raw_peer_id in push_intents.keys():
-		var peer_id := int(raw_peer_id)
-		if not has_player(peer_id):
-			continue
-
-		var peer_intents_raw: Variant = push_intents.get(peer_id, {})
-		if typeof(peer_intents_raw) != TYPE_DICTIONARY:
-			continue
-
-		var peer_intents: Dictionary = peer_intents_raw
-		for raw_target in peer_intents.keys():
-			var target_id := String(raw_target)
-			var intent_raw: Variant = peer_intents.get(target_id, {})
-			if typeof(intent_raw) != TYPE_DICTIONARY:
-				continue
-
-			var intent: Dictionary = intent_raw
-			if now_ms - int(intent.get("updated_at_ms", 0)) > 160:
-				continue
-
-			var drive_x := float(controls_by_target.get(target_id, 0.0))
-			drive_x += float(intent.get("direction", 0.0)) * float(intent.get("strength", 1.0))
-			controls_by_target[target_id] = clampf(drive_x, -1.0, 1.0)
-
-	var states: Array[Dictionary] = []
-	var targets := controls_by_target.keys()
-	targets.sort()
-
-	for raw_target in targets:
-		var target_id := String(raw_target)
-		states.append({
-			"target_id": target_id,
-			"node_name": target_id,
-			"drive_x": float(controls_by_target.get(target_id, 0.0)),
-		})
-
-	return states
+	return PushIntentService.snapshot(self)
 
 
 func can_player_interact_with_trigger(peer_id: int, target_id: String) -> bool:
-	return _player_shape_overlaps_target_shape(peer_id, target_id, "trigger")
+	return GeometryService.player_shape_overlaps_target_shape(self, peer_id, target_id, "trigger")
 
 
 func can_player_exit_trigger(peer_id: int, target_id: String) -> bool:
@@ -386,15 +252,15 @@ func can_player_observe_push_box(peer_id: int, target_id: String, observed_posit
 	if not is_player_alive(peer_id):
 		return false
 
-	var object_data := _get_object(target_id)
-	if object_data.is_empty() or String(object_data.get("kind", "")) != "push_box":
+	var object_data := get_object_data(target_id)
+	if object_data.is_empty() or String(object_data.get("kind", "")) != GameIds.OBJECT_KIND_PUSH_BOX:
 		return false
 
 	var body_rect := _shape_rect_for_object(target_id, "body", observed_position)
 	if body_rect.size == Vector2.ZERO:
 		return false
 
-	var player_rect := _player_bounding_rect(peer_id)
+	var player_rect := GeometryService.player_bounding_rect(self, peer_id)
 	if player_rect.size == Vector2.ZERO:
 		return false
 
@@ -406,233 +272,106 @@ func compute_button_pressed(target_id: String) -> bool:
 	if object_data.is_empty():
 		return false
 
-	for raw_peer_id in players.keys():
-		var peer_id := int(raw_peer_id)
+	for peer_id in player_ids():
 		if not is_player_alive(peer_id):
 			continue
 		if can_player_interact_with_trigger(peer_id, target_id):
 			return true
 
-	for raw_target_id in objects.keys():
-		var candidate_id := String(raw_target_id)
-		var candidate := _get_object(candidate_id)
-		if candidate.is_empty() or String(candidate.get("kind", "")) != "push_box":
+	for candidate_id in object_ids():
+		var candidate := get_object_data(candidate_id)
+		if candidate.is_empty() or String(candidate.get("kind", "")) != GameIds.OBJECT_KIND_PUSH_BOX:
 			continue
-		if _object_shape_overlaps_target_shape(candidate_id, "body", target_id, "trigger"):
+		if GeometryService.object_shape_overlaps_target_shape(self, candidate_id, "body", target_id, "trigger"):
 			return true
 
 	return false
 
 
-func _evaluate_completion_rule(rule: Dictionary) -> bool:
-	match String(rule.get("type", "")):
-		"all_players_at_goal":
-			return _all_players_at_goal(String(rule.get("target_id", "")))
-		"object_state_equals":
-			var target_id := String(rule.get("target_id", ""))
-			var object_state := _get_object(target_id)
-			if object_state.is_empty():
-				return false
-			var state: Dictionary = object_state.get("state", {})
-			return state.get(String(rule.get("field", "")), null) == rule.get("value", null)
-		"exit_door_open":
-			return _any_object_state("door", "opened", true) or _any_object_state("exit_door", "opened", true)
-		_:
-			return false
-
-
-func _all_players_at_goal(target_id: String = "") -> bool:
-	if players.is_empty():
-		return false
-
-	for raw_peer_id in players.keys():
-		var peer_id := int(raw_peer_id)
-		var player_state: Dictionary = players[peer_id]
-		if not bool(player_state.get("at_goal", false)):
-			return false
-		if not target_id.is_empty() and String(player_state.get("goal_target_id", "")) != target_id:
-			return false
-
-	return true
-
-
 func _players_inside_goal(target_id: String) -> Array:
 	var result := []
-	for raw_peer_id in players.keys():
-		var peer_id := int(raw_peer_id)
-		var player_state: Dictionary = players[peer_id]
+	for peer_id in player_ids():
+		var player_state: Dictionary = _player_store.get_state(peer_id)
 		if bool(player_state.get("at_goal", false)) and String(player_state.get("goal_target_id", "")) == target_id:
 			result.append(peer_id)
 	return result
 
 
+func players_inside_goal(target_id: String) -> Array:
+	return _players_inside_goal(target_id)
+
+
 func _register_mechanic_handlers() -> void:
-	var key_door := KeyDoorMechanic.new()
-	var goal := GoalMechanic.new()
-	var hazard_respawn := HazardRespawnMechanic.new()
-	var push_box := PushBoxMechanic.new()
-	var button_platform := ButtonPlatformMechanic.new()
-	var oxygen := OxygenMechanic.new()
+	var registry := MechanicRegistry.build()
+	_mechanics = registry.get("mechanics", {})
+	_mechanic_handlers = registry.get("handlers", {})
+	_mechanic_hooks = registry.get("hooks", {})
 
-	_mechanics = {
-		"key_door": key_door,
-		"goal": goal,
-		"hazard_respawn": hazard_respawn,
-		"push_box": push_box,
-		"button_platform": button_platform,
-		"oxygen": oxygen,
-	}
 
-	_mechanic_handlers = {
-		"key_door.collect": Callable(key_door, "apply_collect"),
-		"key_door.open": Callable(key_door, "apply_open"),
-		"goal.enter": Callable(goal, "apply_enter"),
-		"goal.exit": Callable(goal, "apply_exit"),
-		"hazard_respawn.player_death": Callable(hazard_respawn, "apply_player_death"),
-		"push_box.state": Callable(push_box, "apply_state"),
-		"button_platform.button_state": Callable(button_platform, "apply_button_state"),
-		"oxygen.collect": Callable(oxygen, "apply_collect"),
-		"oxygen.oxygen_depleted": Callable(oxygen, "apply_oxygen_depleted"),
-	}
+func _run_mechanic_event_hooks(hook_id: String, args: Array = []) -> Array[Dictionary]:
+	var events: Array[Dictionary] = []
+	var raw_hooks: Variant = _mechanic_hooks.get(hook_id, [])
+	if typeof(raw_hooks) != TYPE_ARRAY:
+		return events
+
+	for raw_hook in raw_hooks:
+		if typeof(raw_hook) != TYPE_CALLABLE:
+			continue
+		var hook: Callable = raw_hook
+		if not hook.is_valid():
+			continue
+
+		var result = hook.callv(args)
+		if typeof(result) != TYPE_ARRAY:
+			continue
+		events.append_array(Array(result))
+	return events
 
 
 func _sync_goal_object_states() -> void:
-	for raw_target_id in objects.keys():
-		var target_id := String(raw_target_id)
-		var object_data: Dictionary = objects[target_id]
-		if String(object_data.get("kind", "")) != "goal":
+	for target_id in object_ids():
+		var object_data: Dictionary = get_object_data(target_id)
+		if String(object_data.get("kind", "")) != GameIds.OBJECT_KIND_GOAL:
 			continue
 
 		var state: Dictionary = object_data.get("state", {})
 		state["players_inside"] = _players_inside_goal(target_id)
 		object_data["state"] = state
-		objects[target_id] = object_data
+		set_object_data(target_id, object_data)
+
+
+func sync_goal_object_states() -> void:
+	_sync_goal_object_states()
 
 
 func _register_players(peer_ids: Array[int]) -> void:
 	players.clear()
 	players_at_goal.clear()
 	for peer_id in peer_ids:
-		players[int(peer_id)] = _new_player_state()
+		_player_store.set_state(int(peer_id), _new_player_state())
 
 
 func _reset_level_state() -> void:
 	level_definition = GameCatalog.get_level(current_level_id)
-	objects.clear()
+	_object_store.clear()
 	players_at_goal.clear()
 	push_intents.clear()
 	_configure_failure_state()
-
-	var raw_objects: Variant = level_definition.get("objects", {})
-	if typeof(raw_objects) != TYPE_DICTIONARY:
-		return
-
-	var object_defs: Dictionary = raw_objects
-	for raw_target_id in object_defs.keys():
+	var built_objects := LevelStateFactory.build_objects(level_definition)
+	for raw_target_id in built_objects.keys():
 		var target_id := String(raw_target_id)
-		var object_def: Dictionary = Dictionary(object_defs[target_id]).duplicate(true)
-		var state: Dictionary = {}
-		var raw_state: Variant = object_def.get("state", {})
-		if typeof(raw_state) == TYPE_DICTIONARY:
-			state = raw_state.duplicate(true)
-		if String(object_def.get("kind", "")) == "push_box" and not state.has("position"):
-			var transform: Dictionary = object_def.get("transform", {})
-			var position_raw: Variant = transform.get("position", {})
-			if typeof(position_raw) == TYPE_DICTIONARY:
-				state["position"] = Dictionary(position_raw).duplicate(true)
-		_seed_water_object_state(object_def, state)
-		object_def["target_id"] = target_id
-		object_def["state"] = state
-		objects[target_id] = object_def
+		_object_store.set_object(target_id, Dictionary(built_objects[raw_target_id]))
 
 
 func _new_player_state() -> Dictionary:
-	var player_state := {
-		"alive": true,
-		"at_goal": false,
-		"goal_target_id": "",
-		"hazard_rearm_at_ms": 0,
-		"key_count": 0,
-		"max_oxygen": 10.0,
-		"oxygen": 10.0,
-		"oxygen_depleted_rearm_at_ms": 0,
-		"previous_position": {},
-		"position": {},
-		"velocity": {},
-		"updated_at_ms": 0,
-	}
-	return _merge_state_defaults(player_state, level_definition.get("player_state_defaults", {}))
+	return LevelStateFactory.new_player_state(level_definition)
 
 
-func _merge_state_defaults(base: Dictionary, defaults_raw: Variant) -> Dictionary:
-	var result := base.duplicate(true)
-	if typeof(defaults_raw) != TYPE_DICTIONARY:
-		return result
-
-	var defaults: Dictionary = defaults_raw
-	for raw_key in defaults.keys():
-		var key := String(raw_key)
-		var value = defaults[raw_key]
-		if typeof(value) == TYPE_DICTIONARY and typeof(result.get(key, null)) == TYPE_DICTIONARY:
-			result[key] = _merge_state_defaults(Dictionary(result[key]), value)
-		else:
-			result[key] = value
-	return result
-
-
-func _seed_water_object_state(object_def: Dictionary, state: Dictionary) -> void:
-	var kind := String(object_def.get("kind", ""))
-	match kind:
-		"team_respawn_budget":
-			if not state.has("max"):
-				state["max"] = int(object_def.get("max_respawns", 3))
-			if not state.has("used"):
-				state["used"] = 0
-			if not state.has("failed"):
-				state["failed"] = false
-		"oxygen_tank", "oxygen_station":
-			if not state.has("remaining_uses"):
-				state["remaining_uses"] = _default_oxygen_uses(object_def)
-			if not state.has("claimed_peer_ids"):
-				state["claimed_peer_ids"] = []
-			if not state.has("collected"):
-				state["collected"] = int(state.get("remaining_uses", 0)) <= 0
-		"water_jet_nozzle", "water_jet":
-			if not state.has("active"):
-				state["active"] = bool(object_def.get("active", true))
-		"extendable_barrier", "water_barrier", "barrier":
-			if not state.has("open"):
-				state["open"] = bool(object_def.get("open", false))
-			if not state.has("active"):
-				state["active"] = not bool(state.get("open", false))
-
-
-func _default_oxygen_uses(object_def: Dictionary) -> int:
-	var oxygen_data: Dictionary = {}
-	var raw_oxygen: Variant = object_def.get("oxygen", {})
-	if typeof(raw_oxygen) == TYPE_DICTIONARY:
-		oxygen_data = raw_oxygen
-	return maxi(int(oxygen_data.get("uses", object_def.get("uses", 1))), 1)
-
-
-func _object_timer_data(object_data: Dictionary) -> Dictionary:
-	var raw_timer: Variant = object_data.get("timer", object_data.get("schedule", {}))
-	if typeof(raw_timer) != TYPE_DICTIONARY:
-		return {}
-	return Dictionary(raw_timer).duplicate(true)
-
-
-func _schedule_water_jet_toggle(state: Dictionary, timer: Dictionary, now_ms: int) -> void:
-	var min_interval := maxi(int(timer.get("min_interval_ms", timer.get("interval_min_ms", 900))), 1)
-	var max_interval := maxi(int(timer.get("max_interval_ms", timer.get("interval_max_ms", min_interval))), min_interval)
-	state["next_toggle_at_ms"] = now_ms + _rng.randi_range(min_interval, max_interval)
-
-
-func _get_required_object(target_id: String, allowed_kinds: Array, action: String) -> Dictionary:
+func require_object(target_id: String, allowed_kinds: Array, action: String) -> Dictionary:
 	if target_id.strip_edges().is_empty():
 		return _error("missing_target_id", "%s requires a target_id." % action)
 
-	var object_data := _get_object(target_id)
+	var object_data := get_object_data(target_id)
 	if object_data.is_empty():
 		return _error("unknown_target", "Target does not exist in the current level: %s" % target_id)
 
@@ -647,419 +386,95 @@ func _get_required_object(target_id: String, allowed_kinds: Array, action: Strin
 
 
 func register_hazard_death() -> int:
-	var death_limit: Dictionary = failure_state.get("death_limit", {})
-	if death_limit.is_empty() or not bool(death_limit.get("enabled", false)):
-		return -1
-
-	var hearts_remaining := maxi(int(death_limit.get("hearts_remaining", 0)) - 1, 0)
-	death_limit["hearts_remaining"] = hearts_remaining
-	failure_state["death_limit"] = death_limit
-	return hearts_remaining
+	var result := FailureRuleService.register_hazard_death(failure_state)
+	var next_failure_state: Variant = result.get("failure_state", failure_state)
+	if typeof(next_failure_state) == TYPE_DICTIONARY:
+		failure_state = next_failure_state
+	return int(result.get("hearts_remaining", -1))
 
 
 func consume_level_failure(now_ms: int = Time.get_ticks_msec()) -> Dictionary:
-	if _level_reset_pending:
+	var result := FailureRuleService.consume_level_failure(
+		failure_state,
+		level_started_at_ms,
+		_level_reset_pending,
+		now_ms
+	)
+	_level_reset_pending = bool(result.get("level_reset_pending", _level_reset_pending))
+	var failure: Variant = result.get("failure", {})
+	if typeof(failure) != TYPE_DICTIONARY:
 		return {}
-
-	var time_limit: Dictionary = failure_state.get("time_limit", {})
-	if not time_limit.is_empty() and _failure_time_remaining_ms(now_ms) <= 0:
-		_level_reset_pending = true
-		return {
-			"reason": "time_limit",
-		}
-
-	var death_limit: Dictionary = failure_state.get("death_limit", {})
-	if not death_limit.is_empty() and int(death_limit.get("hearts_remaining", 0)) <= 0:
-		_level_reset_pending = true
-		return {
-			"reason": "death_limit",
-		}
-
-	return {}
+	return failure
 
 
 func failure_state_snapshot(now_ms: int = Time.get_ticks_msec()) -> Dictionary:
-	var snapshot := {
-		"time_limit": {
-			"enabled": false,
-			"duration_ms": 0,
-			"started_at_ms": level_started_at_ms,
-			"remaining_ms": 0,
-		},
-		"death_limit": {
-			"enabled": false,
-			"hearts_max": 0,
-			"hearts_remaining": 0,
-			"shared": true,
-		},
-	}
+	return FailureRuleService.snapshot(failure_state, level_started_at_ms, now_ms)
 
-	var time_limit: Dictionary = failure_state.get("time_limit", {})
-	if not time_limit.is_empty():
-		snapshot["time_limit"] = {
-			"enabled": true,
-			"duration_ms": int(time_limit.get("duration_ms", 0)),
-			"started_at_ms": int(time_limit.get("started_at_ms", level_started_at_ms)),
-			"remaining_ms": _failure_time_remaining_ms(now_ms),
-		}
 
-	var death_limit: Dictionary = failure_state.get("death_limit", {})
-	if not death_limit.is_empty():
-		snapshot["death_limit"] = {
-			"enabled": true,
-			"hearts_max": int(death_limit.get("hearts_max", 0)),
-			"hearts_remaining": int(death_limit.get("hearts_remaining", 0)),
-			"shared": bool(death_limit.get("shared", true)),
-		}
+func _get_required_object(target_id: String, allowed_kinds: Array, action: String) -> Dictionary:
+	return require_object(target_id, allowed_kinds, action)
 
-	return snapshot
+
+func has_object(target_id: String) -> bool:
+	return _object_store.has(target_id)
+
+
+func object_ids() -> Array[String]:
+	return _object_store.ids()
+
+
+func get_object_data(target_id: String) -> Dictionary:
+	return _object_store.get_object(target_id)
+
+
+func set_object_data(target_id: String, object_data: Dictionary) -> void:
+	_object_store.set_object(target_id, object_data)
+
+
+func get_object_state(target_id: String) -> Dictionary:
+	return _object_store.get_state(target_id)
+
+
+func set_object_state(target_id: String, state: Dictionary) -> Dictionary:
+	return _object_store.set_state(target_id, state)
+
+
+func patch_object_state(target_id: String, updates: Dictionary) -> Dictionary:
+	return _object_store.patch_state(target_id, updates)
 
 
 func _get_object(target_id: String) -> Dictionary:
-	if not objects.has(target_id):
-		return {}
-	return Dictionary(objects[target_id]).duplicate(true)
+	return get_object_data(target_id)
 
 
 func _configure_failure_state() -> void:
-	level_started_at_ms = Time.get_ticks_msec()
-	_level_reset_pending = false
-	failure_state = {
-		"time_limit": {},
-		"death_limit": {},
-	}
-
-	var raw_failure_rules: Variant = level_definition.get("failure_rules", [])
-	if typeof(raw_failure_rules) != TYPE_ARRAY:
-		return
-
-	for raw_rule in raw_failure_rules:
-		if typeof(raw_rule) != TYPE_DICTIONARY:
-			continue
-
-		var rule: Dictionary = raw_rule
-		match String(rule.get("type", "")):
-			"time_limit":
-				var seconds := maxf(float(rule.get("seconds", 0.0)), 0.0)
-				if seconds <= 0.0:
-					continue
-				failure_state["time_limit"] = {
-					"enabled": true,
-					"duration_ms": int(round(seconds * 1000.0)),
-					"started_at_ms": level_started_at_ms,
-				}
-			"death_limit":
-				var hearts := maxi(int(rule.get("hearts", rule.get("max_deaths", 0))), 0)
-				if hearts <= 0:
-					continue
-				failure_state["death_limit"] = {
-					"enabled": true,
-					"hearts_max": hearts,
-					"hearts_remaining": hearts,
-					"shared": bool(rule.get("shared", true)),
-				}
+	var config := FailureRuleService.configure(level_definition)
+	level_started_at_ms = int(config.get("level_started_at_ms", 0))
+	_level_reset_pending = bool(config.get("level_reset_pending", false))
+	var next_failure_state: Variant = config.get("failure_state", {})
+	if typeof(next_failure_state) == TYPE_DICTIONARY:
+		failure_state = next_failure_state
+	else:
+		failure_state = {}
 
 
 func _all_players_dead() -> bool:
-	if players.is_empty():
+	if player_ids().is_empty():
 		return false
 
-	for raw_peer_id in players.keys():
-		var peer_id := int(raw_peer_id)
+	for peer_id in player_ids():
 		if is_player_alive(peer_id):
 			return false
 
 	return true
 
 
-func _failure_time_remaining_ms(now_ms: int) -> int:
-	var time_limit: Dictionary = failure_state.get("time_limit", {})
-	if time_limit.is_empty():
-		return 0
-
-	var duration_ms := int(time_limit.get("duration_ms", 0))
-	var started_at_ms := int(time_limit.get("started_at_ms", level_started_at_ms))
-	return maxi(duration_ms - (now_ms - started_at_ms), 0)
-
-
-func _any_object_state(kind: String, field: String, expected) -> bool:
-	for raw_object in objects.values():
-		if typeof(raw_object) != TYPE_DICTIONARY:
-			continue
-		var object_data: Dictionary = raw_object
-		if String(object_data.get("kind", "")) != kind:
-			continue
-		var state: Dictionary = object_data.get("state", {})
-		if state.get(field, null) == expected:
-			return true
-	return false
-
-
-func _has_door_completion_rule() -> bool:
-	var raw_rules: Variant = level_definition.get("completion_rules", [])
-	if typeof(raw_rules) != TYPE_ARRAY:
-		return false
-
-	for raw_rule in raw_rules:
-		if typeof(raw_rule) != TYPE_DICTIONARY:
-			continue
-		var rule: Dictionary = raw_rule
-		if String(rule.get("type", "")) == "object_state_equals" and String(rule.get("field", "")) == "opened":
-			return true
-	return false
-
-
-func _player_shape_overlaps_target_shape(peer_id: int, target_id: String, target_shape_field: String) -> bool:
-	var player_shape := _player_shape(peer_id)
-	if player_shape.is_empty():
-		return false
-
-	var target_shape := _shape_for_object(target_id, target_shape_field)
-	if target_shape.is_empty():
-		return false
-
-	return _shape_overlap(player_shape, target_shape)
-
-
-func _object_shape_overlaps_target_shape(source_id: String, source_shape_field: String, target_id: String, target_shape_field: String) -> bool:
-	var source_shape := _shape_for_object(source_id, source_shape_field)
-	if source_shape.is_empty():
-		return false
-
-	var target_shape := _shape_for_object(target_id, target_shape_field)
-	if target_shape.is_empty():
-		return false
-
-	return _shape_overlap(source_shape, target_shape)
-
-
-func _player_shape(peer_id: int) -> Dictionary:
-	var player_state := get_player_state(peer_id)
-	if player_state.is_empty():
-		return {}
-
-	var raw_position: Variant = player_state.get("position", {})
-	if typeof(raw_position) != TYPE_DICTIONARY:
-		return {}
-
-	var template := GameCatalog.get_player_template()
-	var shape: Dictionary = template.get("shape", {})
-	if shape.is_empty():
-		return {}
-
-	var base_position: Dictionary = raw_position
-	var offset: Dictionary = shape.get("offset", {})
-	return {
-		"type": String(shape.get("type", "")),
-		"center": _packet_vec(
-			float(base_position.get("x", 0.0)) + float(offset.get("x", 0.0)),
-			float(base_position.get("y", 0.0)) + float(offset.get("y", 0.0))
-		),
-		"radius": float(shape.get("radius", 0.0)),
-	}
-
-
-func _player_bounding_rect(peer_id: int) -> Rect2:
-	var player_state := get_player_state(peer_id)
-	if player_state.is_empty():
-		return Rect2()
-	return _player_bounding_rect_for_position(player_state.get("position", {}))
-
-
 func did_player_cross_trigger_since_last_update(peer_id: int, target_id: String) -> bool:
-	if not has_player(peer_id):
-		return false
-
-	var player_state := get_player_state(peer_id)
-	if player_state.is_empty():
-		return false
-
-	var current_rect := _player_bounding_rect_for_position(player_state.get("position", {}))
-	if current_rect.size == Vector2.ZERO:
-		return false
-
-	var previous_rect := _player_bounding_rect_for_position(player_state.get("previous_position", {}))
-	if previous_rect.size == Vector2.ZERO:
-		return false
-
-	var trigger_shape := _shape_for_object(target_id, "trigger")
-	if trigger_shape.is_empty():
-		return false
-
-	var trigger_rect := _shape_rect(trigger_shape).grow(float(trigger_shape.get("margin", 0.0)))
-	return previous_rect.merge(current_rect).intersects(trigger_rect)
-
-
-func _player_bounding_rect_for_position(raw_position: Variant) -> Rect2:
-	var shape := _player_shape_for_position(raw_position)
-	if shape.is_empty():
-		return Rect2()
-
-	if String(shape.get("type", "")) != "circle":
-		return Rect2()
-
-	var center: Dictionary = shape.get("center", {})
-	var radius := float(shape.get("radius", 0.0))
-	return Rect2(
-		Vector2(float(center.get("x", 0.0)) - radius, float(center.get("y", 0.0)) - radius),
-		Vector2(radius * 2.0, radius * 2.0)
-	)
-
-
-func _player_shape_for_position(raw_position: Variant) -> Dictionary:
-	if typeof(raw_position) != TYPE_DICTIONARY:
-		return {}
-
-	var template := GameCatalog.get_player_template()
-	var shape: Dictionary = template.get("shape", {})
-	if shape.is_empty():
-		return {}
-
-	var base_position: Dictionary = Dictionary(raw_position).duplicate(true)
-	var offset: Dictionary = Dictionary(shape.get("offset", {})).duplicate(true)
-	return {
-		"type": String(shape.get("type", "")),
-		"center": _packet_vec(
-			float(base_position.get("x", 0.0)) + float(offset.get("x", 0.0)),
-			float(base_position.get("y", 0.0)) + float(offset.get("y", 0.0))
-		),
-		"radius": float(shape.get("radius", 0.0)),
-	}
-
-
-func _shape_for_object(target_id: String, shape_field: String) -> Dictionary:
-	var object_data := _get_object(target_id)
-	if object_data.is_empty():
-		return {}
-
-	var shape_data: Variant = object_data.get(shape_field, {})
-	if typeof(shape_data) != TYPE_DICTIONARY:
-		return {}
-
-	var transform: Dictionary = object_data.get("transform", {})
-	var base_position: Dictionary = transform.get("position", {})
-	if shape_field == "body":
-		var state: Dictionary = object_data.get("state", {})
-		var state_position: Variant = state.get("position", null)
-		if typeof(state_position) == TYPE_DICTIONARY:
-			base_position = state_position
-
-	if typeof(base_position) != TYPE_DICTIONARY:
-		base_position = {}
-
-	var offset: Dictionary = Dictionary(shape_data.get("offset", {})).duplicate(true)
-	return {
-		"type": String(shape_data.get("shape", "")),
-		"center": _packet_vec(
-			float(base_position.get("x", 0.0)) + float(offset.get("x", 0.0)),
-			float(base_position.get("y", 0.0)) + float(offset.get("y", 0.0))
-		),
-		"size": Dictionary(shape_data.get("size", {})).duplicate(true),
-		"radius": float(shape_data.get("radius", 0.0)),
-		"margin": float(shape_data.get("margin", 0.0)),
-	}
-
-
-func _shape_overlap(first: Dictionary, second: Dictionary) -> bool:
-	var first_type := String(first.get("type", ""))
-	var second_type := String(second.get("type", ""))
-	if first_type == "circle" and second_type == "rectangle":
-		return _circle_intersects_rect(first, second)
-	if first_type == "rectangle" and second_type == "rectangle":
-		return _rectangle_intersects_rect(first, second)
-	if first_type == "rectangle" and second_type == "circle":
-		return _circle_intersects_rect(second, first)
-	if first_type == "circle" and second_type == "circle":
-		return _circle_intersects_circle(first, second)
-	return false
-
-
-func _circle_intersects_rect(circle_shape: Dictionary, rect_shape: Dictionary) -> bool:
-	var center: Dictionary = circle_shape.get("center", {})
-	var radius := float(circle_shape.get("radius", 0.0))
-	var rect := _shape_rect(rect_shape)
-	var margin := float(rect_shape.get("margin", 0.0))
-	rect = rect.grow(margin)
-	var circle_position := Vector2(float(center.get("x", 0.0)), float(center.get("y", 0.0)))
-	var closest_x := clampf(circle_position.x, rect.position.x, rect.end.x)
-	var closest_y := clampf(circle_position.y, rect.position.y, rect.end.y)
-	return circle_position.distance_squared_to(Vector2(closest_x, closest_y)) <= radius * radius
-
-
-func _rectangle_intersects_rect(first: Dictionary, second: Dictionary) -> bool:
-	var first_rect := _shape_rect(first).grow(float(first.get("margin", 0.0)))
-	var second_rect := _shape_rect(second).grow(float(second.get("margin", 0.0)))
-	return first_rect.intersects(second_rect)
-
-
-func _circle_intersects_circle(first: Dictionary, second: Dictionary) -> bool:
-	var first_center: Dictionary = first.get("center", {})
-	var second_center: Dictionary = second.get("center", {})
-	var first_position := Vector2(float(first_center.get("x", 0.0)), float(first_center.get("y", 0.0)))
-	var second_position := Vector2(float(second_center.get("x", 0.0)), float(second_center.get("y", 0.0)))
-	var max_distance := float(first.get("radius", 0.0)) + float(second.get("radius", 0.0))
-	return first_position.distance_squared_to(second_position) <= max_distance * max_distance
-
-
-func _shape_rect(shape_data: Dictionary) -> Rect2:
-	var size: Dictionary = shape_data.get("size", {})
-	if typeof(size) != TYPE_DICTIONARY:
-		return Rect2()
-	var center: Dictionary = shape_data.get("center", {})
-	var width := float(size.get("x", 0.0))
-	var height := float(size.get("y", 0.0))
-	return Rect2(
-		Vector2(float(center.get("x", 0.0)) - (width * 0.5), float(center.get("y", 0.0)) - (height * 0.5)),
-		Vector2(width, height)
-	)
+	return GeometryService.did_player_cross_trigger_since_last_update(self, peer_id, target_id)
 
 
 func _shape_rect_for_object(target_id: String, shape_field: String, override_position: Dictionary = {}) -> Rect2:
-	var shape := _shape_for_object(target_id, shape_field)
-	if shape.is_empty():
-		return Rect2()
-	if typeof(override_position) == TYPE_DICTIONARY and not override_position.is_empty():
-		var object_data := _get_object(target_id)
-		var shape_data: Dictionary = object_data.get(shape_field, {})
-		var offset: Dictionary = Dictionary(shape_data.get("offset", {})).duplicate(true)
-		shape["center"] = _packet_vec(
-			float(override_position.get("x", 0.0)) + float(offset.get("x", 0.0)),
-			float(override_position.get("y", 0.0)) + float(offset.get("y", 0.0))
-		)
-	return _shape_rect(shape)
-
-
-func _packet_vector(raw_value) -> Dictionary:
-	if typeof(raw_value) == TYPE_DICTIONARY:
-		return {
-			"x": float(Dictionary(raw_value).get("x", 0.0)),
-			"y": float(Dictionary(raw_value).get("y", 0.0)),
-		}
-	if typeof(raw_value) == TYPE_ARRAY and raw_value.size() >= 2:
-		return {
-			"x": float(raw_value[0]),
-			"y": float(raw_value[1]),
-		}
-	return {
-		"x": 0.0,
-		"y": 0.0,
-	}
-
-
-func _packet_vec(x: float, y: float) -> Dictionary:
-	return {
-		"x": x,
-		"y": y,
-	}
-
-
-func _positions_match(first: Dictionary, second: Dictionary, epsilon: float) -> bool:
-	if first.is_empty() or second.is_empty():
-		return false
-
-	var dx := float(first.get("x", 0.0)) - float(second.get("x", 0.0))
-	var dy := float(first.get("y", 0.0)) - float(second.get("y", 0.0))
-	return (dx * dx) + (dy * dy) <= epsilon * epsilon
+	return GeometryService.shape_rect_for_object(self, target_id, shape_field, override_position)
 
 
 func _event(kind: String, request_action: String, peer_id: int, target_id: String = "", extra: Dictionary = {}) -> Dictionary:
@@ -1093,3 +508,15 @@ func _error(code: String, message: String) -> Dictionary:
 		"code": code,
 		"message": message,
 	}
+
+
+func event(kind: String, request_action: String, peer_id: int, target_id: String = "", extra: Dictionary = {}) -> Dictionary:
+	return _event(kind, request_action, peer_id, target_id, extra)
+
+
+func ok(events: Array[Dictionary]) -> Dictionary:
+	return _ok(events)
+
+
+func error(code: String, message: String) -> Dictionary:
+	return _error(code, message)
