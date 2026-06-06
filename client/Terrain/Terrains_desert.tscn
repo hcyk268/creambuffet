@@ -17,12 +17,6 @@ tile_data = PackedInt32Array(0, 196608, 1, 65536, 196608, 1, 131072, 196608, 1, 
 [sub_resource type="TileMapPattern" id="TileMapPattern_t5h8e"]
 tile_data = PackedInt32Array(0, 0, 6, 1, 131072, 6)
 
-[sub_resource type="TileMapPattern" id="TileMapPattern_sro3o"]
-
-[sub_resource type="TileMapPattern" id="TileMapPattern_lfpny"]
-
-[sub_resource type="TileMapPattern" id="TileMapPattern_r86n4"]
-
 [sub_resource type="TileMapPattern" id="TileMapPattern_yvkio"]
 tile_data = PackedInt32Array(0, 2, 1, 1, 2, 0, 2, 65538, 0)
 
@@ -88,15 +82,12 @@ sources/0 = SubResource("TileSetAtlasSource_sro3o")
 pattern_0 = SubResource("TileMapPattern_6woeq")
 pattern_1 = SubResource("TileMapPattern_6rn2v")
 pattern_2 = SubResource("TileMapPattern_t5h8e")
-pattern_3 = SubResource("TileMapPattern_sro3o")
-pattern_4 = SubResource("TileMapPattern_lfpny")
-pattern_5 = SubResource("TileMapPattern_r86n4")
-pattern_6 = SubResource("TileMapPattern_yvkio")
-pattern_7 = SubResource("TileMapPattern_20g6e")
-pattern_8 = SubResource("TileMapPattern_ndoyc")
-pattern_9 = SubResource("TileMapPattern_deirf")
-pattern_10 = SubResource("TileMapPattern_ihq72")
-pattern_11 = SubResource("TileMapPattern_mqssl")
+pattern_3 = SubResource("TileMapPattern_yvkio")
+pattern_4 = SubResource("TileMapPattern_20g6e")
+pattern_5 = SubResource("TileMapPattern_ndoyc")
+pattern_6 = SubResource("TileMapPattern_deirf")
+pattern_7 = SubResource("TileMapPattern_ihq72")
+pattern_8 = SubResource("TileMapPattern_mqssl")
 
 [node name="Terrains" type="TileMapLayer" unique_id=320301518]
 tile_set = SubResource("TileSet_esna4")

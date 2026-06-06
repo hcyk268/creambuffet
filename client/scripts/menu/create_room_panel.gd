@@ -9,18 +9,21 @@ const MAX_PLAYERS = 4
 var current_players: int = MIN_PLAYERS
 var _awaiting_create := false
 var _status_label: Label
+var _binder := NetworkSignalBinder.new()
 
 
 func _ready() -> void:
 	update_displays()
 	player_input.editable = false
 	_status_label = _create_status_label()
-	_bind_network_signals()
+	_binder.bind(_network_client().connection_state_changed, _on_connection_state_changed)
+	_binder.bind(_network_client().error_received, _on_network_error)
+	_binder.bind(_network_client().current_room_changed, _on_current_room_changed)
 	_set_status("Create a public room on %s." % _network_client().get_server_endpoint())
 
 
 func _exit_tree() -> void:
-	_unbind_network_signals()
+	_binder.unbind_all()
 
 
 func update_displays() -> void:
@@ -52,34 +55,6 @@ func _on_create_butt_pressed() -> void:
 	_awaiting_create = true
 	_set_status("Creating room...")
 	_network_client().create_room(current_players, 0, false)
-
-
-func _bind_network_signals() -> void:
-	var on_state := Callable(self, "_on_connection_state_changed")
-	if not _network_client().connection_state_changed.is_connected(on_state):
-		_network_client().connection_state_changed.connect(on_state)
-
-	var on_error := Callable(self, "_on_network_error")
-	if not _network_client().error_received.is_connected(on_error):
-		_network_client().error_received.connect(on_error)
-
-	var on_room := Callable(self, "_on_current_room_changed")
-	if not _network_client().current_room_changed.is_connected(on_room):
-		_network_client().current_room_changed.connect(on_room)
-
-
-func _unbind_network_signals() -> void:
-	var on_state := Callable(self, "_on_connection_state_changed")
-	if _network_client().connection_state_changed.is_connected(on_state):
-		_network_client().connection_state_changed.disconnect(on_state)
-
-	var on_error := Callable(self, "_on_network_error")
-	if _network_client().error_received.is_connected(on_error):
-		_network_client().error_received.disconnect(on_error)
-
-	var on_room := Callable(self, "_on_current_room_changed")
-	if _network_client().current_room_changed.is_connected(on_room):
-		_network_client().current_room_changed.disconnect(on_room)
 
 
 func _on_connection_state_changed(_state: String, details: String) -> void:

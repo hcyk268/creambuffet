@@ -1,7 +1,7 @@
 extends RefCounted
 class_name PushIntentService
 
-const INTENT_TTL_MS := 160
+const INTENT_TTL_MS := 300
 
 
 static func apply(match_state, peer_id: int, raw_intents) -> Array[Dictionary]:
