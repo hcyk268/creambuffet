@@ -12,11 +12,16 @@ var _status_label: Label
 var _public_rooms: Array[Dictionary] = []
 var _current_room: Dictionary = {}
 var _entering_match := false
+var _binder := NetworkSignalBinder.new()
 
 
 func _ready() -> void:
 	_status_label = _create_status_label()
-	_bind_network_signals()
+	_binder.bind(_network_client().connection_state_changed, _on_connection_state_changed)
+	_binder.bind(_network_client().error_received, _on_network_error)
+	_binder.bind(_network_client().room_list_updated, _on_room_list_updated)
+	_binder.bind(_network_client().current_room_changed, _on_current_room_changed)
+	_binder.bind(_network_client().match_started, _on_match_started)
 	_public_rooms = _network_client().get_public_rooms()
 	_current_room = _network_client().get_current_room()
 	_set_status(_network_client().get_status_text())
@@ -30,7 +35,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	_unbind_network_signals()
+	_binder.unbind_all()
 
 
 func _on_back_butt_pressed() -> void:
@@ -42,50 +47,6 @@ func _on_back_butt_pressed() -> void:
 func _on_refresh_butt_pressed() -> void:
 	_set_status("Refreshing rooms from %s..." % _network_client().get_server_endpoint())
 	_network_client().request_public_rooms()
-
-
-func _bind_network_signals() -> void:
-	var on_state := Callable(self, "_on_connection_state_changed")
-	if not _network_client().connection_state_changed.is_connected(on_state):
-		_network_client().connection_state_changed.connect(on_state)
-
-	var on_error := Callable(self, "_on_network_error")
-	if not _network_client().error_received.is_connected(on_error):
-		_network_client().error_received.connect(on_error)
-
-	var on_list := Callable(self, "_on_room_list_updated")
-	if not _network_client().room_list_updated.is_connected(on_list):
-		_network_client().room_list_updated.connect(on_list)
-
-	var on_room := Callable(self, "_on_current_room_changed")
-	if not _network_client().current_room_changed.is_connected(on_room):
-		_network_client().current_room_changed.connect(on_room)
-
-	var on_match := Callable(self, "_on_match_started")
-	if not _network_client().match_started.is_connected(on_match):
-		_network_client().match_started.connect(on_match)
-
-
-func _unbind_network_signals() -> void:
-	var on_state := Callable(self, "_on_connection_state_changed")
-	if _network_client().connection_state_changed.is_connected(on_state):
-		_network_client().connection_state_changed.disconnect(on_state)
-
-	var on_error := Callable(self, "_on_network_error")
-	if _network_client().error_received.is_connected(on_error):
-		_network_client().error_received.disconnect(on_error)
-
-	var on_list := Callable(self, "_on_room_list_updated")
-	if _network_client().room_list_updated.is_connected(on_list):
-		_network_client().room_list_updated.disconnect(on_list)
-
-	var on_room := Callable(self, "_on_current_room_changed")
-	if _network_client().current_room_changed.is_connected(on_room):
-		_network_client().current_room_changed.disconnect(on_room)
-
-	var on_match := Callable(self, "_on_match_started")
-	if _network_client().match_started.is_connected(on_match):
-		_network_client().match_started.disconnect(on_match)
 
 
 func _on_connection_state_changed(_state: String, details: String) -> void:

@@ -5,26 +5,40 @@ class_name PlayerSwim
 @export var vertical_swim_speed := 95.0
 @export var water_drag := 8.0
 @export var passive_sink_speed := 18.0
+@export var exit_water_grace_time := 0.08
+
+var _exit_grace_timer := 0.0
 
 
 func enter() -> void:
+	_exit_grace_timer = 0.0
 	controller.set_vertical_flip(false)
 	controller.play_animation("swim_idle")
 	controller.scale_velocity(0.45)
 
 
 func exit() -> void:
+	_exit_grace_timer = 0.0
 	controller.set_vertical_flip(false)
 
 
 func physics_update(delta: float) -> void:
 	if not controller.is_in_water():
+		_exit_grace_timer += delta
+		if _exit_grace_timer < exit_water_grace_time:
+			# Still within grace period — keep swimming, don't transition yet.
+			controller.apply_gravity(delta)
+			controller.move_and_push()
+			return
+
 		if controller.is_on_floor():
 			var ground_direction: float = controller.horizontal_input()
 			transitioned.emit(self, "run" if not is_zero_approx(ground_direction) else "idle")
 		else:
 			transitioned.emit(self, "fall")
 		return
+	else:
+		_exit_grace_timer = 0.0
 
 	var direction: float = controller.horizontal_input()
 	var vertical_direction: float = 0.0

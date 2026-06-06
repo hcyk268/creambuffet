@@ -6,17 +6,20 @@ const STATUS_FONT = preload("res://assets/fonts/EXEPixelPerfect.ttf")
 
 var _awaiting_join := false
 var _status_label: Label
+var _binder := NetworkSignalBinder.new()
 
 
 func _ready() -> void:
 	id_input.clear()
 	_status_label = _create_status_label()
-	_bind_network_signals()
+	_binder.bind(_network_client().connection_state_changed, _on_connection_state_changed)
+	_binder.bind(_network_client().error_received, _on_network_error)
+	_binder.bind(_network_client().current_room_changed, _on_current_room_changed)
 	_set_status("Join a room on %s." % _network_client().get_server_endpoint())
 
 
 func _exit_tree() -> void:
-	_unbind_network_signals()
+	_binder.unbind_all()
 
 
 func _on_back_butt_pressed() -> void:
@@ -38,34 +41,6 @@ func _on_join_butt_pressed() -> void:
 	_awaiting_join = true
 	_set_status("Joining room %s..." % room_id.to_upper())
 	_network_client().join_room(room_id)
-
-
-func _bind_network_signals() -> void:
-	var on_state := Callable(self, "_on_connection_state_changed")
-	if not _network_client().connection_state_changed.is_connected(on_state):
-		_network_client().connection_state_changed.connect(on_state)
-
-	var on_error := Callable(self, "_on_network_error")
-	if not _network_client().error_received.is_connected(on_error):
-		_network_client().error_received.connect(on_error)
-
-	var on_room := Callable(self, "_on_current_room_changed")
-	if not _network_client().current_room_changed.is_connected(on_room):
-		_network_client().current_room_changed.connect(on_room)
-
-
-func _unbind_network_signals() -> void:
-	var on_state := Callable(self, "_on_connection_state_changed")
-	if _network_client().connection_state_changed.is_connected(on_state):
-		_network_client().connection_state_changed.disconnect(on_state)
-
-	var on_error := Callable(self, "_on_network_error")
-	if _network_client().error_received.is_connected(on_error):
-		_network_client().error_received.disconnect(on_error)
-
-	var on_room := Callable(self, "_on_current_room_changed")
-	if _network_client().current_room_changed.is_connected(on_room):
-		_network_client().current_room_changed.disconnect(on_room)
 
 
 func _on_connection_state_changed(_state: String, details: String) -> void:

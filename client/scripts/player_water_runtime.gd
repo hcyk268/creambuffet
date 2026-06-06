@@ -20,6 +20,9 @@ var _oxygen_depleted_pending := false
 var _water_jet_velocity := Vector2.ZERO
 var _applied_water_jet_velocity := Vector2.ZERO
 var _water_jet_side_sign := 1.0
+var _water_exit_grace_remaining := 0.0
+
+const WATER_EXIT_GRACE_SECONDS := 0.08
 
 
 func setup(
@@ -61,7 +64,8 @@ func set_water_jet_side_sign(side_sign: float) -> void:
 func reset_after_respawn() -> bool:
 	_water_jet_velocity = Vector2.ZERO
 	_applied_water_jet_velocity = Vector2.ZERO
-	var was_in_water := is_in_water()
+	_water_exit_grace_remaining = 0.0
+	var was_in_water := not _water_zones.is_empty()
 	_water_zones.clear()
 	reset_oxygen()
 	return was_in_water
@@ -99,18 +103,19 @@ func exit_water_zone(zone: Area2D) -> void:
 	if zone == null:
 		return
 
-	var was_in_water := is_in_water()
+	var was_in_water := not _water_zones.is_empty()
 	_water_zones.erase(zone)
 	_prune_water_zones()
 
-	if was_in_water and not is_in_water():
-		_emit_water_state_changed(false)
-		_refresh_bubble_effect()
+	if was_in_water and _water_zones.is_empty():
+		_water_exit_grace_remaining = WATER_EXIT_GRACE_SECONDS
 
 
 func is_in_water() -> bool:
 	_prune_water_zones()
-	return not _water_zones.is_empty()
+	if not _water_zones.is_empty():
+		return true
+	return _water_exit_grace_remaining > 0.0
 
 
 func get_water_current_velocity() -> Vector2:
@@ -182,6 +187,8 @@ func finish_move() -> void:
 
 
 func update_oxygen(delta: float, is_remote_player: bool, is_eliminated: bool, online_session: bool) -> void:
+	_update_water_exit_grace(delta)
+
 	if is_remote_player or is_eliminated or _owner_max_oxygen() <= 0.0:
 		return
 
@@ -213,6 +220,22 @@ func update_oxygen(delta: float, is_remote_player: bool, is_eliminated: bool, on
 
 func prune_water_zones() -> void:
 	_prune_water_zones()
+
+
+func _update_water_exit_grace(delta: float) -> void:
+	if _water_exit_grace_remaining <= 0.0:
+		return
+
+	if not _water_zones.is_empty():
+		# Re-entered water during grace — cancel exit.
+		_water_exit_grace_remaining = 0.0
+		return
+
+	_water_exit_grace_remaining -= delta
+	if _water_exit_grace_remaining <= 0.0:
+		_water_exit_grace_remaining = 0.0
+		_emit_water_state_changed(false)
+		_refresh_bubble_effect()
 
 
 func _apply_pending_water_jet(delta: float) -> void:

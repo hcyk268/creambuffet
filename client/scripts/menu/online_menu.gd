@@ -7,16 +7,18 @@ const STATUS_FONT = preload("res://assets/fonts/EXEPixelPerfect.ttf")
 @onready var option_panel = $OptionPanel
 
 var _status_label: Label
+var _binder := NetworkSignalBinder.new()
 
 
 func _ready() -> void:
 	_status_label = _create_status_label()
-	_bind_network_signals()
+	_binder.bind(_network_client().connection_state_changed, _on_connection_state_changed)
+	_binder.bind(_network_client().error_received, _on_network_error)
 	_refresh_status_label()
 
 
 func _exit_tree() -> void:
-	_unbind_network_signals()
+	_binder.unbind_all()
 
 
 func _on_public_butt_pressed() -> void:
@@ -36,26 +38,6 @@ func _on_host_butt_pressed() -> void:
 
 func _on_option_butt_pressed() -> void:
 	option_panel.show()
-
-
-func _bind_network_signals() -> void:
-	var on_state := Callable(self, "_on_connection_state_changed")
-	if not _network_client().connection_state_changed.is_connected(on_state):
-		_network_client().connection_state_changed.connect(on_state)
-
-	var on_error := Callable(self, "_on_network_error")
-	if not _network_client().error_received.is_connected(on_error):
-		_network_client().error_received.connect(on_error)
-
-
-func _unbind_network_signals() -> void:
-	var on_state := Callable(self, "_on_connection_state_changed")
-	if _network_client().connection_state_changed.is_connected(on_state):
-		_network_client().connection_state_changed.disconnect(on_state)
-
-	var on_error := Callable(self, "_on_network_error")
-	if _network_client().error_received.is_connected(on_error):
-		_network_client().error_received.disconnect(on_error)
 
 
 func _on_connection_state_changed(_state: String, details: String) -> void:

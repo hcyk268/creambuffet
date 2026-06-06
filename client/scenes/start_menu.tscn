@@ -37,6 +37,10 @@ shadow_color = Color(0, 0, 0, 0.35)
 shadow_size = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_name_input"]
+content_margin_left = 18.0
+content_margin_top = 14.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
 bg_color = Color(0.1, 0.1, 0.12, 0.96)
 border_width_left = 3
 border_width_top = 3
@@ -47,12 +51,12 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
-content_margin_left = 18.0
-content_margin_top = 14.0
-content_margin_right = 18.0
-content_margin_bottom = 14.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_name_input_focus"]
+content_margin_left = 17.0
+content_margin_top = 13.0
+content_margin_right = 17.0
+content_margin_bottom = 13.0
 bg_color = Color(0.12, 0.12, 0.16, 0.98)
 border_width_left = 4
 border_width_top = 4
@@ -63,10 +67,6 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
-content_margin_left = 17.0
-content_margin_top = 13.0
-content_margin_right = 17.0
-content_margin_bottom = 13.0
 
 [node name="Menu" type="Control" unique_id=1301062844]
 layout_mode = 3
@@ -119,7 +119,7 @@ theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Online
 "
 
-[node name="OfflineButt" type="Button" parent="CenterContainer/MainButtons"]
+[node name="OfflineButt" type="Button" parent="CenterContainer/MainButtons" unique_id=353140996]
 custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_nxjfj")
@@ -149,7 +149,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
 color = Color(0.02, 0.02, 0.03, 0.78)
 
 [node name="PromptPanel" type="PanelContainer" parent="OnlineNameOverlay" unique_id=802846963]
@@ -180,9 +179,9 @@ theme_override_constants/separation = 20
 
 [node name="Eyebrow" type="Label" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=394920511]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.73, 0.73, 0.78, 1)
 theme_override_fonts/font = ExtResource("4_nxjfj")
 theme_override_font_sizes/font_size = 20
-theme_override_colors/font_color = Color(0.73, 0.73, 0.78, 1)
 text = "PLAYER PROFILE"
 horizontal_alignment = 1
 
@@ -195,9 +194,9 @@ horizontal_alignment = 1
 
 [node name="HintLabel" type="Label" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=583756697]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.88, 0.9, 0.92)
 theme_override_fonts/font = ExtResource("4_nxjfj")
 theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(0.88, 0.88, 0.9, 0.92)
 text = "Choose the name other players will see in rooms and during online play."
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -206,23 +205,23 @@ autowrap_mode = 2
 custom_minimum_size = Vector2(0, 86)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("4_nxjfj")
-theme_override_font_sizes/font_size = 34
 theme_override_colors/font_color = Color(0.97, 0.97, 0.98, 1)
 theme_override_colors/font_placeholder_color = Color(0.62, 0.62, 0.67, 0.95)
 theme_override_colors/caret_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_nxjfj")
+theme_override_font_sizes/font_size = 34
 theme_override_styles/normal = SubResource("StyleBoxFlat_name_input")
-theme_override_styles/focus = SubResource("StyleBoxFlat_name_input_focus")
 theme_override_styles/read_only = SubResource("StyleBoxFlat_name_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_name_input_focus")
 placeholder_text = "Enter your online name"
-caret_blink = true
 max_length = 24
+caret_blink = true
 
 [node name="StatusLabel" type="Label" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=483085135]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.74, 0.74, 0.79, 1)
 theme_override_fonts/font = ExtResource("4_nxjfj")
 theme_override_font_sizes/font_size = 22
-theme_override_colors/font_color = Color(0.74, 0.74, 0.79, 1)
 text = "Enter a name for online rooms."
 horizontal_alignment = 1
 autowrap_mode = 2
