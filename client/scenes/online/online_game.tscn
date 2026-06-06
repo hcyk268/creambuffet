@@ -1,34 +1,35 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://bpwt4v5hqqlrc"]
 
-[ext_resource type="Script" path="res://scripts/online/online_game.gd" id="1_xeoup"]
-[ext_resource type="PackedScene" path="res://scenes/player_soda.tscn" id="2_dvv1u"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_01.tscn" id="3_r8y6r"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_02.tscn" id="4_qb0pa"]
+[ext_resource type="Script" uid="uid://cupf0dr5ktvu5" path="res://scripts/online/online_game.gd" id="1_xeoup"]
+[ext_resource type="PackedScene" uid="uid://di1ooitfh1the" path="res://scenes/player_soda.tscn" id="2_dvv1u"]
+[ext_resource type="PackedScene" uid="uid://dixrvvl3dcxpe" path="res://scenes/online/levels/level_01.tscn" id="3_r8y6r"]
+[ext_resource type="PackedScene" uid="uid://bjrer3ft3jlbv" path="res://scenes/online/levels/level_02.tscn" id="4_qb0pa"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="5_4f5g8"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_03.tscn" id="6_m9dq3"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_04.tscn" id="7_n2lbk"]
+[ext_resource type="PackedScene" uid="uid://d3hwgfhxwxlnt" path="res://scenes/online/levels/level_04.tscn" id="7_n2lbk"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_05.tscn" id="8_yq2ru"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_06.tscn" id="9_b2swt"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_07.tscn" id="10_ek6uf"]
+[ext_resource type="PackedScene" uid="uid://dranb3t8g5fs4" path="res://scenes/online/levels/level_06.tscn" id="9_b2swt"]
+[ext_resource type="PackedScene" uid="uid://cry05uxr78cjc" path="res://scenes/online/levels/level_07.tscn" id="10_ek6uf"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_08.tscn" id="11_h4npa"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_09.tscn" id="12_t8vce"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_10.tscn" id="13_x1mkr"]
+[ext_resource type="Script" uid="uid://c2ejor57101fb" path="res://scripts/online/level_transition.gd" id="14_q4wxa"]
 
-[node name="OnlineGame" type="Node2D"]
+[node name="OnlineGame" type="Node2D" unique_id=530829054]
 script = ExtResource("1_xeoup")
 levels = Array[PackedScene]([ExtResource("3_r8y6r"), ExtResource("4_qb0pa"), ExtResource("6_m9dq3"), ExtResource("7_n2lbk"), ExtResource("8_yq2ru"), ExtResource("9_b2swt"), ExtResource("10_ek6uf"), ExtResource("11_h4npa"), ExtResource("12_t8vce"), ExtResource("13_x1mkr")])
 
-[node name="LevelContainer" type="Node2D" parent="."]
+[node name="LevelContainer" type="Node2D" parent="." unique_id=797247729]
 
-[node name="Player" parent="." instance=ExtResource("2_dvv1u")]
+[node name="Player" parent="." unique_id=477008159 instance=ExtResource("2_dvv1u")]
 
-[node name="Camera2D" type="Camera2D" parent="Player"]
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1737500444]
 position = Vector2(0, -32)
 zoom = Vector2(3, 3)
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1535871515]
 
-[node name="LevelLabel" type="Label" parent="CanvasLayer"]
+[node name="LevelLabel" type="Label" parent="CanvasLayer" unique_id=1121893242]
 offset_left = 10.0
 offset_top = 8.0
 offset_right = 420.0
@@ -36,7 +37,7 @@ offset_bottom = 31.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Level"
 
-[node name="WaterHud" type="Control" parent="CanvasLayer"]
+[node name="WaterHud" type="Control" parent="CanvasLayer" unique_id=707575479]
 layout_mode = 3
 anchors_preset = 0
 offset_left = 10.0
@@ -44,7 +45,7 @@ offset_top = 36.0
 offset_right = 280.0
 offset_bottom = 88.0
 
-[node name="OxygenBar" type="ProgressBar" parent="CanvasLayer/WaterHud"]
+[node name="OxygenBar" type="ProgressBar" parent="CanvasLayer/WaterHud" unique_id=2117011984]
 layout_mode = 0
 offset_right = 170.0
 offset_bottom = 18.0
@@ -52,7 +53,7 @@ max_value = 10.0
 value = 10.0
 show_percentage = false
 
-[node name="OxygenLabel" type="Label" parent="CanvasLayer/WaterHud"]
+[node name="OxygenLabel" type="Label" parent="CanvasLayer/WaterHud" unique_id=316768248]
 layout_mode = 0
 offset_left = 178.0
 offset_top = -2.0
@@ -60,26 +61,28 @@ offset_right = 270.0
 offset_bottom = 21.0
 text = "O2: 10/10"
 
-[node name="RespawnLabel" type="Label" parent="CanvasLayer/WaterHud"]
+[node name="RespawnLabel" type="Label" parent="CanvasLayer/WaterHud" unique_id=524263030]
 layout_mode = 0
 offset_top = 24.0
 offset_right = 270.0
 offset_bottom = 47.0
 text = "Respawn: 3/3"
 
-[node name="TimeLabel" type="Label" parent="CanvasLayer"]
+[node name="TimeLabel" type="Label" parent="CanvasLayer" unique_id=2047277528]
+anchors_preset = 5
 anchor_left = 0.5
-anchor_top = 0.0
 anchor_right = 0.5
-anchor_bottom = 0.0
 offset_left = -68.0
 offset_top = 8.0
 offset_right = 90.0
 offset_bottom = 31.0
-horizontal_alignment = 1
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "TIME 01:00"
+horizontal_alignment = 1
 
-[node name="PauseMenu" parent="." instance=ExtResource("5_4f5g8")]
+[node name="PauseMenu" parent="." unique_id=800742663 instance=ExtResource("5_4f5g8")]
 pause_tree_on_open = false
 allow_restart = false
+
+[node name="LevelTransition" type="CanvasLayer" parent="." unique_id=336767746]
+script = ExtResource("14_q4wxa")

@@ -27,7 +27,7 @@ func _ready() -> void:
 	_set_status(_network_client().get_status_text())
 
 	if not _current_room.is_empty() and String(_current_room.get("status", "")) != "playing":
-		get_tree().change_scene_to_file("res://scenes/room.tscn")
+		SceneTransition.change_scene("res://scenes/room.tscn")
 		return
 
 	_render()
@@ -41,7 +41,7 @@ func _exit_tree() -> void:
 func _on_back_butt_pressed() -> void:
 	if not _current_room.is_empty():
 		_network_client().leave_room()
-	get_tree().change_scene_to_file("res://scenes/online_menu.tscn")
+	SceneTransition.change_scene("res://scenes/online_menu.tscn")
 
 
 func _on_refresh_butt_pressed() -> void:
@@ -70,7 +70,7 @@ func _on_room_list_updated(rooms) -> void:
 func _on_current_room_changed(room: Dictionary) -> void:
 	_current_room = room.duplicate(true)
 	if not room.is_empty() and String(room.get("status", "")) != "playing":
-		get_tree().change_scene_to_file("res://scenes/room.tscn")
+		SceneTransition.change_scene("res://scenes/room.tscn")
 		return
 
 	_render()
@@ -150,7 +150,7 @@ func _maybe_enter_match(room: Dictionary) -> void:
 
 
 func _change_to_game_scene() -> void:
-	get_tree().change_scene_to_file("res://scenes/online/online_game.tscn")
+	SceneTransition.change_scene("res://scenes/online/online_game.tscn")
 
 
 func _room_summary(room: Dictionary) -> String:
