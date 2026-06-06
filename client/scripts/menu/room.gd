@@ -32,7 +32,7 @@ var _lobby_spawn_initialized := false
 func _ready() -> void:
 	var room: Dictionary = _network_client().get_current_room()
 	if room.is_empty():
-		get_tree().change_scene_to_file("res://scenes/online_menu.tscn")
+		SceneTransition.change_scene("res://scenes/online_menu.tscn")
 		return
 
 	_remote_container = Node2D.new()
@@ -196,7 +196,7 @@ func _on_current_room_changed(room: Dictionary) -> void:
 	if room.is_empty():
 		get_tree().paused = false
 		_remove_remote_players()
-		get_tree().change_scene_to_file("res://scenes/online_menu.tscn")
+		SceneTransition.change_scene("res://scenes/online_menu.tscn")
 		return
 
 	_configure_local_player(room)
@@ -240,8 +240,8 @@ func _maybe_enter_match(room: Dictionary) -> void:
 
 
 func _change_to_game_scene() -> void:
+	# Không dùng hiệu ứng fade của SceneTransition vì trong load_level đã có sẵn hiệu ứng slide :v
 	get_tree().change_scene_to_file("res://scenes/online/online_game.tscn")
-
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -257,7 +257,7 @@ func _on_select_map_pressed() -> void:
 	if not is_host:
 		return
 
-	get_tree().change_scene_to_file("res://scenes/world_select.tscn")
+	SceneTransition.change_scene("res://scenes/world_select.tscn")
 
 
 func _on_start_game_pressed() -> void:
@@ -281,7 +281,7 @@ func _on_exit_butt_pressed() -> void:
 		_network_client().current_room_changed.disconnect(on_room)
 
 	_network_client().leave_room()
-	get_tree().change_scene_to_file("res://scenes/online_menu.tscn")
+	SceneTransition.change_scene("res://scenes/online_menu.tscn")
 
 
 func _on_cancel_butt_pressed() -> void:

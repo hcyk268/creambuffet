@@ -84,7 +84,7 @@ func _on_main_menu_pressed() -> void:
 	_is_open = false
 	_set_game_input_enabled(true)
 	get_tree().paused = false
-	get_tree().change_scene_to_file(main_menu_scene)
+	SceneTransition.change_scene(main_menu_scene)
 
 
 func _set_game_input_enabled(enabled: bool) -> void:

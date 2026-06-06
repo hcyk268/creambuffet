@@ -94,7 +94,7 @@ func _on_restart_pressed() -> void:
 
 func _on_main_menu_pressed() -> void:
 	_prepare_to_leave_game()
-	get_tree().change_scene_to_file(main_menu_scene)
+	SceneTransition.change_scene(main_menu_scene)
 
 
 func _prepare_to_leave_game() -> void:

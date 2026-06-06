@@ -23,7 +23,7 @@ func _exit_tree() -> void:
 
 func _on_public_butt_pressed() -> void:
 	_network_client().request_public_rooms()
-	get_tree().change_scene_to_file("res://scenes/lobby.tscn")
+	SceneTransition.change_scene("res://scenes/lobby.tscn")
 
 
 func _on_private_butt_pressed() -> void:

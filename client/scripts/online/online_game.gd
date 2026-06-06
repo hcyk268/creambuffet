@@ -25,6 +25,7 @@ const NETWORK_SEND_INTERVAL := 0.05
 @onready var oxygen_label: Label = $CanvasLayer/WaterHud/OxygenLabel
 @onready var respawn_label: Label = $CanvasLayer/WaterHud/RespawnLabel
 @onready var time_label: Label = $CanvasLayer/TimeLabel
+@onready var level_transition: LevelTransition = $LevelTransition
 
 var _current_level: Node
 var _current_level_index := -1
@@ -124,6 +125,12 @@ func _physics_process(delta: float) -> void:
 
 
 func load_level(index: int) -> void:
+	if level_transition != null:
+		level_transition.transition(func(): _do_load_level(index))
+	else:
+		_do_load_level(index)
+	
+func _do_load_level(index: int) -> void:	
 	var load_result := _level_loader.load_level(
 		level_container,
 		_current_level,

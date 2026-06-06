@@ -14,7 +14,7 @@ func _ready() -> void:
 
 
 func _on_offline_butt_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/offline/offline_game.tscn")
+	SceneTransition.change_scene("res://scenes/offline/offline_game.tscn")
 
 
 func _on_start_butt_pressed() -> void:
@@ -64,7 +64,7 @@ func _submit_online_name() -> void:
 	if _network_client().has_method("set_display_name"):
 		_network_client().set_display_name(player_name)
 	_hide_online_name_prompt()
-	get_tree().change_scene_to_file("res://scenes/online_menu.tscn")
+	SceneTransition.change_scene("res://scenes/online_menu.tscn")
 
 
 func _network_client() -> Node:

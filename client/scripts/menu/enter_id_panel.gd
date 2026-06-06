@@ -64,7 +64,7 @@ func _on_current_room_changed(room: Dictionary) -> void:
 	_awaiting_join = false
 	hide()
 	id_input.clear()
-	get_tree().change_scene_to_file("res://scenes/room.tscn")
+	SceneTransition.change_scene("res://scenes/room.tscn")
 
 
 func _set_status(message: String) -> void:

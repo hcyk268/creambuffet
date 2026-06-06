@@ -9,11 +9,11 @@ const MAP_CARD_SCENE := preload("res://prefabs/ui/map_card.tscn")
 
 func _ready() -> void:
 	if _network_client().get_current_room().is_empty():
-		get_tree().change_scene_to_file("res://scenes/online_menu.tscn")
+		SceneTransition.change_scene("res://scenes/online_menu.tscn")
 		return
 
 	if not _network_client().is_room_host():
-		get_tree().change_scene_to_file("res://scenes/room.tscn")
+		SceneTransition.change_scene("res://scenes/room.tscn")
 		return
 
 	_title.text = "SELECT MAP"
@@ -49,11 +49,11 @@ func _on_map_card_pressed(map_id: String) -> void:
 		return
 
 	_network_client().set_room_map(map_id)
-	get_tree().change_scene_to_file("res://scenes/room.tscn")
+	SceneTransition.change_scene("res://scenes/room.tscn")
 
 
 func _on_back_butt_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/room.tscn")
+	SceneTransition.change_scene("res://scenes/room.tscn")
 
 
 func _network_client() -> Node:
