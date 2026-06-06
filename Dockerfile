@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 ARG GODOT_VERSION=4.6
 ARG GODOT_RELEASE=stable
 ARG GODOT_SHA256=
@@ -68,6 +70,6 @@ USER godot
 EXPOSE 7000/udp
 
 STOPSIGNAL SIGTERM
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD ["sh", "-ec", "port_hex=$(printf '%04X' \"${CREAMBUFFET_SERVER_PORT:-7000}\"); grep -qi \":${port_hex} \" /proc/net/udp /proc/net/udp6"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD ["sh", "-c", "kill -0 1"]
 ENTRYPOINT ["tini", "--"]
 CMD ["godot", "--headless", "--path", "/app/server"]

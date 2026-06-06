@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://c434kt84xvhpe"]
+
+[ext_resource type="Script" uid="uid://bihow5te2o85f" path="res://scripts/torch.gd" id="1_jgtk7"]
+[ext_resource type="Texture2D" uid="uid://dhgx23xqno2t6" path="res://assets/sprites/darksprite.png" id="2_t24cj"]
+[ext_resource type="Texture2D" uid="uid://brt1a7os4rxf4" path="res://assets/sprites/dark_light_aura.png" id="3_b4sym"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qv1na"]
+size = Vector2(10, 30)
+
+[node name="Torch" type="Area2D" unique_id=761477984]
+script = ExtResource("1_jgtk7")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=97686840]
+position = Vector2(-1, -1)
+shape = SubResource("RectangleShape2D_qv1na")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1641302133]
+position = Vector2(-1.0000005, -0.9999995)
+scale = Vector2(0.484375, 0.484375)
+texture = ExtResource("2_t24cj")
+vframes = 2
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=615986245]
+position = Vector2(-0.5000005, 9.536743e-07)
+scale = Vector2(0.12890625, 0.1640625)
+color = Color(0.8235294, 0.84313726, 0.57254905, 1)
+texture = ExtResource("3_b4sym")
+texture_scale = 4.0

@@ -329,5 +329,3 @@ static func _remove_dictionary_keys(target: Dictionary, raw_keys: Variant) -> vo
 
 	for raw_key in raw_keys:
 		target.erase(String(raw_key))
-
-

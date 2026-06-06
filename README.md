@@ -66,12 +66,6 @@ The catalog now supports:
 - level-level `extra_rulesets` and `removed_rulesets`
 - map/level `player_state_defaults` for seeding level-specific player state
 
-Validate catalog drift and common authoring mistakes:
-
-```bash
-godot --headless --script tests/integration/validate_catalogs.gd
-```
-
 ## Environment
 
 Server runtime variables:

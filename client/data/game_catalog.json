@@ -62,6 +62,11 @@
 	  "ruleset_id": "water_barrier_v1",
 	  "mechanic_id": "water_barrier_v1",
 	  "title": "Water Barrier"
+	},
+	"torch_buff_v1": {
+	  "ruleset_id": "torch_buff_v1",
+	  "mechanic_id": "torch_buff_v1",
+	  "title": "Torch and Light Buff"
 	}
   },
   "mechanic_definitions": {
@@ -259,6 +264,36 @@
         "barrier"
 	  ],
 	  "actions": {}
+	},
+	"torch_buff_v1": {
+	  "mechanic_id": "torch_buff_v1",
+	  "object_kinds": [
+		"torch",
+	    "buff"
+	  ],
+	  "actions": {
+		"buff_collect": {
+		  "object_kinds": [ "buff" ],
+		  "aliases": [
+	        "buff_collected"
+		  ],
+		  "required_payload": [],
+		  "server_handler": "torch_buff.collect"
+		},
+		"torch_toggle": {
+		  "object_kinds": [ "torch" ],
+		  "aliases": [
+	        "torch_toggled"
+		  ],
+		  "required_payload": [
+			{
+			  "field": "lit",
+			  "type": "bool"
+			}
+		  ],
+		  "server_handler": "torch_buff.toggle"
+		}
+	  }
 	}
   },
   "maps": {
@@ -378,24 +413,26 @@
 	"dark": {
 	  "map_id": "dark",
 	  "title": "Castle of Darkness",
-	  "selectable": false,
+	  "selectable": true,
 	  "wip": true,
 	  "thumbnail_path": "res://assets/sprites/maps/dark_map.png",
 	  "default_rulesets": [
 		"key_door_v1",
 		"goal_all_v1",
-        "hazard_respawn_v1"
+		"hazard_respawn_v1",
+		"torch_buff_v1"
 	  ],
 	  "allowed_rulesets": [
 		"key_door_v1",
 		"goal_all_v1",
 		"hazard_respawn_v1",
 		"push_box_v1",
+		"torch_buff_v1",
 		"button_platform_v1",
         "moving_platform_v1"
 	  ],
 	  "levels": [
-        "beginner_01"
+        "dark_01"
 	  ]
 	}
   },
@@ -5624,6 +5661,127 @@
 		  "target_value": false
 		}
 	  ]
+	},
+	"dark_01": {
+	  "level_id": "dark_01",
+	  "map_id": "dark",
+	  "index": 0,
+	  "scene_path": "res://scenes/online/dark/dark_01.tscn",
+	  "spawn_point": {
+		"x": -339.0,
+		"y": 16.0
+	  },
+	  "failure_rules": [],
+	  "extra_rulesets": [],
+	  "objects": {
+		"dark01_torch_01": {
+		  "kind": "torch",
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0,
+		  },
+		  "transform": {
+			"position": { "x": -295.0, "y": 43.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 10.0, "y": 30.0 },
+			"margin": 2.0
+		  }
+		},
+		"dark01_buff_01": {
+		  "kind": "buff",
+		  "buff_type": "light_radius",
+		  "value": 40.0,
+		  "duration": 15.0,
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": -62.0, "y": 68.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 30.0, "y": 30.0 },
+			"margin": 0.0
+		  }
+		},
+		"dark01_key": {
+		"kind": "key",
+			"state": {
+			"collected": false,
+			"collector_peer_id": 0
+			},
+		"transform": {
+		"position": { "x":37.0, "y": 16.0 }
+		},
+		"trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 12.0, "y": 24.0 },
+			"margin": 2.0
+		}
+		},
+		"dark01_door": {
+		  "kind": "door",
+		  "requires": {
+			"scope": "team",
+			"key_ids": [ "dark01_key" ]
+		  },
+		  "state": { "opened": false },
+		  "transform": {
+			"position": { "x": 184.0, "y": 69.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 24.0, "y": 24.0 },
+			"margin": 4.0
+		  }
+		},
+		"dark01_goal": {
+		  "kind": "goal",
+		  "state": { "players_inside": [] },
+		  "transform": {
+			"position": { "x": 184.0, "y": 69.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 20.0, "y": 23.0 },
+			"margin": 6.0
+		  }
+		},
+		"dark01_fall_reset": {
+		  "kind": "fall_reset",
+		  "state": {},
+		  "transform": {
+			"position": { "x": -436.0, "y": 204.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 21.0, "y": 41.0 },
+			"size": { "x": 1000.0, "y": 48.0 },
+			"margin": 4.0
+		  }
+		},
+	  },
+	  "completion_rules": [
+		{
+		  "type": "object_state_equals",
+		  "target_id": "dark01_door",
+		  "field": "opened",
+		  "value": true
+		},
+		{
+		  "type": "all_players_at_goal",
+		  "target_id": "dark01_goal"
+		}
+	  ],
+	  "links": []
 	}
   }
 }
