@@ -8,32 +8,6 @@ online maps and levels:
 
 Keep both files identical.
 
-Run the catalog guardrail before testing a changed catalog:
-
-```bash
-godot --headless --script tests/integration/validate_catalogs.gd
-godot --headless --path client --script res://tests/validate_sync_ids.gd
-```
-
-The check compares the client/server JSON files and validates common authoring
-mistakes: missing `scene_path`, missing object `kind`, object kinds without an
-enabled ruleset, invalid link endpoints or operations, invalid completion-rule
-targets, and actions without a `server_handler`. The client-side sync validator
-instantiates each online level scene and fails when a catalog object that
-should sync has no matching `sync_id`, when a network-relevant node is missing
-`sync_id`, or when duplicate `sync_id` values exist in a level scene.
-
-Shared gameplay-catalog contract logic now has one canonical mirrored helper:
-
-- `client/scripts/catalog/catalog_contract.gd`
-- `server/scripts/catalog/catalog_contract.gd`
-
-Put shared action/ruleset/object-kind validation helpers there. Keep
-`GameCatalog` focused on catalog loading, resolution, and side-specific helpers
-such as UI metadata. `tests/integration/validate_catalogs.gd` drift-checks the mirrored
-helper pair, and `tests/integration/test_catalog_contract.gd` runs deterministic logic
-checks for it.
-
 ## Mental Model
 
 Author gameplay data in three layers:
@@ -157,33 +131,6 @@ Current behavior:
 - This seeds runtime state for future mechanics such as HP, timers, stamina, or
   level-specific abilities.
 
-Oxygen example for water levels:
-
-```json
-"maps": {
-  "water": {
-    "map_id": "water",
-    "player_state_defaults": {
-      "max_oxygen": 10,
-      "oxygen": 10
-    }
-  }
-},
-"levels": {
-  "water_03": {
-    "level_id": "water_03",
-    "map_id": "water",
-    "player_state_overrides": {
-      "max_oxygen": 6,
-      "oxygen": 6
-    }
-  }
-}
-```
-
-With this setup, `water_03` starts each player with a smaller oxygen tank than
-the other water levels.
-
 Important:
 
 - Seeding `hp` in data does not automatically create HP gameplay by itself.
@@ -203,10 +150,7 @@ To add a new level:
 1. Create the scene.
 2. Add the level definition in `levels`.
 3. Add objects, completion rules, and links.
-4. Ensure every network-relevant node has a `sync_id` matching the catalog
-   `target_id`.
-5. Run both validation commands before playtesting.
-6. Only use `extra_rulesets` or `removed_rulesets` when the level differs from
+4. Only use `extra_rulesets` or `removed_rulesets` when the level differs from
    the map defaults.
 
 To add a new gameplay mechanic later:
@@ -214,25 +158,6 @@ To add a new gameplay mechanic later:
 1. Add a new ruleset and mechanic definition in the catalog.
 2. Add the corresponding server mechanic handler.
 3. Enable it through `default_rulesets` or `extra_rulesets`.
-
-## Authoring Checklist
-
-Use this checklist whenever a PR adds a new ruleset, object kind, action,
-event kind, or scene-backed network object:
-
-1. Add any new ids to the mirrored `client/scripts/catalog/game_ids.gd` and `server/scripts/catalog/game_ids.gd` helpers.
-2. If the change affects shared validation or normalization rules, update the mirrored `catalog_contract.gd` helpers and keep `tests/integration/validate_catalogs.gd` drift checks green.
-3. If the new object is network-relevant in a level scene, give it a `sync_id` and make sure the catalog `target_id` matches.
-4. If the new object kind or ruleset needs server behavior, add the `server_handler` entry and the corresponding registry/mechanic wiring.
-5. Add or update deterministic headless coverage for new validation logic, event shapes, or mechanic behavior before relying on manual playtesting.
-6. Re-run the catalog guardrails and client sync validator before opening the level in the editor:
-
-```bash
-godot --headless --script tests/integration/validate_catalogs.gd
-godot --headless --path client --script res://tests/validate_sync_ids.gd
-```
-
-7. Update this checklist if the project introduces a new authoring surface or a new class of runtime contract that level designers must keep in sync.
 
 ## Current Example
 

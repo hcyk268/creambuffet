@@ -54,10 +54,13 @@ const NAME_LABEL_OFFSET := Vector2(-120.0, -95.0)
 @onready var animation_player: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
 @onready var state_machine: Node = get_node_or_null("StateMachine")
 @onready var player_collision_shape: CollisionShape2D = get_node_or_null("CollisionShape2D") as CollisionShape2D
+@onready var torch_light: PointLight2D = $PointLight2D
 
 var spawn_position: Vector2
 var oxygen := 10.0
 var key_count := 0
+var has_torch := false
+var current_light_scale := 4.0
 var carried_key_color := Color.WHITE
 var network_peer_id := 0
 var display_name := ""
@@ -121,6 +124,7 @@ func _ready() -> void:
 	spawn_position = global_position
 	oxygen = max_oxygen
 	oxygen_changed.emit(oxygen, max_oxygen)
+	torch_light.enabled = false
 
 
 func _process(delta: float) -> void:
@@ -296,6 +300,18 @@ func collect_key(amount: int = 1, key_color: Color = Color.WHITE) -> void:
 	carried_key_color = key_color
 	_update_key_indicator()
 
+func collect_torch():
+	has_torch = true
+	torch_light.enabled = true
+	
+func add_light_buff():
+	if not has_torch:
+		torch_light.enabled = false
+		return
+
+	torch_light.enabled = true
+	current_light_scale += 3.0
+	torch_light.texture_scale = current_light_scale
 
 func set_carried_key_color(key_color: Color) -> void:
 	carried_key_color = key_color

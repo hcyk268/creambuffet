@@ -7,7 +7,7 @@ const HazardRespawnMechanic = preload("res://scripts/match/mechanics/hazard_resp
 const PushBoxMechanic = preload("res://scripts/match/mechanics/push_box_mechanic.gd")
 const ButtonPlatformMechanic = preload("res://scripts/match/mechanics/button_platform_mechanic.gd")
 const OxygenMechanic = preload("res://scripts/match/mechanics/oxygen_mechanic.gd")
-
+const TorchBuffMechanic = preload("res://scripts/match/mechanics/torch_buff_mechanic.gd")
 
 static func build() -> Dictionary:
 	var key_door := KeyDoorMechanic.new()
@@ -16,6 +16,7 @@ static func build() -> Dictionary:
 	var push_box := PushBoxMechanic.new()
 	var button_platform := ButtonPlatformMechanic.new()
 	var oxygen := OxygenMechanic.new()
+	var torch_buff := TorchBuffMechanic.new()
 
 	var mechanics := {
 		"key_door": key_door,
@@ -24,6 +25,7 @@ static func build() -> Dictionary:
 		"push_box": push_box,
 		"button_platform": button_platform,
 		"oxygen": oxygen,
+		"torch_buff": torch_buff,
 	}
 	var handlers := {
 		"key_door.collect": Callable(key_door, "apply_collect"),
@@ -35,6 +37,8 @@ static func build() -> Dictionary:
 		"button_platform.button_state": Callable(button_platform, "apply_button_state"),
 		"oxygen.collect": Callable(oxygen, "apply_collect"),
 		"oxygen.oxygen_depleted": Callable(oxygen, "apply_oxygen_depleted"),
+		"torch_buff.collect_torch":Callable(torch_buff,"apply_collect_torch"),
+		"torch_buff.collect_buff":Callable(torch_buff,"apply_collect_buff"),
 	}
 	var hooks := {
 		"automatic_player_runtime": [

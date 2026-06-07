@@ -53,10 +53,5 @@ creambuffet_deploy_key.pub
 # Debug / crash
 crash.log
 
-# Local refactor/agent planning docs
-PLAN*.md
-AGENT*.md
-AGENTS*.md
-
 docs/*
 !docs/CATALOG_AUTHORING.md

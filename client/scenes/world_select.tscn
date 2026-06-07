@@ -18,7 +18,7 @@ region_rect = Rect2(16, 13, 32, 16)
 texture = ExtResource("5_btn")
 region_rect = Rect2(16, 36, 32, 16)
 
-[node name="WorldSelect" type="Control"]
+[node name="WorldSelect" type="Control" unique_id=207630627]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -27,13 +27,13 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ws")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=288479927]
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 texture = ExtResource("2_bg")
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="." unique_id=1434219691]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -45,33 +45,33 @@ theme_override_constants/margin_top = 60
 theme_override_constants/margin_right = 100
 theme_override_constants/margin_bottom = 60
 
-[node name="Vbox" type="VBoxContainer" parent="Margin"]
+[node name="Vbox" type="VBoxContainer" parent="Margin" unique_id=1327180594]
 layout_mode = 2
 theme_override_constants/separation = 40
 
-[node name="Title" type="Label" parent="Margin/Vbox"]
+[node name="Title" type="Label" parent="Margin/Vbox" unique_id=2003241569]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_titlefont")
 theme_override_font_sizes/font_size = 110
 text = "SELECT MAP"
 horizontal_alignment = 1
 
-[node name="Scroll" type="ScrollContainer" parent="Margin/Vbox"]
+[node name="Scroll" type="ScrollContainer" parent="Margin/Vbox" unique_id=58835315]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 3
 
-[node name="Worlds" type="VBoxContainer" parent="Margin/Vbox/Scroll"]
+[node name="Worlds" type="VBoxContainer" parent="Margin/Vbox/Scroll" unique_id=953982256]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 50
 
-[node name="Bottom" type="HBoxContainer" parent="Margin/Vbox"]
+[node name="Bottom" type="HBoxContainer" parent="Margin/Vbox" unique_id=953953151]
 layout_mode = 2
 alignment = 1
 
-[node name="BackButt" type="Button" parent="Margin/Vbox/Bottom"]
+[node name="BackButt" type="Button" parent="Margin/Vbox/Bottom" unique_id=1587977856]
 custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_font")

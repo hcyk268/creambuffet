@@ -140,6 +140,15 @@ func apply_remote_world_event(
 		GameIds.EVENT_KEY_COLLECTED:
 			if _world_object_applier != null:
 				_world_object_applier.apply_key_collected(target_id, event_peer_id)
+		GameIds.EVENT_TORCH_COLLECTED:
+			if _world_object_applier != null:
+				var colected_player = player_for_peer.call(event_peer_id) if player_for_peer.is_valid() else null
+				_world_object_applier.apply_torch_collected(target_id, colected_player)
+		GameIds.EVENT_BUFF_COLLECTED:
+			if _world_object_applier != null:
+				var collected_peer_id = int(event.get("torch_owner_peer_id", -1))
+				var colected_player = player_for_peer.call(collected_peer_id) if player_for_peer.is_valid() else null
+				_world_object_applier.apply_buff_collected(target_id, colected_player)
 		GameIds.EVENT_DOOR_OPENED:
 			if _world_object_applier != null:
 				_world_object_applier.apply_door_opened(target_id, event_peer_id, event)
@@ -197,6 +206,16 @@ func _connect_level_nodes(node: Node) -> void:
 		var on_collected := Callable(self, "_on_key_collected").bind(node)
 		if not node.is_connected("collected", on_collected):
 			node.connect("collected", on_collected)
+			
+	if node.has_signal("torch_collected"):
+		var on_collected := Callable(self, "_on_torch_collected").bind(node)
+		if not node.is_connected("torch_collected", on_collected):
+			node.connect("torch_collected", on_collected)
+			
+	if node.has_signal("buff_collected"):
+		var on_collected := Callable(self, "_on_buff_collected").bind(node)
+		if not node.is_connected("buff_collected", on_collected):
+			node.connect("buff_collected", on_collected)
 
 	if node.has_signal("door_opened"):
 		var on_door_opened := Callable(self, "_on_door_opened").bind(node)
@@ -267,7 +286,40 @@ func _on_key_collected(body: Node, key_node: Node) -> void:
 		"velocity": _vector_to_packet(_player.velocity),
 	})
 
+func _on_torch_collected(body:Node, key_node:Node) -> void:
+	if not _can_send_local_world_event(body):
+		return
 
+	var target_id := _node_sync_id(key_node)
+	if target_id.is_empty():
+		push_warning("Ignoring torch_collect request because torch sync_id is missing.")
+		return
+
+	_network_client.send_world_event({
+		"action": GameIds.ACTION_COLLECT_TORCH,
+		"level_id": _current_level_id,
+		"target_id": target_id,
+		"position": _vector_to_packet(_player.global_position),
+		"velocity": _vector_to_packet(_player.velocity),
+	})
+	
+func _on_buff_collected(body:Node, key_node:Node) -> void:
+	if not _can_send_local_world_event(body):
+		return
+
+	var target_id := _node_sync_id(key_node)
+	if target_id.is_empty():
+		push_warning("Ignoring buff_collect request because buff sync_id is missing.")
+		return
+
+	_network_client.send_world_event({
+		"action": GameIds.ACTION_COLLECT_BUFF,
+		"level_id": _current_level_id,
+		"target_id": target_id,
+		"position": _vector_to_packet(_player.global_position),
+		"velocity": _vector_to_packet(_player.velocity),
+	})
+	
 func _on_door_opened(door_node: Node) -> void:
 	if not _can_send_local_world_event():
 		return

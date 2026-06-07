@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://cw1u2oye0xw6u"]
+
+[ext_resource type="Texture2D" uid="uid://dio7bcbq02yqu" path="res://assets/sprites/dark_tiles_map.png" id="1_ffnj2"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5k8kx"]
+texture = ExtResource("1_ffnj2")
+0:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_dv1ir"]
+sources/0 = SubResource("TileSetAtlasSource_5k8kx")
+
+[node name="Terrains" type="TileMapLayer" unique_id=554708340]
+tile_set = SubResource("TileSet_dv1ir")

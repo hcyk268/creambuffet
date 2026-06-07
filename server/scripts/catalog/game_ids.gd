@@ -9,6 +9,8 @@ const ROOM_VISIBILITY_PRIVATE := "private"
 
 const ACTION_COLLECT := "collect"
 const ACTION_OPEN := "open"
+const ACTION_COLLECT_TORCH := "collect_torch"
+const ACTION_COLLECT_BUFF := "collect_buff"
 const ACTION_PLAYER_DEATH := "player_death"
 const ACTION_BUTTON_STATE := "button_state"
 const ACTION_PUSH_BOX_STATE := "push_box_state"
@@ -29,6 +31,8 @@ const EVENT_OXYGEN_COLLECTED := "oxygen_collected"
 const EVENT_TEAM_RESPAWN_BUDGET_CHANGED := "team_respawn_budget_changed"
 const EVENT_LEVEL_FAILED := "level_failed"
 const EVENT_OBJECT_STATE_CHANGED := "object_state_changed"
+const EVENT_TORCH_COLLECTED := "torch_collected"
+const EVENT_BUFF_COLLECTED := "buff_collected"
 
 const OBJECT_KIND_KEY := "key"
 const OBJECT_KIND_DOOR := "door"
@@ -48,6 +52,8 @@ const OBJECT_KIND_WATER_BARRIER := "water_barrier"
 const OBJECT_KIND_BARRIER := "barrier"
 const OBJECT_KIND_HAZARD := "hazard"
 const OBJECT_KIND_FALL_RESET := "fall_reset"
+const OBJECT_KIND_TORCH := "torch"
+const OBJECT_KIND_BUFF := "buff"
 
 const RULESET_KEY_DOOR_V1 := "key_door_v1"
 const RULESET_GOAL_ALL_V1 := "goal_all_v1"
@@ -56,6 +62,7 @@ const RULESET_PUSH_BOX_V1 := "push_box_v1"
 const RULESET_BUTTON_PLATFORM_V1 := "button_platform_v1"
 const RULESET_MOVING_PLATFORM_V1 := "moving_platform_v1"
 const RULESET_OXYGEN_V1 := "oxygen_v1"
+const RULESET_TORCH_BUFF := "torch_buff_v1"
 
 const DOOR_KINDS := [
 	OBJECT_KIND_DOOR,
@@ -82,7 +89,10 @@ const HAZARD_KINDS := [
 	OBJECT_KIND_HAZARD,
 	OBJECT_KIND_FALL_RESET,
 ]
-
+const LIGHT_KINDS := [
+	OBJECT_KIND_TORCH,
+	OBJECT_KIND_BUFF
+]
 
 static func is_door_kind(kind: String) -> bool:
 	return DOOR_KINDS.has(kind)
@@ -106,3 +116,6 @@ static func is_barrier_kind(kind: String) -> bool:
 
 static func is_hazard_kind(kind: String) -> bool:
 	return HAZARD_KINDS.has(kind)
+
+static func is_light_kind(kind: String) -> bool:
+	return LIGHT_KINDS.has(kind)
