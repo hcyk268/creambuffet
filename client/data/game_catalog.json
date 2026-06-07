@@ -5681,7 +5681,7 @@
 			"collector_peer_id": 0,
 		  },
 		  "transform": {
-			"position": { "x": -295.0, "y": 43.0 }
+			"position": { "x": -289.0, "y": 59.0 }
 		  },
 		  "trigger": {
 			"shape": "rectangle",
