@@ -13,7 +13,7 @@ const STEP := 10
 var music_volume := 100
 var sfx_volume := 100
 var window_mode_index := 0
-var window_size_index := 2
+var window_size_index := 0
 var show_fps := false
 
 
@@ -55,6 +55,7 @@ func _change_sfx(delta: int) -> void:
 func _change_window_mode(delta: int) -> void:
 	window_mode_index = _wrap_index(window_mode_index + delta, OptionsState.WINDOW_MODES.size())
 	_update_displays()
+	OptionsState.apply_display(_current_settings())
 
 
 func _change_window_size(delta: int) -> void:

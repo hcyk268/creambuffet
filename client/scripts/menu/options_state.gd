@@ -20,7 +20,7 @@ const DEFAULT_SETTINGS := {
 	"music_volume": 100,
 	"sfx_volume": 100,
 	"window_mode_index": WINDOW_MODE_WINDOWED,
-	"window_size_index": 2,
+	"window_size_index": 0,
 	"show_fps": false,
 }
 
@@ -58,6 +58,10 @@ static func apply_runtime(settings: Dictionary) -> void:
 	var normalized := normalize_settings(settings)
 	_apply_audio(normalized)
 	_apply_display(normalized)
+
+
+static func apply_display(settings: Dictionary) -> void:
+	_apply_display(normalize_settings(settings))
 
 
 static func normalize_settings(raw_settings: Dictionary) -> Dictionary:
@@ -107,6 +111,8 @@ static func _apply_display(settings: Dictionary) -> void:
 		WINDOW_MODE_WINDOWED:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_RESIZE_DISABLED, false)
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, false)
 			DisplayServer.window_set_size(window_size)
 		WINDOW_MODE_FULLSCREEN:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
