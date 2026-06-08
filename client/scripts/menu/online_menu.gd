@@ -37,6 +37,8 @@ func _on_host_butt_pressed() -> void:
 
 
 func _on_option_butt_pressed() -> void:
+	if option_panel.has_method("reload_settings"):
+		option_panel.reload_settings()
 	option_panel.show()
 
 
