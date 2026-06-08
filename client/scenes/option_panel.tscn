@@ -75,9 +75,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -800.0
-offset_top = -440.0
+offset_top = -500.0
 offset_right = 800.0
-offset_bottom = 440.0
+offset_bottom = 500.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("1_vu216")
@@ -90,9 +90,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -800.0
-offset_top = -440.0
+offset_top = -500.0
 offset_right = 800.0
-offset_bottom = 440.0
+offset_bottom = 500.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_a7rhy")
@@ -104,7 +104,7 @@ theme_override_constants/margin_bottom = 40
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer" unique_id=700364336]
 layout_mode = 2
 theme = SubResource("Theme_7acw6")
-theme_override_constants/separation = 40
+theme_override_constants/separation = 18
 
 [node name="Label" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=1945909511]
 layout_mode = 2
@@ -122,7 +122,7 @@ size_flags_horizontal = 4
 size_flags_vertical = 3
 theme = SubResource("Theme_cj54m")
 theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 70
+theme_override_constants/v_separation = 22
 columns = 2
 
 [node name="MusicLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=491554248]
@@ -279,6 +279,78 @@ horizontal_alignment = 1
 vertical_alignment = 1
 justification_flags = 35
 
+[node name="WindowSizeLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1470035510]
+layout_mode = 2
+text = "Window size"
+
+[node name="HBox4" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1831970746]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="WorldLineEdit" type="LineEdit" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox4" unique_id=1466231990]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+text = "1920x1080"
+alignment = 1
+editable = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox4" unique_id=2048441570]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="UpButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox4/VBoxContainer" unique_id=165458711]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+
+[node name="DownButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox4/VBoxContainer" unique_id=1391769548]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+flip_v = true
+
+[node name="ShowFPSLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1683059113]
+layout_mode = 2
+text = "Show FPS"
+
+[node name="HBox5" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1564015449]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="WorldLineEdit" type="LineEdit" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox5" unique_id=1693550020]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+text = "Disabled"
+alignment = 1
+editable = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox5" unique_id=353685829]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="UpButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox5/VBoxContainer" unique_id=1502231148]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+
+[node name="DownButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox5/VBoxContainer" unique_id=1932259797]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_l320k")
+texture_pressed = SubResource("AtlasTexture_2fppi")
+texture_hover = SubResource("AtlasTexture_26u3n")
+stretch_mode = 1
+flip_v = true
+
 [node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=1309884379]
 layout_mode = 2
 theme_override_constants/separation = 30
@@ -294,6 +366,16 @@ theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Apply
 "
+
+[node name="ResetButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=169773591]
+custom_minimum_size = Vector2(240, 120)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_4lof6")
+theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Reset"
 
 [node name="BackButt" type="Button" parent="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer" unique_id=629571703]
 custom_minimum_size = Vector2(240, 120)
@@ -312,5 +394,10 @@ text = "Back
 [connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/VBoxContainer/DownButt" to="." method="_on_sfx_down_pressed"]
 [connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3/VBoxContainer/UpButt" to="." method="_on_join_up_pressed"]
 [connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox3/VBoxContainer/DownButt" to="." method="_on_join_down_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox4/VBoxContainer/UpButt" to="." method="_on_window_size_up_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox4/VBoxContainer/DownButt" to="." method="_on_window_size_down_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox5/VBoxContainer/UpButt" to="." method="_on_show_fps_up_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox5/VBoxContainer/DownButt" to="." method="_on_show_fps_down_pressed"]
 [connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/ApplyButt" to="." method="_on_apply_butt_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/ResetButt" to="." method="_on_reset_butt_pressed"]
 [connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/BackButt" to="." method="_on_back_butt_pressed"]
