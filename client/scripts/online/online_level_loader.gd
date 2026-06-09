@@ -108,7 +108,21 @@ func _setup_player_spawn(player: CharacterBody2D, level_root: Node) -> void:
 		player.set_key_count(0)
 	else:
 		player.key_count = 0
+	if player.has_method("turn_off_light"):
+		player.turn_off_light()
+	_turn_off_remote_player_lights(level_root, player)
 
+func _turn_off_remote_player_lights(level_root: Node, exclude_player: Node) -> void:
+	var online_game_root = level_root.get_parent().get_parent()
+	var remote_players_container = online_game_root.get_node_or_null("RemotePlayers")
+	if remote_players_container == null:
+		return
+	for node in remote_players_container.get_children():
+		if node == exclude_player:
+			continue
+		if node is CharacterBody2D and "is_remote_player" in node and node.is_remote_player:
+			if node.has_method("turn_off_light"):
+				node.turn_off_light()
 
 func _register_synced_nodes(synced_node_registry, level_root: Node, level_id: String) -> void:
 	if synced_node_registry == null:

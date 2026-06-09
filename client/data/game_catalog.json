@@ -432,7 +432,8 @@
         "moving_platform_v1"
 	  ],
 	  "levels": [
-        "dark_01"
+		"dark_01",
+		"dark_02"
 	  ]
 	}
   },
@@ -5694,7 +5695,6 @@
 		  "kind": "buff",
 		  "buff_type": "light_radius",
 		  "value": 40.0,
-		  "duration": 15.0,
 		  "state": {
 			"collected": false,
 			"collector_peer_id": 0
@@ -5765,6 +5765,126 @@
 			"shape": "rectangle",
 			"offset": { "x": 21.0, "y": 41.0 },
 			"size": { "x": 1000.0, "y": 48.0 },
+			"margin": 4.0
+		  }
+		},
+	  },
+	  "completion_rules": [
+		{
+		  "type": "object_state_equals",
+		  "target_id": "dark01_door",
+		  "field": "opened",
+		  "value": true
+		},
+		{
+		  "type": "all_players_at_goal",
+		  "target_id": "dark01_goal"
+		}
+	  ],
+	  "links": []
+	},
+	"dark_02": {
+	  "level_id": "dark_02",
+	  "map_id": "dark",
+	  "index": 1,
+	  "scene_path": "res://scenes/online/dark/dark_02.tscn",
+	  "spawn_point": {
+		"x": -278.0,
+		"y": 7.0
+	  },
+	  "failure_rules": [],
+	  "extra_rulesets": [],
+	  "objects": {
+		"dark02_torch_01": {
+		  "kind": "torch",
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0,
+		  },
+		  "transform": {
+			"position": { "x": -197.0, "y": 59.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 10.0, "y": 30.0 },
+			"margin": 2.0
+		  }
+		},
+		"dark02_buff_01": {
+		  "kind": "buff",
+		  "buff_type": "light_radius",
+		  "value": 40.0,
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": 15.0, "y": -48.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 30.0, "y": 30.0 },
+			"margin": 0.0
+		  }
+		},
+		"dark02_key": {
+			"kind": "key",
+				"state": {
+				"collected": false,
+				"collector_peer_id": 0
+				},
+			"transform": {
+			"position": { "x":-67.0, "y": -50.0 }
+			},
+			"trigger": {
+				"shape": "rectangle",
+				"offset": { "x": 0.0, "y": 0.0 },
+				"size": { "x": 12.0, "y": 24.0 },
+				"margin": 2.0
+			}
+		},
+		"dark02_door": {
+		  "kind": "door",
+		  "requires": {
+			"scope": "team",
+			"key_ids": [ "dark02_key" ]
+		  },
+		  "state": { "opened": false },
+		  "transform": {
+			"position": { "x": 326.0, "y": 66.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 24.0, "y": 24.0 },
+			"margin": 4.0
+		  }
+		},
+		"dark02_goal": {
+		  "kind": "goal",
+		  "state": { "players_inside": [] },
+		  "transform": {
+			"position": { "x": 326.0, "y": 66.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 20.0, "y": 23.0 },
+			"margin": 6.0
+		  }
+		},
+		"dark02_fall_reset": {
+		  "kind": "fall_reset",
+		  "state": {},
+		  "transform": {
+			"position": { "x": 56.0, "y": 218.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 470.0, "y": 40.0 },
 			"margin": 4.0
 		  }
 		},

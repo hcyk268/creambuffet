@@ -600,3 +600,9 @@ func _collect_push_intents() -> void:
 			"direction": signf(lateral_push),
 			"strength": clampf(absf(velocity.x) / maxf(SPEED, 0.001), 0.35, 1.0),
 		}
+
+func turn_off_light() -> void:
+	torch_light.enabled = false
+	has_torch = false
+	current_light_scale = 4.0
+	torch_light.texture_scale = current_light_scale

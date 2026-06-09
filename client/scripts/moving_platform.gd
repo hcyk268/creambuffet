@@ -69,7 +69,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var axis := _movement_axis()
-	var half_range := maxf(diameter, 0.0) * 0.5
+	var half_range := maxf(diameter, 0.0) * 0.5 * scale.x
 	var offset_along_axis := (global_position - _origin).dot(axis)
 	var next_offset := offset_along_axis + (_travel_direction * MOVE_SPEED * delta)
 	if next_offset > half_range:
