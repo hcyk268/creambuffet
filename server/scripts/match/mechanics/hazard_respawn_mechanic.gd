@@ -22,6 +22,8 @@ func apply_automatic_fall_reset(match_state, peer_id: int) -> Array[Dictionary]:
 			continue
 		if object_kind == GameIds.OBJECT_KIND_HAZARD and not bool(object_data.get("automatic", true)):
 			continue
+		if object_kind == GameIds.OBJECT_KIND_CHAINSAW:
+			continue
 		if not match_state.can_player_interact_with_trigger(peer_id, target_id) and not match_state.did_player_cross_trigger_since_last_update(peer_id, target_id):
 			continue
 

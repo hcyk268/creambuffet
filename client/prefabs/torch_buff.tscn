@@ -14,7 +14,7 @@ sync_id = "dark01_buff_01"
 position = Vector2(3.874302e-07, -9.536743e-07)
 scale = Vector2(0.3125, 0.31249997)
 texture = ExtResource("1_875ce")
-vframes = 2
+vframes = 3
 frame = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1403598348]

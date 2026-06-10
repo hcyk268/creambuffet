@@ -135,13 +135,15 @@
 	  "mechanic_id": "hazard_respawn_v1",
 	  "object_kinds": [
 		"hazard",
-        "fall_reset"
+		"fall_reset",
+		"chainsaw"
 	  ],
 	  "actions": {
 		"player_death": {
 		  "object_kinds": [
 			"hazard",
-            "fall_reset"
+			"fall_reset",
+			"chainsaw"
 		  ],
 		  "aliases": [
             "player_died"
@@ -266,35 +268,36 @@
 	  "actions": {}
 	},
 	"torch_buff_v1": {
-	  "mechanic_id": "torch_buff_v1",
+  "mechanic_id": "torch_buff_v1",
+  "object_kinds": [
+	"torch",
+    "buff"
+  ],
+  "actions": {
+	"collect_torch": {
 	  "object_kinds": [
-		"torch",
-	    "buff"
+        "torch"
 	  ],
-	  "actions": {
-		"buff_collect": {
-		  "object_kinds": [ "buff" ],
-		  "aliases": [
-	        "buff_collected"
-		  ],
-		  "required_payload": [],
-		  "server_handler": "torch_buff.collect"
-		},
-		"torch_toggle": {
-		  "object_kinds": [ "torch" ],
-		  "aliases": [
-	        "torch_toggled"
-		  ],
-		  "required_payload": [
-			{
-			  "field": "lit",
-			  "type": "bool"
-			}
-		  ],
-		  "server_handler": "torch_buff.toggle"
-		}
-	  }
+	  "aliases": [
+		"torch_collect",
+        "torch_collected"
+	  ],
+	  "required_payload": [],
+	  "server_handler": "torch_buff.collect_torch"
+	},
+	"collect_buff": {
+	  "object_kinds": [
+        "buff"
+	  ],
+	  "aliases": [
+		"buff_collect",
+        "buff_collected"
+	  ],
+	  "required_payload": [],
+	  "server_handler": "torch_buff.collect_buff"
 	}
+  }
+}
   },
   "maps": {
 	"beginner": {
@@ -433,7 +436,8 @@
 	  ],
 	  "levels": [
 		"dark_01",
-		"dark_02"
+		"dark_02",
+		"dark_03"
 	  ]
 	}
   },
@@ -5695,6 +5699,7 @@
 		  "kind": "buff",
 		  "buff_type": "light_radius",
 		  "value": 40.0,
+		  "duration": 15.0,
 		  "state": {
 			"collected": false,
 			"collector_peer_id": 0
@@ -5892,13 +5897,146 @@
 	  "completion_rules": [
 		{
 		  "type": "object_state_equals",
-		  "target_id": "dark01_door",
+		  "target_id": "dark02_door",
 		  "field": "opened",
 		  "value": true
 		},
 		{
 		  "type": "all_players_at_goal",
-		  "target_id": "dark01_goal"
+		  "target_id": "dark02_goal"
+		}
+	  ],
+	  "links": []
+	},
+	"dark_03": {
+	  "level_id": "dark_03",
+	  "map_id": "dark",
+	  "index": 2,
+	  "scene_path": "res://scenes/online/dark/dark_03.tscn",
+	  "spawn_point": {
+		"x": -188.0,
+		"y": 5.0
+	  },
+	  "failure_rules": [],
+	  "extra_rulesets": [],
+	  "objects": {
+		"dark03_torch": {
+		  "kind": "torch",
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0,
+		  },
+		  "transform": {
+			"position": { "x": -135.0, "y": 46.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 10.0, "y": 30.0 },
+			"margin": 2.0
+		  }
+		},
+		"dark03_buff": {
+		  "kind": "buff",
+		  "buff_type": "light_radius",
+		  "value": 40.0,
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": 10.0, "y": 4.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 30.0, "y": 30.0 },
+			"margin": 0.0
+		  }
+		},
+		"dark03_key": {
+			"kind": "key",
+				"state": {
+				"collected": false,
+				"collector_peer_id": 0
+				},
+			"transform": {
+			"position": { "x":213.0, "y": 6.0 }
+			},
+			"trigger": {
+				"shape": "rectangle",
+				"offset": { "x": 0.0, "y": 0.0 },
+				"size": { "x": 12.0, "y": 24.0 },
+				"margin": 2.0
+			}
+		},
+		"dark03_door": {
+		  "kind": "door",
+		  "requires": {
+			"scope": "team",
+			"key_ids": [ "dark03_key" ]
+		  },
+		  "state": { "opened": false },
+		  "transform": {
+			"position": { "x": 559.0 , "y": -44.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 24.0, "y": 24.0 },
+			"margin": 4.0
+		  }
+		},
+		"dark03_goal": {
+		  "kind": "goal",
+		  "state": { "players_inside": [] },
+		  "transform": {
+			"position": { "x": 559.0 , "y": -44.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 20.0, "y": 23.0 },
+			"margin": 6.0
+		  }
+		},
+		"dark03_fall_reset": {
+		  "kind": "fall_reset",
+		  "state": {},
+		  "transform": {
+			"position": { "x": 2.0, "y": 159.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 136.0, "y": 40.0 },
+			"margin": 4.0
+		  }
+		},
+		"dark_03_chainsaw":{
+			"kind": "chainsaw",
+			  "state": {},
+			  "transform": {
+				"position": { "x": 325.25, "y": 44.0 }
+			  },
+			  "trigger": {
+				"shape": "rectangle",
+				"offset": { "x": 0.0, "y": 0.0 },
+				"size": { "x": 40.0, "y": 40.0 },
+				"margin": 0.0
+			  }
+			}
+	  },
+	  "completion_rules": [
+		{
+		  "type": "object_state_equals",
+		  "target_id": "dark03_door",
+		  "field": "opened",
+		  "value": true
+		},
+		{
+		  "type": "all_players_at_goal",
+		  "target_id": "dark03_goal"
 		}
 	  ],
 	  "links": []
