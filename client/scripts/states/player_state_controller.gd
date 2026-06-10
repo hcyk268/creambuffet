@@ -99,6 +99,41 @@ func play_animation(animation: String) -> void:
 		_player.play_player_animation(animation)
 
 
+func play_jump_sfx() -> void:
+	if is_ready() and _player.has_method("play_jump_sfx"):
+		_player.play_jump_sfx()
+
+
+func play_land_sfx() -> void:
+	if is_ready() and _player.has_method("play_land_sfx"):
+		_player.play_land_sfx()
+
+
+func play_death_sfx() -> void:
+	if is_ready() and _player.has_method("play_death_sfx"):
+		_player.play_death_sfx()
+
+
+func play_respawn_sfx() -> void:
+	if is_ready() and _player.has_method("play_respawn_sfx"):
+		_player.play_respawn_sfx()
+
+
+func play_key_pickup_sfx() -> void:
+	if is_ready() and _player.has_method("play_key_pickup_sfx"):
+		_player.play_key_pickup_sfx()
+
+
+func start_walk_run_sfx() -> void:
+	if is_ready() and _player.has_method("start_walk_run_sfx"):
+		_player.start_walk_run_sfx()
+
+
+func stop_walk_run_sfx() -> void:
+	if is_ready() and _player.has_method("stop_walk_run_sfx"):
+		_player.stop_walk_run_sfx()
+
+
 func face_direction(direction: float) -> void:
 	if is_ready() and _player.has_method("set_facing_direction"):
 		_player.set_facing_direction(direction)

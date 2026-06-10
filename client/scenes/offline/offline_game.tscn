@@ -13,6 +13,8 @@ levels = Array[PackedScene]([ExtResource("3_jfj5x")])
 
 [node name="LevelContainer" type="Node2D" parent="."]
 
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+
 [node name="Player" parent="." instance=ExtResource("2_w5dja")]
 
 [node name="Camera2D" type="Camera2D" parent="Player"]

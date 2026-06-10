@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://brhiyfbhb0ipk"
+path="res://.godot/imported/Co-op background.mp3-9753d0048183aaea0588d6d2f80f73eb.mp3str"
+
+[deps]
+
+source_file="res://assets/sound/Co-op background.mp3"
+dest_files=["res://.godot/imported/Co-op background.mp3-9753d0048183aaea0588d6d2f80f73eb.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

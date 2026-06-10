@@ -3,16 +3,20 @@ extends StaticBody2D
 signal door_opened
 signal door_closed
 
+const DOOR_OPEN_SFX := preload("res://assets/sound/open door.wav")
+
 @export var sync_id := ""
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var detection_area: Area2D = $DetectionArea
+@onready var sfx_player: AudioStreamPlayer = get_node_or_null("SfxPlayer") as AudioStreamPlayer
 
 var is_open := false
 
 
 func _ready() -> void:
 	add_to_group("level_door")
+	_configure_audio()
 	detection_area.body_entered.connect(_on_detection_area_body_entered)
 	_apply_state()
 
@@ -60,6 +64,21 @@ func _on_detection_area_body_entered(body: Node) -> void:
 
 func _apply_state() -> void:
 	animated_sprite.play("open" if is_open else "closed")
+	if is_open:
+		_play_sfx(DOOR_OPEN_SFX)
 	# body_entered signals can run during physics query flushing, so defer shape toggles.
 	collision_shape.set_deferred("disabled", is_open)
 	detection_area.set_deferred("monitoring", not is_open)
+
+
+func _configure_audio() -> void:
+	if sfx_player != null:
+		sfx_player.stream = DOOR_OPEN_SFX
+
+
+func _play_sfx(stream: AudioStream) -> void:
+	if sfx_player == null or stream == null:
+		return
+
+	sfx_player.stream = stream
+	sfx_player.play()

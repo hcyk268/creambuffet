@@ -16,6 +16,8 @@ lock_rotation = true
 mass = 1.2
 linear_damp = 1.0
 
+[node name="SfxPlayer" type="AudioStreamPlayer" parent="."]
+
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = SubResource("AtlasTexture_push_box")
 

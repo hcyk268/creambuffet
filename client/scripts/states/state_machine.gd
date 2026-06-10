@@ -3,6 +3,8 @@ class_name StateMachine
 
 const PlayerStateController = preload("res://scripts/states/player_state_controller.gd")
 
+signal state_transitioned(previous_state_name: StringName, new_state_name: StringName)
+
 @export var initialState : State
 
 var currentState : State
@@ -56,6 +58,7 @@ func _state_transition(oldState: State, newStateName: String) -> void:
 
 	newState.enter()
 	currentState = newState
+	state_transitioned.emit(StringName(oldState.name.to_lower()), StringName(newState.name.to_lower()))
 
 
 func _resolve_initial_state() -> State:

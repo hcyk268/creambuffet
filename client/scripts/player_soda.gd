@@ -11,6 +11,12 @@ const BUBBLE_EFFECT_SCENE := preload("res://prefabs/bubble_effect.tscn")
 const PlayerBubbleEffects = preload("res://scripts/player_bubble_effects.gd")
 const PlayerNetworkRuntime = preload("res://scripts/player_network_runtime.gd")
 const PlayerWaterRuntime = preload("res://scripts/player_water_runtime.gd")
+const JUMP_SFX := preload("res://assets/sound/jump.wav")
+const LAND_SFX := preload("res://assets/sound/land.wav")
+const DEATH_SFX := preload("res://assets/sound/death-fall.wav")
+const RESPAWN_SFX := preload("res://assets/sound/respawn.wav")
+const KEY_PICKUP_SFX := preload("res://assets/sound/key pickup.wav")
+const WALK_RUN_SFX := preload("res://assets/sound/walk-run.wav")
 const LAND_SPRITE_HFRAMES := 5
 const LAND_SPRITE_VFRAMES := 6
 const SWIM_SPRITE_HFRAMES := 4
@@ -54,6 +60,12 @@ const NAME_LABEL_OFFSET := Vector2(-120.0, -95.0)
 @onready var animation_player: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
 @onready var state_machine: Node = get_node_or_null("StateMachine")
 @onready var player_collision_shape: CollisionShape2D = get_node_or_null("CollisionShape2D") as CollisionShape2D
+@onready var jump_sfx: AudioStreamPlayer = get_node_or_null("JumpSfx") as AudioStreamPlayer
+@onready var land_sfx: AudioStreamPlayer = get_node_or_null("LandSfx") as AudioStreamPlayer
+@onready var death_sfx: AudioStreamPlayer = get_node_or_null("DeathSfx") as AudioStreamPlayer
+@onready var respawn_sfx: AudioStreamPlayer = get_node_or_null("RespawnSfx") as AudioStreamPlayer
+@onready var key_pickup_sfx: AudioStreamPlayer = get_node_or_null("KeyPickupSfx") as AudioStreamPlayer
+@onready var walk_run_sfx: AudioStreamPlayer = get_node_or_null("WalkRunSfx") as AudioStreamPlayer
 @onready var torch_light: PointLight2D = $PointLight2D
 
 var spawn_position: Vector2
@@ -73,6 +85,7 @@ var _is_eliminated := false
 var _bubble_effects: PlayerBubbleEffects
 var _network_runtime: PlayerNetworkRuntime
 var _water_runtime: PlayerWaterRuntime
+var _current_state_name := ""
 
 
 func _ready() -> void:
@@ -116,6 +129,11 @@ func _ready() -> void:
 	)
 	_water_runtime.set_water_jet_side_sign(_random_water_jet_side_sign())
 	_apply_network_control_mode()
+	_configure_audio_players()
+	if state_machine != null and state_machine.has_signal("state_transitioned"):
+		var transition_callback := Callable(self, "_on_state_transitioned")
+		if not state_machine.is_connected("state_transitioned", transition_callback):
+			state_machine.connect("state_transitioned", transition_callback)
 	if name_label != null:
 		name_label.top_level = true
 	_update_name_label()
@@ -168,6 +186,8 @@ func set_input_enabled(enabled: bool) -> void:
 
 func set_eliminated(eliminated: bool) -> void:
 	_is_eliminated = eliminated
+	if eliminated:
+		stop_walk_run_sfx()
 	_update_elimination_state()
 
 
@@ -176,11 +196,15 @@ func is_eliminated() -> bool:
 
 
 func die() -> void:
+	stop_walk_run_sfx()
+	play_death_sfx()
 	died.emit()
 	respawn()
 
 
 func respawn() -> void:
+	stop_walk_run_sfx()
+	play_respawn_sfx()
 	_is_eliminated = false
 	_update_elimination_state()
 	global_position = spawn_position
@@ -299,6 +323,7 @@ func collect_key(amount: int = 1, key_color: Color = Color.WHITE) -> void:
 	key_count += amount
 	carried_key_color = key_color
 	_update_key_indicator()
+	play_key_pickup_sfx()
 
 func collect_torch():
 	has_torch = true
@@ -338,6 +363,106 @@ func play_player_animation(animation: String) -> void:
 	_apply_sprite_sheet_for_animation(animation)
 	if animation_player.current_animation != animation or not animation_player.is_playing():
 		animation_player.play(animation)
+
+
+func play_jump_sfx() -> void:
+	if not _should_play_local_sfx():
+		return
+	_play_one_shot_sfx(jump_sfx)
+
+
+func play_land_sfx() -> void:
+	if not _should_play_local_sfx():
+		return
+	_play_one_shot_sfx(land_sfx)
+
+
+func play_death_sfx() -> void:
+	if not _should_play_local_sfx():
+		return
+	_play_one_shot_sfx(death_sfx)
+
+
+func play_respawn_sfx() -> void:
+	if not _should_play_local_sfx():
+		return
+	_play_one_shot_sfx(respawn_sfx)
+
+
+func play_key_pickup_sfx() -> void:
+	if not _should_play_local_sfx():
+		return
+	_play_one_shot_sfx(key_pickup_sfx)
+
+
+func start_walk_run_sfx() -> void:
+	if not _should_play_local_sfx():
+		return
+	_current_state_name = "run"
+	_play_looping_sfx(walk_run_sfx)
+
+
+func stop_walk_run_sfx() -> void:
+	if not _should_play_local_sfx():
+		return
+	if walk_run_sfx != null and walk_run_sfx.playing:
+		walk_run_sfx.stop()
+
+
+func _on_state_transitioned(previous_state_name: StringName, new_state_name: StringName) -> void:
+	_current_state_name = String(new_state_name)
+	if String(new_state_name) == "run":
+		start_walk_run_sfx()
+	else:
+		stop_walk_run_sfx()
+
+	if _is_landing_transition(String(previous_state_name), String(new_state_name)):
+		play_land_sfx()
+
+
+func _is_landing_transition(previous_state_name: String, new_state_name: String) -> bool:
+	if new_state_name != "run" and new_state_name != "idle":
+		return false
+	return previous_state_name == "jump" or previous_state_name == "fall" or previous_state_name == "dash"
+
+
+func _configure_audio_players() -> void:
+	if jump_sfx != null:
+		jump_sfx.stream = JUMP_SFX
+	if land_sfx != null:
+		land_sfx.stream = LAND_SFX
+	if death_sfx != null:
+		death_sfx.stream = DEATH_SFX
+	if respawn_sfx != null:
+		respawn_sfx.stream = RESPAWN_SFX
+	if key_pickup_sfx != null:
+		key_pickup_sfx.stream = KEY_PICKUP_SFX
+	if walk_run_sfx != null:
+		walk_run_sfx.stream = WALK_RUN_SFX
+		if not walk_run_sfx.finished.is_connected(_on_walk_run_finished):
+			walk_run_sfx.finished.connect(_on_walk_run_finished)
+
+
+func _on_walk_run_finished() -> void:
+	if _current_state_name == "run" and walk_run_sfx != null:
+		walk_run_sfx.play()
+
+
+func _play_one_shot_sfx(player: AudioStreamPlayer) -> void:
+	if player == null or player.stream == null:
+		return
+	player.play()
+
+
+func _play_looping_sfx(player: AudioStreamPlayer) -> void:
+	if player == null or player.stream == null:
+		return
+	if not player.playing:
+		player.play()
+
+
+func _should_play_local_sfx() -> bool:
+	return not is_remote_player
 
 
 func set_facing_direction(direction: float) -> void:

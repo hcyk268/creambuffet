@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const LEVEL_COMPLETE_SFX := preload("res://assets/sound/level complete.wav")
+
 @export var main_menu_scene := "res://scenes/start_menu.tscn"
 @export var pause_tree_on_open := true
 @export var block_player_input_on_open := true
@@ -9,6 +11,7 @@ extends CanvasLayer
 @onready var message_label: Label = $Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer/MessageLabel
 @onready var replay_button: Button = $Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer/ButtonRow/ReplayButton
 @onready var main_menu_button: Button = $Overlay/CenterContainer/Panel/MarginContainer/VBoxContainer/ButtonRow/MainMenuButton
+@onready var sfx_player: AudioStreamPlayer = get_node_or_null("SfxPlayer") as AudioStreamPlayer
 
 var _is_open := false
 var _previous_pause_state := false
@@ -17,6 +20,8 @@ var _previous_pause_state := false
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	overlay.visible = false
+	if sfx_player != null:
+		sfx_player.stream = LEVEL_COMPLETE_SFX
 
 	replay_button.pressed.connect(_on_replay_pressed)
 	main_menu_button.pressed.connect(_on_main_menu_pressed)
@@ -50,6 +55,8 @@ func open(title := "Level Clear!", message := "You reached the end.") -> void:
 	title_label.text = title
 	message_label.text = message
 	overlay.visible = true
+	if sfx_player != null:
+		sfx_player.play()
 	_set_game_input_enabled(false)
 
 	if pause_tree_on_open:

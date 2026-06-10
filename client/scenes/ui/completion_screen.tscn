@@ -28,6 +28,8 @@ process_mode = 3
 layer = 30
 script = ExtResource("1_bqh3p")
 
+[node name="SfxPlayer" type="AudioStreamPlayer" parent="."]
+
 [node name="Overlay" type="ColorRect" parent="."]
 visible = false
 process_mode = 3

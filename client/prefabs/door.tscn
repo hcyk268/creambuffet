@@ -44,6 +44,8 @@ sprite_frames = SubResource("SpriteFrames_door")
 animation = &"closed"
 autoplay = "closed"
 
+[node name="SfxPlayer" type="AudioStreamPlayer" parent="."]
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_door")
 
