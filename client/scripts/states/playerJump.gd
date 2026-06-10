@@ -4,6 +4,7 @@ class_name PlayerJump
 
 func enter() -> void:
 	controller.play_animation("air")
+	controller.play_jump_sfx()
 	controller.set_vertical_velocity(controller.jump_velocity())
 
 

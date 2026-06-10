@@ -2,6 +2,9 @@ extends Area2D
 
 signal pressed_state_changed(is_pressed: bool)
 
+const BUTTON_PRESS_SFX := preload("res://assets/sound/button press.wav")
+const BUTTON_CLICK_SFX := preload("res://assets/sound/button click.wav")
+
 enum ActivationMode {
 	PRESS_ONCE,
 	WHILE_HELD,
@@ -14,6 +17,7 @@ enum ActivationMode {
 @export var target_activation_value := true
 @export var target_release_activation_value := false
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var sfx_player: AudioStreamPlayer = get_node_or_null("SfxPlayer") as AudioStreamPlayer
 
 var is_pressed := false
 var _tracked_bodies: Dictionary = {}
@@ -23,6 +27,7 @@ var _applying_server_state := false
 
 func _ready() -> void:
 	add_to_group("level_button")
+	_configure_audio()
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
 	call_deferred("_sync_overlaps")
@@ -97,4 +102,23 @@ func set_online_authoritative(enabled: bool) -> void:
 
 func _apply_pressed_state() -> void:
 	animated_sprite.play("pressed" if is_pressed else "released")
+	if is_pressed:
+		_play_sfx(BUTTON_PRESS_SFX)
+	else:
+		_play_sfx(BUTTON_CLICK_SFX)
 	_update_target_platform_state()
+
+
+func _configure_audio() -> void:
+	if sfx_player == null:
+		return
+
+	sfx_player.stream = BUTTON_PRESS_SFX
+
+
+func _play_sfx(stream: AudioStream) -> void:
+	if sfx_player == null or stream == null:
+		return
+
+	sfx_player.stream = stream
+	sfx_player.play()

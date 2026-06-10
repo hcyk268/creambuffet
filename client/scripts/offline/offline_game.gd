@@ -1,5 +1,7 @@
 extends Node2D
 
+const CO_OP_MUSIC := preload("res://assets/sound/Co-op background.mp3")
+
 @export var levels: Array[PackedScene] = []
 @export var start_level_index := 0
 
@@ -7,6 +9,7 @@ extends Node2D
 @onready var level_container: Node2D = $LevelContainer
 @onready var level_label: Label = $CanvasLayer/LevelLabel
 @onready var completion_screen: CanvasLayer = $CompletionScreen
+@onready var music_player: AudioStreamPlayer = get_node_or_null("MusicPlayer") as AudioStreamPlayer
 
 var _current_level: Node
 var _current_level_index := -1
@@ -14,6 +17,7 @@ var _game_complete := false
 
 
 func _ready() -> void:
+	_configure_music()
 	if player.has_signal("died") and not player.died.is_connected(_on_player_died):
 		player.died.connect(_on_player_died)
 
@@ -152,3 +156,18 @@ func _show_completion_screen() -> void:
 		"Level Clear!",
 		"Offline Level %d complete" % [_current_level_index + 1]
 	)
+
+
+func _configure_music() -> void:
+	if music_player == null:
+		return
+
+	music_player.stream = CO_OP_MUSIC
+	if not music_player.finished.is_connected(_on_music_finished):
+		music_player.finished.connect(_on_music_finished)
+	music_player.play()
+
+
+func _on_music_finished() -> void:
+	if music_player != null:
+		music_player.play()

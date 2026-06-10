@@ -1064,6 +1064,18 @@ script = ExtResource("8_riots")
 [node name="Swim" type="Node" parent="StateMachine" unique_id=647660033]
 script = ExtResource("9_swim")
 
+[node name="JumpSfx" type="AudioStreamPlayer" parent="." unique_id=1972880346]
+
+[node name="LandSfx" type="AudioStreamPlayer" parent="." unique_id=132438616]
+
+[node name="DeathSfx" type="AudioStreamPlayer" parent="." unique_id=1639465303]
+
+[node name="RespawnSfx" type="AudioStreamPlayer" parent="." unique_id=1235415946]
+
+[node name="KeyPickupSfx" type="AudioStreamPlayer" parent="." unique_id=2026841203]
+
+[node name="WalkRunSfx" type="AudioStreamPlayer" parent="." unique_id=118981657]
+
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=1913608768]
 position = Vector2(7.1525574e-07, -23.5)
 scale = Vector2(0.203125, 0.20796129)

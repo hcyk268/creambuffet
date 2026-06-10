@@ -7,9 +7,11 @@ var _oxygen_bar: ProgressBar
 var _oxygen_label: Label
 var _respawn_label: Label
 var _time_label: Label
+var _time_limit_expired: Callable
 var _failure_state: Dictionary = {}
 var _failure_fallback_state: Dictionary = {}
 var _failure_snapshot_ms := 0
+var _time_limit_expired_notified := false
 
 
 func setup(
@@ -18,7 +20,8 @@ func setup(
 	oxygen_bar: ProgressBar,
 	oxygen_label: Label,
 	respawn_label: Label,
-	time_label: Label
+	time_label: Label,
+	time_limit_expired: Callable = Callable()
 ) -> void:
 	_level_label = level_label
 	_water_hud = water_hud
@@ -26,6 +29,7 @@ func setup(
 	_oxygen_label = oxygen_label
 	_respawn_label = respawn_label
 	_time_label = time_label
+	_time_limit_expired = time_limit_expired
 
 
 func update_level_label(
@@ -112,6 +116,7 @@ func cache_failure_state(room: Dictionary, fallback_level_definition: Dictionary
 	if room.is_empty():
 		_failure_state = {}
 		_failure_snapshot_ms = 0
+		_time_limit_expired_notified = false
 		refresh_failure_fallback_state(fallback_level_definition)
 		return
 
@@ -119,6 +124,7 @@ func cache_failure_state(room: Dictionary, fallback_level_definition: Dictionary
 	if typeof(match_state_raw) != TYPE_DICTIONARY:
 		_failure_state = {}
 		_failure_snapshot_ms = 0
+		_time_limit_expired_notified = false
 		return
 
 	var match_state: Dictionary = match_state_raw
@@ -126,10 +132,12 @@ func cache_failure_state(room: Dictionary, fallback_level_definition: Dictionary
 	if typeof(failure_state_raw) != TYPE_DICTIONARY:
 		_failure_state = {}
 		_failure_snapshot_ms = 0
+		_time_limit_expired_notified = false
 		return
 
 	_failure_state = Dictionary(failure_state_raw).duplicate(true)
 	_failure_snapshot_ms = Time.get_ticks_msec()
+	_time_limit_expired_notified = false
 
 
 func update_failure_hud(
@@ -156,6 +164,8 @@ func update_failure_hud(
 			_time_label.visible = true
 			var remaining_ms := _failure_time_remaining_ms(failure_display_state)
 			_time_label.text = "TIME %s" % _format_time_ms(remaining_ms)
+			if remaining_ms <= 0:
+				_emit_time_limit_expired()
 		else:
 			_time_label.visible = false
 
@@ -197,6 +207,7 @@ func refresh_failure_fallback_state(level_definition: Dictionary) -> void:
 		"time_limit": {},
 		"death_limit": {},
 	}
+	_time_limit_expired_notified = false
 
 	if level_definition.is_empty():
 		return
@@ -268,3 +279,12 @@ func _format_time_ms(remaining_ms: int) -> String:
 	var minutes := int(total_seconds / 60)
 	var seconds := int(total_seconds % 60)
 	return "%02d:%02d" % [minutes, seconds]
+
+
+func _emit_time_limit_expired() -> void:
+	if _time_limit_expired_notified:
+		return
+
+	_time_limit_expired_notified = true
+	if _time_limit_expired.is_valid():
+		_time_limit_expired.call()
