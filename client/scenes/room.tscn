@@ -34,6 +34,8 @@ offset_right = 1920.0
 offset_bottom = 1080.0
 texture = ExtResource("3_bg")
 
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="." unique_id=1047328891]
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1376450684]
 position = Vector2(0, 50)
 zoom = Vector2(2, 2)

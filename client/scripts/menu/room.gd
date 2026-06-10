@@ -1,6 +1,7 @@
 extends Node2D
 
 const PLAYER_SCENE := preload("res://scenes/player_soda.tscn")
+const CO_OP_MUSIC := preload("res://assets/sound/Co-op background.mp3")
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const GameIds = preload("res://scripts/catalog/game_ids.gd")
 const BODY_FONT := preload("res://assets/fonts/EXEPixelPerfect.ttf")
@@ -21,6 +22,7 @@ const NETWORK_SEND_INTERVAL := 0.05
 @onready var lobby_member_list: VBoxContainer = $HUD/MembersPanel/MemberList
 @onready var pause_panel: CanvasLayer = $PausePanel
 @onready var member_list: VBoxContainer = $PausePanel/Panel/MarginContainer/VBoxContainer/MemberList
+@onready var music_player: AudioStreamPlayer = get_node_or_null("MusicPlayer") as AudioStreamPlayer
 
 var _entering_match := false
 var _remote_container: Node2D
@@ -30,6 +32,7 @@ var _lobby_spawn_initialized := false
 
 
 func _ready() -> void:
+	_configure_music()
 	var room: Dictionary = _network_client().get_current_room()
 	if room.is_empty():
 		SceneTransition.change_scene("res://scenes/online_menu.tscn")
@@ -424,3 +427,18 @@ func _lobby_spawn_position(room: Dictionary, peer_id: int) -> Vector2:
 
 func _network_client() -> Node:
 	return get_node("/root/NetworkClient")
+
+
+func _configure_music() -> void:
+	if music_player == null:
+		return
+
+	music_player.stream = CO_OP_MUSIC
+	if not music_player.finished.is_connected(_on_music_finished):
+		music_player.finished.connect(_on_music_finished)
+	music_player.play()
+
+
+func _on_music_finished() -> void:
+	if music_player != null:
+		music_player.play()
