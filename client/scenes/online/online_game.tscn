@@ -14,7 +14,7 @@
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_09.tscn" id="12_t8vce"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_10.tscn" id="13_x1mkr"]
 [ext_resource type="Script" uid="uid://c2ejor57101fb" path="res://scripts/online/level_transition.gd" id="14_q4wxa"]
-[ext_resource type="Script" path="res://scripts/ui/fps_label.gd" id="15_4jv6p"]
+[ext_resource type="Script" uid="uid://c7go5b5sfc447" path="res://scripts/ui/fps_label.gd" id="15_4jv6p"]
 
 [node name="OnlineGame" type="Node2D" unique_id=530829054]
 script = ExtResource("1_xeoup")

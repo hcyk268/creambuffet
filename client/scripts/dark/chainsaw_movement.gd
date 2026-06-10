@@ -1,6 +1,8 @@
 @tool
 extends AnimatableBody2D
 
+@export var sync_id := ""
+
 enum MovementMode {
 	HORIZONTAL,
 	VERTICAL,
@@ -26,12 +28,12 @@ enum MovementMode {
 		_apply_activation_state()
 	get:
 		return _activation
+		
 
-@export var sync_id := ""
+@onready var chainsaw_state: AnimationPlayer = $ChainsawState
+@onready var detect_area : Area2D = $Area2D
 
-@onready var platform_state: AnimationPlayer = $PlatformState
-
-const MOVE_SPEED := 45.0
+const MOVE_SPEED := 60.0
 const GUIDE_COLOR := Color(0.2, 0.9, 1.0, 0.85)
 const GUIDE_END_CAP := 4.0
 const GUIDE_LINE_WIDTH := 1.0
@@ -51,10 +53,10 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
-	add_to_group("moving_platform")
 	_origin = global_position
 	_apply_activation_state()
 	queue_redraw()
+	detect_area.sync_id = sync_id
 
 
 func _process(_delta: float) -> void:
@@ -96,8 +98,8 @@ func _apply_activation_state() -> void:
 		return
 
 	var animation_name := "Activated" if activation else "Inactivated"
-	if platform_state.has_animation(animation_name):
-		platform_state.play(animation_name)
+	if chainsaw_state.has_animation(animation_name):
+		chainsaw_state.play(animation_name)
 
 
 func _draw() -> void:

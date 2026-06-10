@@ -51,6 +51,7 @@ const OBJECT_KIND_EXTENDABLE_BARRIER := "extendable_barrier"
 const OBJECT_KIND_WATER_BARRIER := "water_barrier"
 const OBJECT_KIND_BARRIER := "barrier"
 const OBJECT_KIND_HAZARD := "hazard"
+const OBJECT_KIND_CHAINSAW := "chainsaw"
 const OBJECT_KIND_FALL_RESET := "fall_reset"
 const OBJECT_KIND_TORCH := "torch"
 const OBJECT_KIND_BUFF := "buff"
@@ -88,6 +89,7 @@ const BARRIER_KINDS := [
 const HAZARD_KINDS := [
 	OBJECT_KIND_HAZARD,
 	OBJECT_KIND_FALL_RESET,
+	OBJECT_KIND_CHAINSAW
 ]
 const LIGHT_KINDS := [
 	OBJECT_KIND_TORCH,
