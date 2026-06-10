@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_09.tscn" id="12_t8vce"]
 [ext_resource type="PackedScene" path="res://scenes/online/levels/level_10.tscn" id="13_x1mkr"]
 [ext_resource type="Script" uid="uid://c2ejor57101fb" path="res://scripts/online/level_transition.gd" id="14_q4wxa"]
+[ext_resource type="Script" path="res://scripts/ui/fps_label.gd" id="15_4jv6p"]
 
 [node name="OnlineGame" type="Node2D" unique_id=530829054]
 script = ExtResource("1_xeoup")
@@ -36,6 +37,16 @@ offset_right = 420.0
 offset_bottom = 31.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "Level"
+
+[node name="FpsLabel" type="Label" parent="CanvasLayer" unique_id=879454921]
+visible = false
+offset_left = 10.0
+offset_top = 32.0
+offset_right = 180.0
+offset_bottom = 55.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "FPS: 0"
+script = ExtResource("15_4jv6p")
 
 [node name="WaterHud" type="Control" parent="CanvasLayer" unique_id=707575479]
 layout_mode = 3
