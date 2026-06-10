@@ -1,7 +1,5 @@
 extends Node2D
 
-const CO_OP_MUSIC := preload("res://assets/sound/Co-op background.mp3")
-
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const GameIds = preload("res://scripts/catalog/game_ids.gd")
 const RemotePlayerRegistry = preload("res://scripts/online/remote_player_registry.gd")
@@ -28,7 +26,6 @@ const NETWORK_SEND_INTERVAL := 0.05
 @onready var respawn_label: Label = $CanvasLayer/WaterHud/RespawnLabel
 @onready var time_label: Label = $CanvasLayer/TimeLabel
 @onready var level_transition: LevelTransition = $LevelTransition
-@onready var music_player: AudioStreamPlayer = get_node_or_null("MusicPlayer") as AudioStreamPlayer
 @onready var time_out_player: AudioStreamPlayer = get_node_or_null("TimeOutSfx") as AudioStreamPlayer
 
 var _current_level: Node
@@ -50,7 +47,6 @@ var _world_event_bridge: OnlineWorldEventBridge
 
 
 func _ready() -> void:
-	_configure_music()
 	_network_client = get_node_or_null("/root/NetworkClient")
 	_is_online_session = _network_client != null and not _network_client.get_current_room().is_empty()
 	_remote_registry = RemotePlayerRegistry.new()
@@ -135,21 +131,6 @@ func _physics_process(delta: float) -> void:
 			if not push_intents.is_empty():
 				state["push_intents"] = push_intents
 		_network_client.send_player_state(state)
-
-
-func _configure_music() -> void:
-	if music_player == null:
-		return
-
-	music_player.stream = CO_OP_MUSIC
-	if not music_player.finished.is_connected(_on_music_finished):
-		music_player.finished.connect(_on_music_finished)
-	music_player.play()
-
-
-func _on_music_finished() -> void:
-	if music_player != null:
-		music_player.play()
 
 
 func _on_time_limit_expired() -> void:
