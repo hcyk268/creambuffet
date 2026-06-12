@@ -1,6 +1,7 @@
 [gd_scene format=4 uid="uid://bhjuvqxmogo1k"]
 
 [ext_resource type="PackedScene" uid="uid://cjmdihl0sh6t0" path="res://prefabs/water_body.tscn" id="1_7d1vf"]
+[ext_resource type="Texture2D" uid="uid://b852wwnmahkm4" path="res://assets/backgrounds/water/water_02_background.png" id="1_bg"]
 [ext_resource type="Texture2D" uid="uid://dltqkwvfbntkm" path="res://assets/sprites/water.png" id="2_xu6qe"]
 [ext_resource type="PackedScene" uid="uid://bteq8q3a66v3o" path="res://Terrain/Terrains.tscn" id="4_sxcr7"]
 [ext_resource type="Texture2D" uid="uid://bf47x7pkaddww" path="res://assets/sprites/TileSheet.png" id="5_4ct0b"]
@@ -120,6 +121,12 @@ size = Vector2(1243, 48)
 
 [node name="Water02" type="Node2D" unique_id=1520517518]
 position = Vector2(1, 0)
+
+[node name="Background" type="Sprite2D" parent="." unique_id=1154753691]
+z_index = -120
+position = Vector2(-0.9999981, 4)
+scale = Vector2(1.2833285, 1.4361582)
+texture = ExtResource("1_bg")
 
 [node name="SpawnPoint" type="Marker2D" parent="." unique_id=778333037]
 position = Vector2(-364, -46)

@@ -1,6 +1,7 @@
 [gd_scene format=4 uid="uid://cilegw1pwqnnj"]
 
 [ext_resource type="PackedScene" uid="uid://cjmdihl0sh6t0" path="res://prefabs/water_body.tscn" id="1_47ype"]
+[ext_resource type="Texture2D" uid="uid://bsss7bxkqboaw" path="res://assets/backgrounds/water/water_03_background.png" id="1_bg"]
 [ext_resource type="Texture2D" uid="uid://dltqkwvfbntkm" path="res://assets/sprites/water.png" id="2_m4fk7"]
 [ext_resource type="PackedScene" uid="uid://bteq8q3a66v3o" path="res://Terrain/Terrains.tscn" id="4_olohc"]
 [ext_resource type="Texture2D" uid="uid://bf47x7pkaddww" path="res://assets/sprites/TileSheet.png" id="5_ta3cf"]
@@ -118,6 +119,12 @@ sources/0 = SubResource("TileSetAtlasSource_6rn2v")
 size = Vector2(1000, 48)
 
 [node name="Water03" type="Node2D" unique_id=4530777]
+
+[node name="Background" type="Sprite2D" parent="." unique_id=96255487]
+z_index = -120
+position = Vector2(6.0000153, 11)
+scale = Vector2(1.6006339, 1.5673803)
+texture = ExtResource("1_bg")
 
 [node name="SpawnPoint" type="Marker2D" parent="." unique_id=1407089542]
 position = Vector2(-319, 98)

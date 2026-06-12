@@ -1,6 +1,5 @@
 # res://scripts/ui/level_transition.gd
 extends CanvasLayer
-class_name LevelTransition
 
 const DURATION_IN  := 0.55
 const DURATION_OUT := 0.45
