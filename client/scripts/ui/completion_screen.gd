@@ -91,7 +91,7 @@ func _on_main_menu_pressed() -> void:
 	_is_open = false
 	_set_game_input_enabled(true)
 	get_tree().paused = false
-	SceneTransition.change_scene(main_menu_scene)
+	_change_scene(main_menu_scene)
 
 
 func _set_game_input_enabled(enabled: bool) -> void:
@@ -105,3 +105,11 @@ func _set_game_input_enabled(enabled: bool) -> void:
 	var player := game_root.get_node_or_null("Player")
 	if player != null and player.has_method("set_input_enabled"):
 		player.set_input_enabled(enabled)
+
+
+func _change_scene(path: String) -> void:
+	var scene_transition := get_node_or_null("/root/SceneTransition")
+	if scene_transition != null and scene_transition.has_method("change_scene"):
+		scene_transition.change_scene(path)
+		return
+	get_tree().change_scene_to_file(path)

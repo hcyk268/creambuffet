@@ -56,6 +56,16 @@ static func node_sync_id(node: Node) -> String:
 	return ""
 
 
+static func resolved_sync_id(node: Node) -> String:
+	var current := node
+	while current != null:
+		var sync_id := node_sync_id(current)
+		if not sync_id.is_empty():
+			return sync_id
+		current = current.get_parent()
+	return ""
+
+
 func _collect_synced_nodes(node: Node) -> void:
 	var sync_id := node_sync_id(node)
 	if not sync_id.is_empty():
@@ -105,7 +115,7 @@ func _warn_missing_catalog_nodes(level_definition: Dictionary) -> void:
 			if checked_nodes.has(instance_id):
 				continue
 			checked_nodes[instance_id] = true
-			if node_sync_id(node).is_empty():
+			if resolved_sync_id(node).is_empty():
 				push_warning("Network-relevant node %s is missing sync_id in %s." % [str(node.get_path()), _level_id])
 
 

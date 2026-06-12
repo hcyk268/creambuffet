@@ -145,6 +145,10 @@ func _ready() -> void:
 	torch_light.enabled = false
 
 
+func _exit_tree() -> void:
+	_stop_all_sfx()
+
+
 func _process(delta: float) -> void:
 	_update_oxygen(delta)
 	_process_bubble_effects(delta)
@@ -461,8 +465,14 @@ func _play_looping_sfx(player: AudioStreamPlayer) -> void:
 		player.play()
 
 
+func _stop_all_sfx() -> void:
+	for audio_player in [jump_sfx, land_sfx, death_sfx, respawn_sfx, key_pickup_sfx, walk_run_sfx]:
+		if audio_player != null:
+			audio_player.stop()
+
+
 func _should_play_local_sfx() -> bool:
-	return not is_remote_player
+	return not is_remote_player and DisplayServer.get_name() != "headless"
 
 
 func set_facing_direction(direction: float) -> void:

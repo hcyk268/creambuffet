@@ -90,8 +90,7 @@ func _test_offline_scene_smoke(failures: Array[String]) -> void:
 		if completion_screen == null or not completion_screen.call("is_open"):
 			failures.append("OfflineGame did not open the completion screen after reaching the only offline goal.")
 
-	offline_game.queue_free()
-	await _settle_frames(1)
+	await _dispose_node(offline_game)
 
 
 func _test_online_scene_smoke(failures: Array[String]) -> void:
@@ -284,10 +283,8 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 		if not bool(platform_node.get("activation")):
 			failures.append("OnlineGame did not apply moving-platform activation from a level_02 snapshot.")
 
-	online_game.queue_free()
-	await _settle_frames(1)
-	network_client.queue_free()
-	await _settle_frames(1)
+	await _dispose_node(online_game)
+	await _dispose_node(network_client)
 
 
 func _test_online_map_loading_smoke(failures: Array[String]) -> void:
@@ -314,8 +311,7 @@ func _test_online_map_loading_smoke(failures: Array[String]) -> void:
 			},
 		}
 
-		var network_client := StubNetworkClient.new()
-		network_client = await _install_stub_network_client(room)
+		var network_client := await _install_stub_network_client(room)
 
 		var online_game := OnlineGameScene.instantiate()
 		root.add_child(online_game)
@@ -344,10 +340,8 @@ func _test_online_map_loading_smoke(failures: Array[String]) -> void:
 				if not respawn_label.visible:
 					failures.append("OnlineGame did not enable the respawn-budget HUD for water maps.")
 
-		online_game.queue_free()
-		await _settle_frames(1)
-		network_client.queue_free()
-		await _settle_frames(1)
+		await _dispose_node(online_game)
+		await _dispose_node(network_client)
 
 
 func _find_node_by_sync_id(root_node: Node, sync_id: String) -> Node:
@@ -373,8 +367,7 @@ func _settle_frames(count: int = 2) -> void:
 func _install_stub_network_client(room: Dictionary) -> StubNetworkClient:
 	var existing := root.get_node_or_null("NetworkClient")
 	if existing != null:
-		existing.queue_free()
-		await _settle_frames()
+		await _dispose_node(existing)
 
 	var network_client := StubNetworkClient.new()
 	network_client.name = "NetworkClient"
@@ -382,3 +375,10 @@ func _install_stub_network_client(room: Dictionary) -> StubNetworkClient:
 	root.add_child(network_client)
 	await _settle_frames(1)
 	return network_client
+
+
+func _dispose_node(node: Node) -> void:
+	if not is_instance_valid(node):
+		return
+	node.free()
+	await _settle_frames(1)

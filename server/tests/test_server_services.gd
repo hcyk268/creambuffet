@@ -2,16 +2,18 @@ extends SceneTree
 
 const Protocol = preload("res://scripts/network/protocol.gd")
 const ProtocolConstants = preload("res://scripts/network/protocol_constants.gd")
+const PlayerSession = preload("res://scripts/lobby/player_session.gd")
 const Room = preload("res://scripts/lobby/room.gd")
 const RoomManager = preload("res://scripts/lobby/room_manager.gd")
 const MessageRouter = preload("res://scripts/server/message_router.gd")
 const MatchCoordinator = preload("res://scripts/server/match_coordinator.gd")
+const RoomBroadcaster = preload("res://scripts/server/room_broadcaster.gd")
 const ServerConfig = preload("res://scripts/server/server_config.gd")
 const ServerDebugContext = preload("res://scripts/server/server_debug_context.gd")
 
 
 class RecordingBroadcaster:
-	extends RefCounted
+	extends RoomBroadcaster
 
 	var sent_messages: Array[Dictionary] = []
 	var sent_errors: Array[Dictionary] = []
@@ -80,7 +82,7 @@ class RecordingDebugContext:
 
 
 class DummyMatchCoordinator:
-	extends RefCounted
+	extends MatchCoordinator
 
 	var restart_calls: Array[Dictionary] = []
 	var transition_calls: Array[Dictionary] = []
@@ -160,11 +162,10 @@ func _test_match_coordinator_level_transition(failures: Array[String]) -> void:
 	var coordinator: Variant = MatchCoordinator.new()
 	coordinator.setup(room_manager, broadcaster, debug)
 
-	var room: Variant = Room.new("ROOM01", 1, true, 2, 2, false, "water", ["water_01", "water_02"])
+	var room := _make_room("ROOM01", "water", ["water_01", "water_02"], [1])
 	room.start_match()
-	room.match_state.patch_object_state("water01_goal_01", {
-		"inside_player_ids": [1],
-	})
+	room.match_state.patch_object_state("water01_door", {"opened": true})
+	room.match_state.set_player_goal(1, "water01_goal")
 	coordinator.try_level_transition(room)
 
 	if room.current_level_index != 1 or room.current_level_id != "water_02":
@@ -186,11 +187,10 @@ func _test_match_coordinator_match_complete(failures: Array[String]) -> void:
 	var coordinator: Variant = MatchCoordinator.new()
 	coordinator.setup(room_manager, broadcaster, debug)
 
-	var room: Variant = Room.new("ROOM02", 1, true, 2, 1, false, "water", ["water_01"])
+	var room := _make_room("ROOM02", "water", ["water_01"], [1])
 	room.start_match()
-	room.match_state.patch_object_state("water01_goal_01", {
-		"inside_player_ids": [1],
-	})
+	room.match_state.patch_object_state("water01_door", {"opened": true})
+	room.match_state.set_player_goal(1, "water01_goal")
 	coordinator.try_level_transition(room)
 
 	if not room.is_complete():
@@ -282,3 +282,10 @@ func _test_message_router_unsupported_message(failures: Array[String]) -> void:
 			failures.append("MessageRouter.handle_peer_packet() returned the wrong unsupported-type error code.")
 		if String(error_payload.get("request_id", "")) != "req-unknown":
 			failures.append("MessageRouter.handle_peer_packet() did not preserve request_id for unsupported message errors.")
+
+
+func _make_room(room_id: String, map_id: String, level_ids: Array[String], player_ids: Array[int]) -> Room:
+	var room := Room.new(room_id, 1, true, maxi(player_ids.size(), 1), level_ids.size(), false, map_id, level_ids)
+	for peer_id in player_ids:
+		room.try_add_player(PlayerSession.new(peer_id, "Player%d" % peer_id))
+	return room

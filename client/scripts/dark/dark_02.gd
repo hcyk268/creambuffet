@@ -16,9 +16,17 @@ func _ready() -> void:
 	mv.activation = true
 	mv2.activation = true
 	mv4.activation = true
-	await get_tree().create_timer(1).timeout
-	mv3.activation = true
+	if DisplayServer.get_name() == "headless":
+		mv3.activation = true
+		return
+	_activate_delayed_platform()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
+
+
+func _activate_delayed_platform() -> void:
+	await get_tree().create_timer(1.0).timeout
+	if is_instance_valid(mv3):
+		mv3.activation = true
