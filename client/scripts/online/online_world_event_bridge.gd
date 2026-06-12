@@ -410,7 +410,13 @@ func _can_send_local_world_event(body: Node = null) -> bool:
 
 
 func _node_sync_id(node: Node) -> String:
-	return SyncedNodeRegistry.node_sync_id(node)
+	var current := node
+	while current != null:
+		var sync_id := SyncedNodeRegistry.node_sync_id(current)
+		if not sync_id.is_empty():
+			return sync_id
+		current = current.get_parent()
+	return ""
 
 
 func _vector_to_packet(value: Vector2) -> Dictionary:

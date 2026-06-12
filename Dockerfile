@@ -14,6 +14,17 @@ ARG TARGETARCH
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 		ca-certificates \
+		libasound2 \
+		libfontconfig1 \
+		libfreetype6 \
+		libgcc-s1 \
+		libgl1 \
+		libstdc++6 \
+		libx11-6 \
+		libxcursor1 \
+		libxi6 \
+		libxinerama1 \
+		libxrandr2 \
 		wget \
 		unzip \
 	&& rm -rf /var/lib/apt/lists/*

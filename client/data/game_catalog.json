@@ -5673,7 +5673,7 @@
 	  "index": 0,
 	  "scene_path": "res://scenes/online/dark/dark_01.tscn",
 	  "spawn_point": {
-		"x": -339.0,
+		"x": -336.0,
 		"y": 16.0
 	  },
 	  "failure_rules": [],
@@ -5683,7 +5683,7 @@
 		  "kind": "torch",
 		  "state": {
 			"collected": false,
-			"collector_peer_id": 0,
+			"collector_peer_id": 0
 		  },
 		  "transform": {
 			"position": { "x": -289.0, "y": 59.0 }
@@ -5715,26 +5715,26 @@
 		  }
 		},
 		"dark01_key": {
-		"kind": "key",
-			"state": {
+		  "kind": "key",
+		  "state": {
 			"collected": false,
 			"collector_peer_id": 0
-			},
-		"transform": {
-		"position": { "x":37.0, "y": 16.0 }
-		},
-		"trigger": {
+		  },
+		  "transform": {
+			"position": { "x": 37.0, "y": 16.0 }
+		  },
+		  "trigger": {
 			"shape": "rectangle",
 			"offset": { "x": 0.0, "y": 0.0 },
 			"size": { "x": 12.0, "y": 24.0 },
 			"margin": 2.0
-		}
+		  }
 		},
 		"dark01_door": {
 		  "kind": "door",
 		  "requires": {
 			"scope": "team",
-			"key_ids": [ "dark01_key" ]
+			"key_ids": ["dark01_key"]
 		  },
 		  "state": { "opened": false },
 		  "transform": {
@@ -5772,7 +5772,7 @@
 			"size": { "x": 1000.0, "y": 48.0 },
 			"margin": 4.0
 		  }
-		},
+		}
 	  },
 	  "completion_rules": [
 		{
@@ -5804,7 +5804,7 @@
 		  "kind": "torch",
 		  "state": {
 			"collected": false,
-			"collector_peer_id": 0,
+			"collector_peer_id": 0
 		  },
 		  "transform": {
 			"position": { "x": -197.0, "y": 59.0 }
@@ -5835,26 +5835,26 @@
 		  }
 		},
 		"dark02_key": {
-			"kind": "key",
-				"state": {
-				"collected": false,
-				"collector_peer_id": 0
-				},
-			"transform": {
-			"position": { "x":-67.0, "y": -50.0 }
-			},
-			"trigger": {
-				"shape": "rectangle",
-				"offset": { "x": 0.0, "y": 0.0 },
-				"size": { "x": 12.0, "y": 24.0 },
-				"margin": 2.0
-			}
+		  "kind": "key",
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": -67.0, "y": -50.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 12.0, "y": 24.0 },
+			"margin": 2.0
+		  }
 		},
 		"dark02_door": {
 		  "kind": "door",
 		  "requires": {
 			"scope": "team",
-			"key_ids": [ "dark02_key" ]
+			"key_ids": ["dark02_key"]
 		  },
 		  "state": { "opened": false },
 		  "transform": {
@@ -5892,7 +5892,7 @@
 			"size": { "x": 470.0, "y": 40.0 },
 			"margin": 4.0
 		  }
-		},
+		}
 	  },
 	  "completion_rules": [
 		{
@@ -5924,7 +5924,7 @@
 		  "kind": "torch",
 		  "state": {
 			"collected": false,
-			"collector_peer_id": 0,
+			"collector_peer_id": 0
 		  },
 		  "transform": {
 			"position": { "x": -135.0, "y": 46.0 }
@@ -5955,30 +5955,30 @@
 		  }
 		},
 		"dark03_key": {
-			"kind": "key",
-				"state": {
-				"collected": false,
-				"collector_peer_id": 0
-				},
-			"transform": {
-			"position": { "x":213.0, "y": 6.0 }
-			},
-			"trigger": {
-				"shape": "rectangle",
-				"offset": { "x": 0.0, "y": 0.0 },
-				"size": { "x": 12.0, "y": 24.0 },
-				"margin": 2.0
-			}
+		  "kind": "key",
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": 213.0, "y": 6.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 12.0, "y": 24.0 },
+			"margin": 2.0
+		  }
 		},
 		"dark03_door": {
 		  "kind": "door",
 		  "requires": {
 			"scope": "team",
-			"key_ids": [ "dark03_key" ]
+			"key_ids": ["dark03_key"]
 		  },
 		  "state": { "opened": false },
 		  "transform": {
-			"position": { "x": 559.0 , "y": -44.0 }
+			"position": { "x": 559.0, "y": -44.0 }
 		  },
 		  "trigger": {
 			"shape": "rectangle",
@@ -5991,7 +5991,7 @@
 		  "kind": "goal",
 		  "state": { "players_inside": [] },
 		  "transform": {
-			"position": { "x": 559.0 , "y": -44.0 }
+			"position": { "x": 559.0, "y": -44.0 }
 		  },
 		  "trigger": {
 			"shape": "rectangle",
@@ -6013,19 +6013,19 @@
 			"margin": 4.0
 		  }
 		},
-		"dark_03_chainsaw":{
-			"kind": "chainsaw",
-			  "state": {},
-			  "transform": {
-				"position": { "x": 325.25, "y": 44.0 }
-			  },
-			  "trigger": {
-				"shape": "rectangle",
-				"offset": { "x": 0.0, "y": 0.0 },
-				"size": { "x": 40.0, "y": 40.0 },
-				"margin": 0.0
-			  }
-			}
+		"dark_03_chainsaw": {
+		  "kind": "chainsaw",
+		  "state": {},
+		  "transform": {
+			"position": { "x": 275.25, "y": 44.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 40.0, "y": 40.0 },
+			"margin": 0.0
+		  }
+		}
 	  },
 	  "completion_rules": [
 		{

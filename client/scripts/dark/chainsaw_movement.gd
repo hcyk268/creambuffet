@@ -56,7 +56,6 @@ func _ready() -> void:
 	_origin = global_position
 	_apply_activation_state()
 	queue_redraw()
-	detect_area.sync_id = sync_id
 
 
 func _process(_delta: float) -> void:
