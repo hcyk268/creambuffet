@@ -7,6 +7,7 @@ const KeyDoorMechanic = preload("res://scripts/match/mechanics/key_door_mechanic
 const LinkApplier = preload("res://scripts/match/link_applier.gd")
 const MechanicRegistry = preload("res://scripts/match/mechanic_registry.gd")
 const MatchState = preload("res://scripts/match/match_state.gd")
+const MatchStateContext = preload("res://scripts/match/match_state_context.gd")
 const TimedObjectService = preload("res://scripts/match/timed_object_service.gd")
 
 
@@ -183,6 +184,35 @@ func _test_key_door_mechanic(failures: Array[String]) -> void:
 	var deposited_count: int = mechanic._deposited_team_key_count(match_state, {"count": 2})
 	if deposited_count != 1:
 		failures.append("KeyDoorMechanic._deposited_team_key_count() did not count spent team keys for count-based requirements.")
+
+	var water_match_state: Variant = MatchState.new([3], 0, "water_01", "water")
+	var water_context: Variant = MatchStateContext.new(water_match_state)
+	water_match_state.update_player_runtime(3, {
+		"position": {"x": -128.0, "y": -30.0},
+		"velocity": {"x": 0.0, "y": 0.0},
+	})
+
+	var first_collect: Dictionary = mechanic.apply_collect(water_context, 3, "water01_key_land")
+	if not bool(first_collect.get("ok", false)):
+		failures.append("KeyDoorMechanic.apply_collect() should allow the first key pickup in water_01.")
+
+	water_match_state.update_player_runtime(3, {
+		"position": {"x": -175.0, "y": 140.0},
+		"velocity": {"x": 0.0, "y": 0.0},
+	})
+	water_context = MatchStateContext.new(water_match_state)
+
+	var second_collect: Dictionary = mechanic.apply_collect(water_context, 3, "water01_key_underwater")
+	if bool(second_collect.get("ok", false)):
+		failures.append("KeyDoorMechanic.apply_collect() allowed a second carried key in water_01.")
+	elif String(second_collect.get("code", "")) != "key_capacity_reached":
+		failures.append("KeyDoorMechanic.apply_collect() returned an unexpected error code for the water_01 key limit.")
+
+	if water_match_state.player_key_count(3) != 1:
+		failures.append("KeyDoorMechanic.apply_collect() changed the player's key count after rejecting the second water_01 key.")
+	var underwater_key_state: Dictionary = water_match_state.get_object_data("water01_key_underwater").get("state", {})
+	if bool(underwater_key_state.get("collected", false)):
+		failures.append("KeyDoorMechanic.apply_collect() still marked the second water_01 key as collected after rejecting it.")
 
 
 func _test_geometry_service(failures: Array[String]) -> void:

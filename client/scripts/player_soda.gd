@@ -86,9 +86,13 @@ var _bubble_effects: PlayerBubbleEffects
 var _network_runtime: PlayerNetworkRuntime
 var _water_runtime: PlayerWaterRuntime
 var _current_state_name := ""
+var _facing_direction := 1.0
 
 
 func _ready() -> void:
+	if sprite != null:
+		_facing_direction = -1.0 if sprite.flip_h else 1.0
+
 	_bubble_rng.randomize()
 	_bubble_effects = PlayerBubbleEffects.new()
 	_bubble_effects.setup(
@@ -476,14 +480,16 @@ func _should_play_local_sfx() -> bool:
 
 
 func set_facing_direction(direction: float) -> void:
-	if sprite == null or is_zero_approx(direction):
+	if is_zero_approx(direction):
 		return
-	sprite.flip_h = direction < 0.0
+
+	_facing_direction = signf(direction)
+	_apply_visual_facing()
 
 
 func get_facing_direction() -> float:
-	if sprite != null:
-		return -1.0 if sprite.flip_h else 1.0
+	if not is_zero_approx(_facing_direction):
+		return _facing_direction
 	if not is_zero_approx(velocity.x):
 		return signf(velocity.x)
 	return 1.0
@@ -647,6 +653,36 @@ func _apply_sprite_sheet_for_animation(animation: String) -> void:
 			LAND_SPRITE_POSITION,
 			LAND_SPRITE_SCALE
 		)
+
+	if not is_remote_player:
+		_apply_visual_facing(animation)
+
+
+func _apply_visual_facing(animation_override: String = "") -> void:
+	if sprite == null:
+		return
+
+	var facing_left := _facing_direction < 0.0
+	if _is_using_swim_sprite_sheet():
+		sprite.flip_h = _swim_visual_flip_h(facing_left, animation_override)
+	else:
+		sprite.flip_h = facing_left
+
+
+func _is_using_swim_sprite_sheet() -> bool:
+	return sprite != null and sprite.texture == SWIM_SPRITE_TEXTURE
+
+
+func _swim_visual_flip_h(facing_left: bool, animation_override: String = "") -> bool:
+	var animation := animation_override
+	if animation.is_empty() and animation_player != null:
+		animation = animation_player.current_animation
+
+	# The diagonal swim row is authored with the opposite base facing direction
+	# from the horizontal swim row, so it needs its own flip rule.
+	if animation == "swim_diagonal":
+		return facing_left
+	return not facing_left
 
 
 func _apply_sprite_sheet(

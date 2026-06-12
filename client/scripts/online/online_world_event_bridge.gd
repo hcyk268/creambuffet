@@ -6,6 +6,7 @@ const PacketCodec = preload("res://scripts/network/packet_codec.gd")
 const SyncedNodeRegistry = preload("res://scripts/online/synced_node_registry.gd")
 
 const LOCAL_HAZARD_RESPAWN_REARM_MS := 300
+const WATER_01_LEVEL_ID := "water_01"
 
 var _player: CharacterBody2D
 var _network_client: Node
@@ -271,6 +272,8 @@ func _on_goal_left(body: Node, goal_node: Node) -> void:
 
 func _on_key_collected(body: Node, key_node: Node) -> void:
 	if not _can_send_local_world_event(body):
+		return
+	if _current_level_id == WATER_01_LEVEL_ID and body.has_method("has_key") and body.has_key():
 		return
 
 	var target_id := _node_sync_id(key_node)

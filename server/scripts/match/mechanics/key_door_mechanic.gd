@@ -3,6 +3,9 @@ extends RefCounted
 const GameIds = preload("res://scripts/catalog/game_ids.gd")
 const LinkApplier = preload("res://scripts/match/link_applier.gd")
 
+const WATER_01_LEVEL_ID := "water_01"
+const WATER_01_MAX_KEYS_PER_PLAYER := 1
+
 
 func apply_collect(match_state, peer_id: int, target_id: String, _payload: Dictionary = {}) -> Dictionary:
 	var object_state: Dictionary = match_state.require_object(target_id, [GameIds.OBJECT_KIND_KEY], GameIds.ACTION_COLLECT)
@@ -15,6 +18,8 @@ func apply_collect(match_state, peer_id: int, target_id: String, _payload: Dicti
 	var state: Dictionary = object_data.get("state", {})
 	if bool(state.get("collected", false)):
 		return match_state.error("world_action_rejected", "Key has already been collected.")
+	if _has_reached_key_capacity(match_state, peer_id):
+		return match_state.error("key_capacity_reached", "Player is already carrying the maximum number of keys for this level.")
 
 	state["collected"] = true
 	state["collector_peer_id"] = peer_id
@@ -26,6 +31,17 @@ func apply_collect(match_state, peer_id: int, target_id: String, _payload: Dicti
 	events.append(match_state.event(GameIds.EVENT_KEY_COLLECTED, GameIds.ACTION_COLLECT, peer_id, target_id, {"state": state.duplicate(true)}))
 	events.append_array(LinkApplier.apply_links_for_source(match_state, peer_id, target_id, "collected", true))
 	return match_state.ok(events)
+
+
+func _has_reached_key_capacity(match_state, peer_id: int) -> bool:
+	return _current_level_id(match_state) == WATER_01_LEVEL_ID \
+		and match_state.player_key_count(peer_id) >= WATER_01_MAX_KEYS_PER_PLAYER
+
+
+func _current_level_id(match_state) -> String:
+	if match_state == null:
+		return ""
+	return String(match_state.get("current_level_id"))
 
 
 func apply_open(match_state, peer_id: int, target_id: String, _payload: Dictionary = {}) -> Dictionary:
