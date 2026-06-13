@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dvxf88ugc2vbx" path="res://scripts/dark/chainsaw_movement.gd" id="1_xc5rm"]
 [ext_resource type="Texture2D" uid="uid://dhgx23xqno2t6" path="res://assets/sprites/darksprite.png" id="2_qe8ir"]
 [ext_resource type="Script" uid="uid://c1jcxgf84jsha" path="res://scripts/dark/chainsaw_detection.gd" id="3_1nbne"]
+[ext_resource type="AudioStream" uid="uid://44aebikab8xu" path="res://assets/sound/chainsaw.wav" id="4_7eg0k"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_qe8ir"]
 radius = 20.0
@@ -88,3 +89,7 @@ script = ExtResource("3_1nbne")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1266878031]
 shape = SubResource("CircleShape2D_1nbne")
+
+[node name="Sfx" type="AudioStreamPlayer2D" parent="." unique_id=709234538]
+stream = ExtResource("4_7eg0k")
+max_distance = 200.0

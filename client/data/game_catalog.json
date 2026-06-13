@@ -437,7 +437,8 @@
 	  "levels": [
 		"dark_01",
 		"dark_02",
-		"dark_03"
+		"dark_03",
+		"dark_04"
 	  ]
 	}
   },
@@ -5884,7 +5885,7 @@
 		  "kind": "fall_reset",
 		  "state": {},
 		  "transform": {
-			"position": { "x": 56.0, "y": 218.0 }
+			"position": { "x": 56.0, "y": 156.0 }
 		  },
 		  "trigger": {
 			"shape": "rectangle",
@@ -6040,6 +6041,573 @@
 		}
 	  ],
 	  "links": []
+	},
+	"dark_04": {
+	  "level_id": "dark_04",
+	  "map_id": "dark",
+	  "index": 3,
+	  "scene_path": "res://scenes/online/dark/dark_04.tscn",
+	  "spawn_point": {
+		"x": -379.0,
+		"y": 118.0
+	  },
+	  "failure_rules": [],
+	  "extra_rulesets": [],
+	  "objects": {
+		"dark04_torch": {
+		  "kind": "torch",
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": -287.0, "y": 140.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 10.0, "y": 30.0 },
+			"margin": 2.0
+		  }
+		},
+		"dark04_buff": {
+		  "kind": "buff",
+		  "buff_type": "light_radius",
+		  "value": 40.0,
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": -378.0, "y": -203.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 30.0, "y": 30.0 },
+			"margin": 0.0
+		  }
+		},
+		"dark04_key": {
+		  "kind": "key",
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": -348.0, "y": -33.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 12.0, "y": 24.0 },
+			"margin": 2.0
+		  }
+		},
+		"dark04_door": {
+		  "kind": "door",
+		  "requires": {
+			"scope": "team",
+			"key_ids": ["dark04_key"]
+		  },
+		  "state": { "opened": false },
+		  "transform": {
+			"position": { "x": 648.0, "y": 149.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 24.0, "y": 24.0 },
+			"margin": 4.0
+		  }
+		},
+		"dark04_goal": {
+		  "kind": "goal",
+		  "state": { "players_inside": [] },
+		  "transform": {
+			"position": { "x": 648.0, "y": 149.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 20.0, "y": 23.0 },
+			"margin": 6.0
+		  }
+		},
+		"dark04_fall_reset": {
+		  "kind": "fall_reset",
+		  "state": {},
+		  "transform": {
+			"position": { "x": -104.0, "y": 242.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 136.0, "y": 40.0 },
+			"margin": 4.0
+		  }
+		},
+		"dark_04_chainsaw": {
+		  "kind": "chainsaw",
+		  "state": {},
+		  "transform": {
+			"position": { "x": 305.473, "y": -56.499 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 40.0, "y": 40.0 },
+			"margin": 0.0
+		  }
+		}
+	  },
+	  "completion_rules": [
+		{
+		  "type": "object_state_equals",
+		  "target_id": "dark04_door",
+		  "field": "opened",
+		  "value": true
+		},
+		{
+		  "type": "all_players_at_goal",
+		  "target_id": "dark04_goal"
+		}
+	  ],
+	  "links": []
+	},
+	"dark_05": {
+	  "level_id": "dark_05",
+	  "map_id": "dark",
+	  "index":4,
+	  "scene_path": "res://scenes/online/dark/dark_05.tscn",
+	  "spawn_point": {
+		"x": -777.0,
+		"y": 151.0
+	  },
+	  "failure_rules": [],
+	  "extra_rulesets": [],
+	  "objects": {
+		"dark05_torch": {
+		  "kind": "torch",
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": -670.0, "y": 201.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 10.0, "y": 30.0 },
+			"margin": 2.0
+		  }
+		},
+		"dark05_buff": {
+		  "kind": "buff",
+		  "buff_type": "light_radius",
+		  "value": 40.0,
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": -610.0, "y": 678.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 30.0, "y": 30.0 },
+			"margin": 0.0
+		  }
+		},
+		"dark05_key": {
+		  "kind": "key",
+		  "state": {
+			"collected": false,
+			"collector_peer_id": 0
+		  },
+		  "transform": {
+			"position": { "x": -39.0, "y": 203.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 12.0, "y": 24.0 },
+			"margin": 2.0
+		  }
+		},
+		"dark05_door": {
+		  "kind": "door",
+		  "requires": {
+			"scope": "team",
+			"key_ids": ["dark05_key"]
+		  },
+		  "state": { "opened": false },
+		  "transform": {
+			"position": { "x": 236.0, "y": 213.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 24.0, "y": 24.0 },
+			"margin": 4.0
+		  }
+		},
+		"dark05_goal": {
+		  "kind": "goal",
+		  "state": { "players_inside": [] },
+		  "transform": {
+			"position": { "x": 236.0, "y": 213.0 }
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": { "x": 0.0, "y": 0.0 },
+			"size": { "x": 20.0, "y": 23.0 },
+			"margin": 6.0
+		  }
+		},
+		"dark05_spike_01": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x": -486.0,
+			  "y": 222.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_02": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-449.0,
+			  "y": 222.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_03": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-412.0,
+			  "y": 222.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_04": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-363.0,
+			  "y": 942.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_05": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-314.0,
+			  "y": 942.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_06": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-266.0,
+			  "y": 942.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_07": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-217.0,
+			  "y": 941.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_08": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-162.0,
+			  "y": 941.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_09": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-110.0,
+			  "y": 941.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_10": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-61.0,
+			  "y":941.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark05_spike_11": {
+		  "kind": "hazard",
+		  "state": {},
+		  "transform": {
+			"position": {
+			  "x":-9.0,
+			  "y": 941.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 0.0
+			},
+			"size": {
+			  "x": 36.0,
+			  "y": 36.0
+			},
+			"margin": 0.0
+		  }
+		},
+		"dark_05_button": {
+		  "kind": "button",
+		  "state": {
+			"pressed": false
+		  },
+		  "transform": {
+			"position": {
+			  "x": -511.0,
+			  "y": 685.0
+			}
+		  },
+		  "trigger": {
+			"shape": "rectangle",
+			"offset": {
+			  "x": 0.0,
+			  "y": 1.0
+			},
+			"size": {
+			  "x": 10.0,
+			  "y": 4.0
+			},
+			"margin": 3.0
+		  }
+		},
+		"dark_05_platform_01": {
+		  "kind": "moving_platform",
+		  "state": {
+			"active": false
+		  },
+		  "transform": {
+			"position": {
+			  "x": 318.0,
+			  "y": 775.0
+			}
+		  }
+		},
+		"dark_05_platform_02": {
+		  "kind": "moving_platform",
+		  "state": {
+			"active": false
+		  },
+		  "transform": {
+			"position": {
+			  "x": 52.0,
+			  "y": 459.0
+			}
+		  }
+		},
+		"dark_05_platform_03": {
+		  "kind": "moving_platform",
+		  "state": {
+			"active": false
+		  },
+		  "transform": {
+			"position": {
+			  "x": -180.0,
+			  "y": 880.0
+			}
+		  }
+		}
+	  },
+	  "completion_rules": [
+		{
+		  "type": "object_state_equals",
+		  "target_id": "dark05_door",
+		  "field": "opened",
+		  "value": true
+		},
+		{
+		  "type": "all_players_at_goal",
+		  "target_id": "dark05_goal"
+		}
+	  ],
+	  "links": [
+		{
+		  "source_target_id": "dark_05_button",
+		  "source_field": "pressed",
+		  "source_value": true,
+		  "target_id": "dark_05_platform_01",
+		  "target_field": "active",
+		  "target_value": true
+		},
+		{
+		  "source_target_id": "dark_05_button",
+		  "source_field": "pressed",
+		  "source_value": true,
+		  "target_id": "dark_05_platform_02",
+		  "target_field": "active",
+		  "target_value": true
+		},
+		{
+		  "source_target_id": "dark_05_button",
+		  "source_field": "pressed",
+		  "source_value": true,
+		  "target_id": "dark_05_platform_03",
+		  "target_field": "active",
+		  "target_value": true
+		}
+	]
 	}
   }
 }

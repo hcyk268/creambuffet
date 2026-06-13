@@ -6,6 +6,7 @@ extends AnimatableBody2D
 enum MovementMode {
 	HORIZONTAL,
 	VERTICAL,
+	DIAGONAL,
 }
 
 @export var movement_mode: MovementMode = MovementMode.HORIZONTAL:
@@ -32,6 +33,7 @@ enum MovementMode {
 
 @onready var chainsaw_state: AnimationPlayer = $ChainsawState
 @onready var detect_area : Area2D = $Area2D
+@onready var sfx : AudioStreamPlayer2D = $Sfx
 
 const MOVE_SPEED := 60.0
 const GUIDE_COLOR := Color(0.2, 0.9, 1.0, 0.85)
@@ -89,7 +91,14 @@ func set_activation(enabled: bool) -> void:
 
 
 func _movement_axis() -> Vector2:
-	return Vector2.RIGHT if movement_mode == MovementMode.HORIZONTAL else Vector2.DOWN
+	match movement_mode:
+		MovementMode.HORIZONTAL:
+			return Vector2.RIGHT
+		MovementMode.VERTICAL:
+			return Vector2.DOWN
+		MovementMode.DIAGONAL:
+			return Vector2.RIGHT.rotated(deg_to_rad(rotation_degrees))
+	return Vector2.RIGHT
 
 
 func _apply_activation_state() -> void:
@@ -99,6 +108,11 @@ func _apply_activation_state() -> void:
 	var animation_name := "Activated" if activation else "Inactivated"
 	if chainsaw_state.has_animation(animation_name):
 		chainsaw_state.play(animation_name)
+	
+	if activation:
+		sfx.play()
+	else:
+		sfx.stop()
 
 
 func _draw() -> void:
@@ -106,6 +120,8 @@ func _draw() -> void:
 		return
 
 	var axis := _movement_axis()
+	if movement_mode == MovementMode.DIAGONAL:
+		axis = axis.rotated(-rotation)
 	var half_range := diameter * 0.5
 	var start := -axis * half_range
 	var finish := axis * half_range
