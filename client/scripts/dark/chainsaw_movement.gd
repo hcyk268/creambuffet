@@ -32,6 +32,7 @@ enum MovementMode {
 
 @onready var chainsaw_state: AnimationPlayer = $ChainsawState
 @onready var detect_area : Area2D = $Area2D
+@onready var sfx : AudioStreamPlayer2D = $Sfx
 
 const MOVE_SPEED := 60.0
 const GUIDE_COLOR := Color(0.2, 0.9, 1.0, 0.85)
@@ -99,6 +100,11 @@ func _apply_activation_state() -> void:
 	var animation_name := "Activated" if activation else "Inactivated"
 	if chainsaw_state.has_animation(animation_name):
 		chainsaw_state.play(animation_name)
+	
+	if activation:
+		sfx.play()
+	else:
+		sfx.stop()
 
 
 func _draw() -> void:

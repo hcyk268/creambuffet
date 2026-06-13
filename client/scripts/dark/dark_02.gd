@@ -21,11 +21,6 @@ func _ready() -> void:
 		return
 	_activate_delayed_platform()
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
-
-
 func _activate_delayed_platform() -> void:
 	await get_tree().create_timer(1.0).timeout
 	if is_instance_valid(mv3):
