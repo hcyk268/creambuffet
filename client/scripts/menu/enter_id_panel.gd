@@ -15,7 +15,7 @@ func _ready() -> void:
 	_binder.bind(_network_client().connection_state_changed, _on_connection_state_changed)
 	_binder.bind(_network_client().error_received, _on_network_error)
 	_binder.bind(_network_client().current_room_changed, _on_current_room_changed)
-	_set_status("Join a room on %s." % _network_client().get_server_endpoint())
+	_set_status(_default_status_message())
 
 
 func _exit_tree() -> void:
@@ -26,7 +26,7 @@ func _on_back_butt_pressed() -> void:
 	_awaiting_join = false
 	hide()
 	id_input.clear()
-	_set_status("Join a room on %s." % _network_client().get_server_endpoint())
+	_set_status(_default_status_message())
 
 
 func _on_join_butt_pressed() -> void:
@@ -72,6 +72,10 @@ func _set_status(message: String) -> void:
 		return
 
 	_status_label.text = message
+
+
+func _default_status_message() -> String:
+	return "Enter a room code to join."
 
 
 func _create_status_label() -> Label:
