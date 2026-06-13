@@ -9,6 +9,12 @@
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_floor"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lobby_wall"]
+size = Vector2(32, 560)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lobby_ceiling"]
+size = Vector2(960, 32)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
 texture = ExtResource("5_btn")
 region_rect = Rect2(16, 13, 32, 16)
@@ -45,6 +51,20 @@ zoom = Vector2(2, 2)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Floor" unique_id=658512151]
 position = Vector2(0, 60)
 shape = SubResource("WorldBoundaryShape2D_floor")
+
+[node name="Bounds" type="StaticBody2D" parent="." unique_id=1408662097]
+
+[node name="LeftWall" type="CollisionShape2D" parent="Bounds" unique_id=177539237]
+position = Vector2(-470, 60)
+shape = SubResource("RectangleShape2D_lobby_wall")
+
+[node name="RightWall" type="CollisionShape2D" parent="Bounds" unique_id=848275454]
+position = Vector2(470, 60)
+shape = SubResource("RectangleShape2D_lobby_wall")
+
+[node name="Ceiling" type="CollisionShape2D" parent="Bounds" unique_id=2018421010]
+position = Vector2(0, -220)
+shape = SubResource("RectangleShape2D_lobby_ceiling")
 
 [node name="PlayerSpawn" type="Marker2D" parent="." unique_id=1019078892]
 
