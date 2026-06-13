@@ -67,7 +67,7 @@ position = Vector2(326, 66)
 sync_id = "dark02_goal"
 
 [node name="FallResetZone" type="Area2D" parent="." unique_id=550645303]
-position = Vector2(56, 218)
+position = Vector2(56, 156)
 script = ExtResource("8_ehve4")
 sync_id = "dark02_fall_reset"
 
