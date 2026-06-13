@@ -161,6 +161,42 @@ texture_hover = SubResource("AtlasTexture_21tnj")
 stretch_mode = 1
 flip_v = true
 
+[node name="VisibilityLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1204017730]
+layout_mode = 2
+text = "Visibility"
+
+[node name="HBoxVisibility" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=201406512]
+layout_mode = 2
+theme_override_constants/separation = 30
+
+[node name="VisibilityLineEdit" type="LineEdit" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBoxVisibility" unique_id=176104051]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+text = "Public"
+alignment = 1
+editable = false
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBoxVisibility" unique_id=1493720258]
+layout_mode = 2
+theme_override_constants/separation = 40
+
+[node name="UpButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBoxVisibility/VBoxContainer" unique_id=1817429947]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_7yisg")
+texture_pressed = SubResource("AtlasTexture_lemdk")
+texture_hover = SubResource("AtlasTexture_21tnj")
+stretch_mode = 1
+
+[node name="DownButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBoxVisibility/VBoxContainer" unique_id=964520523]
+custom_minimum_size = Vector2(70, 40)
+layout_mode = 2
+texture_normal = SubResource("AtlasTexture_7yisg")
+texture_pressed = SubResource("AtlasTexture_lemdk")
+texture_hover = SubResource("AtlasTexture_21tnj")
+stretch_mode = 1
+flip_v = true
+
 [node name="RandomizedLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=44432266]
 layout_mode = 2
 text = "Map"
@@ -221,5 +257,7 @@ text = "Back
 
 [connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer/UpButt" to="." method="_on_player_up_pressed"]
 [connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox1/VBoxContainer/DownButt" to="." method="_on_player_down_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBoxVisibility/VBoxContainer/UpButt" to="." method="_on_visibility_up_pressed"]
+[connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/Grid/HBoxVisibility/VBoxContainer/DownButt" to="." method="_on_visibility_down_pressed"]
 [connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/CreateButt" to="." method="_on_create_butt_pressed"]
 [connection signal="pressed" from="TextureRect2/MarginContainer/VBoxContainer/HBoxContainer/BackButt" to="." method="_on_back_butt_pressed"]
