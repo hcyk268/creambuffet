@@ -1,4 +1,4 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://djlymhhjux7cl"]
 
 [ext_resource type="PackedScene" path="res://prefabs/level_goal.tscn" id="1_33ykn"]
 [ext_resource type="PackedScene" path="res://prefabs/door.tscn" id="2_c73jh"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://ba2u1ltuwf62p" path="res://prefabs/button.tscn" id="4_q2hnt"]
 [ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="6_n27h5"]
 [ext_resource type="PackedScene" uid="uid://bg2omqj2eob2s" path="res://prefabs/moving_platform.tscn" id="7_41lp0"]
+[ext_resource type="PackedScene" path="res://scenes/offline/backgrounds/level_001_parallax_background.tscn" id="8_42dtb"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_t2rq1"]
 size = Vector2(1400, 40)
@@ -50,14 +51,14 @@ sync_id = "level09_fall_reset_01"
 shape = SubResource("RectangleShape2D_t2rq1")
 
 [node name="MovingPlatform" parent="." unique_id=1025752984 instance=ExtResource("7_41lp0")]
-position = Vector2(-152, 59.75)
+position = Vector2(-152, 61.75)
 movement_mode = 1
 diameter = 32.0
 activation = true
 sync_id = "level09_platform_01"
 
 [node name="MovingPlatform3" parent="." unique_id=2083622816 instance=ExtResource("7_41lp0")]
-position = Vector2(156, 67)
+position = Vector2(156, 69)
 movement_mode = 1
 diameter = 32.0
 activation = true
@@ -74,3 +75,7 @@ position = Vector2(137, -12)
 movement_mode = 1
 diameter = 80.0
 sync_id = "level09_platform_04"
+
+[node name="Level001ParallaxBackground" parent="." unique_id=1197479397 instance=ExtResource("8_42dtb")]
+position = Vector2(-74.99999, -62.999996)
+scale = Vector2(0.5, 0.5)

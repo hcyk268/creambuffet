@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dec0xh17k8xgo"]
+
+[ext_resource type="Texture2D" uid="uid://dbxyabkw7xs1f" path="res://assets/backgrounds/lava/desert_outside.png" id="1_bm20p"]
+
+[node name="DesertBackground" type="Node2D" unique_id=872646071]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1859733790]
+texture = ExtResource("1_bm20p")

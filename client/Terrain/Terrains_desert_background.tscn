@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://c3bq7bnggvedc"]
+
+[ext_resource type="Texture2D" uid="uid://tmdcrx1njirp" path="res://assets/sprites/desert_tiles_map3.png" id="1_fdm0h"]
+
+[sub_resource type="TileMapPattern" id="TileMapPattern_fdm0h"]
+tile_data = PackedInt32Array(0, 65536, 1, 65536, 0, 0, 1, 0, 0, 65537, 0, 0, 2, 65536, 1, 65538, 65536, 0, 3, 0, 0, 65539, 65536, 0)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_s5csh"]
+texture = ExtResource("1_fdm0h")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+4:0/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+7:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+4:1/0 = 0
+5:1/0 = 0
+6:1/0 = 0
+7:1/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+5:2/0 = 0
+6:2/0 = 0
+7:2/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_33rv0"]
+sources/0 = SubResource("TileSetAtlasSource_s5csh")
+pattern_0 = SubResource("TileMapPattern_fdm0h")
+
+[node name="TerrainsDesertBackground" type="TileMapLayer" unique_id=270115697]
+modulate = Color(0.49315646, 0.49315646, 0.49315646, 1)
+tile_set = SubResource("TileSet_33rv0")

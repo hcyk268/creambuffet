@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bteq8q3a66v3o" path="res://Terrain/Terrains.tscn" id="3_knxqw"]
 [ext_resource type="PackedScene" uid="uid://c5lxpeg33hiji" path="res://prefabs/key.tscn" id="4_6u67p"]
 [ext_resource type="PackedScene" uid="uid://bg2omqj2eob2s" path="res://prefabs/moving_platform.tscn" id="6_k24ss"]
+[ext_resource type="PackedScene" path="res://scenes/offline/backgrounds/level_001_parallax_background.tscn" id="7_h1rje"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_knxqw"]
 size = Vector2(1400, 40)
@@ -38,6 +39,10 @@ sync_id = "level07_fall_reset_01"
 shape = SubResource("RectangleShape2D_knxqw")
 
 [node name="MovingPlatform" parent="." unique_id=1025752984 instance=ExtResource("6_k24ss")]
-position = Vector2(-11.5, 131)
+position = Vector2(142.25, 131)
 diameter = 420.0
 activation = true
+
+[node name="Level001ParallaxBackground" parent="." unique_id=703723318 instance=ExtResource("7_h1rje")]
+position = Vector2(-73, 47.000004)
+scale = Vector2(0.5, 0.5)

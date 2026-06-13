@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="5_sr5h6"]
 [ext_resource type="PackedScene" uid="uid://egxsmjgpubr7" path="res://prefabs/two_tile_static_magma.tscn" id="6_vb0qh"]
 [ext_resource type="PackedScene" uid="uid://u8fw0dm1iwk8" path="res://prefabs/fragile_platform.tscn" id="7_glj0k"]
+[ext_resource type="PackedScene" uid="uid://dec0xh17k8xgo" path="res://scenes/online/backgrounds/desert_background.tscn" id="8_vb0qh"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_50wog"]
 size = Vector2(1400, 40)
@@ -103,3 +104,9 @@ sync_id = "level01_magma_15"
 
 [node name="fragile_platform1" parent="." unique_id=2005777429 instance=ExtResource("7_glj0k")]
 position = Vector2(24, 66)
+
+[node name="DesertBackground" parent="." unique_id=872646071 instance=ExtResource("8_vb0qh")]
+modulate = Color(0.96024394, 0.96024394, 0.96024394, 1)
+show_behind_parent = true
+position = Vector2(90, -60)
+scale = Vector2(0.8, 0.8)
