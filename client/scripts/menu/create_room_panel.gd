@@ -122,7 +122,7 @@ func _visibility_label() -> String:
 
 
 func _default_status_message() -> String:
-	return "Create a %s room on %s." % [room_visibility, _network_client().get_server_endpoint()]
+	return "Ready to create a %s room." % room_visibility
 
 
 func _cycle_room_visibility(_direction: int) -> void:

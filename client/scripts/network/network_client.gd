@@ -46,7 +46,7 @@ func _ready() -> void:
 	_load_runtime_config()
 	var initial_display_name := _configured_display_name if not _configured_display_name.is_empty() else _guess_display_name()
 	_display_name = _sanitize_display_name(initial_display_name)
-	connection_details = "Offline. Target server: %s:%d" % [server_host, server_port]
+	connection_details = _offline_status_text()
 
 	_scene_multiplayer = get_tree().get_multiplayer() as SceneMultiplayer
 	if _scene_multiplayer == null:
@@ -70,13 +70,13 @@ func ensure_connected() -> void:
 		_peer = null
 		_set_connection_state(
 			STATE_DISCONNECTED,
-			"Could not connect to %s:%d (error %d)." % [server_host, server_port, connect_error]
+			_connection_failed_status_text()
 		)
 		error_received.emit("connection_failed", connection_details)
 		return
 
 	_scene_multiplayer.multiplayer_peer = _peer
-	_set_connection_state(STATE_CONNECTING, "Connecting to %s:%d..." % [server_host, server_port])
+	_set_connection_state(STATE_CONNECTING, _connecting_status_text())
 
 
 func disconnect_from_server() -> void:
@@ -92,7 +92,7 @@ func disconnect_from_server() -> void:
 
 	_set_current_room({})
 	_set_public_rooms([])
-	_set_connection_state(STATE_DISCONNECTED, "Offline. Target server: %s:%d" % [server_host, server_port])
+	_set_connection_state(STATE_DISCONNECTED, _offline_status_text())
 
 
 func get_status_text() -> String:
@@ -239,7 +239,7 @@ func _bind_multiplayer_signals() -> void:
 
 
 func _on_connected_to_server() -> void:
-	_set_connection_state(STATE_CONNECTED, "Connected to %s:%d." % [server_host, server_port])
+	_set_connection_state(STATE_CONNECTED, "Connected")
 	_send_packet(ProtocolConstants.MESSAGE_HELLO, {
 		"player_name": _display_name,
 	})
@@ -247,7 +247,7 @@ func _on_connected_to_server() -> void:
 
 
 func _on_connection_failed() -> void:
-	var failed_message := "Connection failed for %s:%d." % [server_host, server_port]
+	var failed_message := _connection_failed_status_text()
 	_clear_network_state(failed_message)
 	error_received.emit("connection_failed", failed_message)
 
@@ -308,7 +308,7 @@ func _handle_welcome(payload: Dictionary) -> void:
 		_display_name = String(payload["display_name"])
 
 	var label_name := _display_name if not _display_name.is_empty() else "Player"
-	_set_connection_state(STATE_CONNECTED, "Connected as %s on %s:%d." % [label_name, server_host, server_port])
+	_set_connection_state(STATE_CONNECTED, "Connected as %s" % label_name)
 
 
 func _handle_match_started(payload: Dictionary) -> void:
@@ -527,6 +527,18 @@ func _clear_network_state(details: String) -> void:
 	_set_current_room({})
 	_set_public_rooms([])
 	_set_connection_state(STATE_DISCONNECTED, details)
+
+
+func _offline_status_text() -> String:
+	return "Offline"
+
+
+func _connecting_status_text() -> String:
+	return "Connecting..."
+
+
+func _connection_failed_status_text() -> String:
+	return "Unable to connect. Please try again."
 
 
 func _load_runtime_config() -> void:

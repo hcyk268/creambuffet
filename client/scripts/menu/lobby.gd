@@ -45,7 +45,7 @@ func _on_back_butt_pressed() -> void:
 
 
 func _on_refresh_butt_pressed() -> void:
-	_set_status("Refreshing rooms from %s..." % _network_client().get_server_endpoint())
+	_set_status("Refreshing public rooms...")
 	_network_client().request_public_rooms()
 
 
