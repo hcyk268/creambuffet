@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://bg2omqj2eob2s" path="res://prefabs/moving_platform.tscn" id="6_keemd"]
 [ext_resource type="PackedScene" path="res://prefabs/door.tscn" id="8_oiwim"]
 [ext_resource type="PackedScene" uid="uid://c5lxpeg33hiji" path="res://prefabs/key.tscn" id="9_rflem"]
+[ext_resource type="PackedScene" path="res://scenes/offline/backgrounds/level_001_parallax_background.tscn" id="10_rflem"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_keemd"]
 size = Vector2(1400, 40)
@@ -60,3 +61,7 @@ sync_id = "level02_door_01"
 [node name="Key" parent="." unique_id=1093618448 instance=ExtResource("9_rflem")]
 position = Vector2(15, 58)
 sync_id = "level02_key_01"
+
+[node name="Level001ParallaxBackground" parent="." unique_id=978828458 instance=ExtResource("10_rflem")]
+position = Vector2(-64, 34)
+scale = Vector2(0.5, 0.5)

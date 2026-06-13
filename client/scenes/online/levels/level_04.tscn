@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bteq8q3a66v3o" path="res://Terrain/Terrains.tscn" id="4_cw75u"]
 [ext_resource type="PackedScene" path="res://prefabs/door.tscn" id="5_j6e47"]
 [ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="6_ypi4k"]
+[ext_resource type="PackedScene" path="res://scenes/offline/backgrounds/level_001_parallax_background.tscn" id="7_trv67"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cw75u"]
 size = Vector2(1400, 40)
@@ -45,3 +46,7 @@ sync_id = "level04_fall_reset_01"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="FallResetZone" unique_id=1235513677]
 shape = SubResource("RectangleShape2D_cw75u")
+
+[node name="Level001ParallaxBackground" parent="." unique_id=1668206634 instance=ExtResource("7_trv67")]
+position = Vector2(-74.99999, -62.999996)
+scale = Vector2(0.5, 0.5)

@@ -1,4 +1,4 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://bw6ph1ilqkbcd"]
 
 [ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="1_gw5sx"]
 [ext_resource type="PackedScene" path="res://prefabs/level_goal.tscn" id="2_gnb3t"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://c5lxpeg33hiji" path="res://prefabs/key.tscn" id="5_7e7ni"]
 [ext_resource type="PackedScene" uid="uid://ba2u1ltuwf62p" path="res://prefabs/button.tscn" id="5_qblg5"]
 [ext_resource type="PackedScene" uid="uid://bg2omqj2eob2s" path="res://prefabs/moving_platform.tscn" id="6_woqnv"]
+[ext_resource type="PackedScene" path="res://scenes/offline/backgrounds/level_001_parallax_background.tscn" id="9_r4cuy"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_knxqw"]
 size = Vector2(1400, 40)
@@ -58,3 +59,7 @@ position = Vector2(95, 205)
 activation_mode = 1
 sync_id = "level10_button_01"
 target_platform = NodePath("../MovingPlatform")
+
+[node name="Level001ParallaxBackground" parent="." unique_id=1731171607 instance=ExtResource("9_r4cuy")]
+position = Vector2(-76, 14.000004)
+scale = Vector2(0.5, 0.5)
