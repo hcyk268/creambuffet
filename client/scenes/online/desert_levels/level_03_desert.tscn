@@ -162,5 +162,5 @@ tile_map_data = PackedByteArray("AADp////AAABAAUAAADq////AAACAAUAAADv//j/AAAAAAU
 
 [node name="Button" parent="." unique_id=651816027 node_paths=PackedStringArray("target_platform") instance=ExtResource("9_j1g58")]
 position = Vector2(41, 28)
-target_platform = NodePath("../MovingPlatform")
 sync_id = "level03_button_01"
+target_platform = NodePath("../MovingPlatform")

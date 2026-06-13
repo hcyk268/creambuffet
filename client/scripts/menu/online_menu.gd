@@ -1,6 +1,7 @@
 extends Control
 
 const STATUS_FONT = preload("res://assets/fonts/EXEPixelPerfect.ttf")
+const GameIds = preload("res://scripts/catalog/game_ids.gd")
 
 @onready var enter_id_panel = $EnterIdPanel
 @onready var create_room_panel = $CreateRoomPanel
@@ -33,6 +34,8 @@ func _on_private_butt_pressed() -> void:
 
 func _on_host_butt_pressed() -> void:
 	_network_client().ensure_connected()
+	if create_room_panel.has_method("set_room_visibility"):
+		create_room_panel.set_room_visibility(GameIds.ROOM_VISIBILITY_PUBLIC)
 	create_room_panel.show()
 
 
