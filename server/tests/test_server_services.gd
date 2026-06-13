@@ -7,9 +7,11 @@ const Room = preload("res://scripts/lobby/room.gd")
 const RoomManager = preload("res://scripts/lobby/room_manager.gd")
 const MessageRouter = preload("res://scripts/server/message_router.gd")
 const MatchCoordinator = preload("res://scripts/server/match_coordinator.gd")
+const MatchMessageHandler = preload("res://scripts/server/match_message_handler.gd")
 const RoomBroadcaster = preload("res://scripts/server/room_broadcaster.gd")
 const ServerConfig = preload("res://scripts/server/server_config.gd")
 const ServerDebugContext = preload("res://scripts/server/server_debug_context.gd")
+const GameIds = preload("res://scripts/catalog/game_ids.gd")
 
 
 class RecordingBroadcaster:
@@ -111,6 +113,7 @@ func _init() -> void:
 	_test_server_config_env_overrides(failures)
 	_test_match_coordinator_level_transition(failures)
 	_test_match_coordinator_match_complete(failures)
+	_test_goal_exit_requires_current_goal_occupancy(failures)
 	_test_message_router_peer_connected(failures)
 	_test_message_router_bad_packet(failures)
 	_test_message_router_ping_dispatch(failures)
@@ -201,6 +204,74 @@ func _test_match_coordinator_match_complete(failures: Array[String]) -> void:
 		var payload: Dictionary = broadcaster.room_messages[0].get("payload", {})
 		if not bool(payload.get("match_complete", false)):
 			failures.append("MatchCoordinator.try_level_transition() did not flag match_complete in the final transition.")
+
+
+func _test_goal_exit_requires_current_goal_occupancy(failures: Array[String]) -> void:
+	var room_manager: Variant = RoomManager.new()
+	var broadcaster := RecordingBroadcaster.new()
+	var debug := RecordingDebugContext.new()
+	var coordinator: Variant = MatchCoordinator.new()
+	coordinator.setup(room_manager, broadcaster, debug)
+	var handler: Variant = MatchMessageHandler.new()
+	handler.setup(room_manager, broadcaster, coordinator, debug)
+
+	var create_result: Dictionary = room_manager.create_room(1, "Player1", {
+		"max_players": 2,
+		"map_id": "water",
+		"is_public": false,
+	})
+	if not bool(create_result.get("ok", false)):
+		failures.append("MatchMessageHandler setup could not create a two-player water room.")
+		return
+
+	var room: Room = create_result.get("room") as Room
+	var join_result: Dictionary = room_manager.join_room(2, "Player2", room.room_id)
+	if not bool(join_result.get("ok", false)):
+		failures.append("MatchMessageHandler setup could not join the second player to the room.")
+		return
+
+	var start_result: Dictionary = room_manager.start_match(1)
+	if not bool(start_result.get("ok", false)):
+		failures.append("MatchMessageHandler setup could not start the two-player water match.")
+		return
+
+	room = start_result.get("room") as Room
+	room.match_state.patch_object_state("water01_door", {"opened": true})
+
+	handler.handle_world_action_request(1, "req-enter-1", {
+		"action": GameIds.ACTION_GOAL_ENTER,
+		"level_id": "water_01",
+		"target_id": "water01_goal",
+		"position": {"x": 325.0, "y": -43.0},
+		"velocity": {"x": 0.0, "y": 0.0},
+	})
+	if not bool(room.match_state.get_player_state(1).get("at_goal", false)):
+		failures.append("MatchMessageHandler did not mark player 1 at the goal after goal_enter.")
+		return
+
+	handler.handle_world_action_request(1, "req-exit-1", {
+		"action": GameIds.ACTION_GOAL_EXIT,
+		"level_id": "water_01",
+		"target_id": "water01_goal",
+		"position": {"x": 240.0, "y": -43.0},
+		"velocity": {"x": 0.0, "y": 0.0},
+	})
+	if bool(room.match_state.get_player_state(1).get("at_goal", false)):
+		failures.append("MatchMessageHandler kept player 1 at the goal after goal_exit with an updated outside position.")
+		return
+
+	handler.handle_world_action_request(2, "req-enter-2", {
+		"action": GameIds.ACTION_GOAL_ENTER,
+		"level_id": "water_01",
+		"target_id": "water01_goal",
+		"position": {"x": 325.0, "y": -43.0},
+		"velocity": {"x": 0.0, "y": 0.0},
+	})
+
+	if room.is_complete():
+		failures.append("MatchMessageHandler completed the room even though player 1 had already left the goal.")
+	if room.current_level_index != 0:
+		failures.append("MatchMessageHandler advanced the level even though not all players were simultaneously inside the goal.")
 
 
 func _test_message_router_peer_connected(failures: Array[String]) -> void:
