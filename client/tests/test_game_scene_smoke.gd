@@ -16,6 +16,7 @@ class StubNetworkClient:
 
 	var _current_room: Dictionary = {}
 	var _local_peer_id := 1
+	var sent_world_events: Array[Dictionary] = []
 
 	func get_current_room() -> Dictionary:
 		return _current_room.duplicate(true)
@@ -26,8 +27,8 @@ class StubNetworkClient:
 	func send_player_state(_state: Dictionary) -> void:
 		pass
 
-	func send_world_event(_event: Dictionary) -> void:
-		pass
+	func send_world_event(event: Dictionary) -> void:
+		sent_world_events.append(event.duplicate(true))
 
 	func send_world_action(_action: String, _target_id: String, _payload: Dictionary) -> void:
 		pass
@@ -147,6 +148,33 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 				failures.append("OnlineGame did not apply remote player state snapshots to the remote player node.")
 
 	var current_level: Node = online_game.get("_current_level") as Node
+	var goal_node := _find_node_by_sync_id(current_level, "level01_goal_01")
+	if goal_node == null:
+		failures.append("OnlineGame smoke could not find the expected goal node in level_01.")
+	elif local_player != null:
+		local_player.global_position = Vector2(168.0, -17.0)
+		local_player.velocity = Vector2(9.0, -3.0)
+		goal_node.emit_signal("goal_reached", local_player)
+		goal_node.emit_signal("goal_left", local_player)
+		await _settle_frames(1)
+		if network_client.sent_world_events.size() < 2:
+			failures.append("OnlineGame did not send both goal_enter and goal_exit world events.")
+		else:
+			var enter_event: Dictionary = network_client.sent_world_events[network_client.sent_world_events.size() - 2]
+			var exit_event: Dictionary = network_client.sent_world_events[network_client.sent_world_events.size() - 1]
+			if String(enter_event.get("action", "")) != "goal_enter":
+				failures.append("OnlineGame sent the wrong action for goal_enter.")
+			if enter_event.get("position", {}) != {"x": 168.0, "y": -17.0}:
+				failures.append("OnlineGame did not include the local position in goal_enter world events.")
+			if enter_event.get("velocity", {}) != {"x": 9.0, "y": -3.0}:
+				failures.append("OnlineGame did not include the local velocity in goal_enter world events.")
+			if String(exit_event.get("action", "")) != "goal_exit":
+				failures.append("OnlineGame sent the wrong action for goal_exit.")
+			if exit_event.get("position", {}) != {"x": 168.0, "y": -17.0}:
+				failures.append("OnlineGame did not include the local position in goal_exit world events.")
+			if exit_event.get("velocity", {}) != {"x": 9.0, "y": -3.0}:
+				failures.append("OnlineGame did not include the local velocity in goal_exit world events.")
+
 	var key_node := _find_node_by_sync_id(current_level, "level01_key_01")
 	var door_node := _find_node_by_sync_id(current_level, "level01_door_01")
 	if key_node == null or door_node == null:

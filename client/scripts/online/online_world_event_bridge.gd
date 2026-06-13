@@ -247,11 +247,11 @@ func _on_goal_reached(body: Node, goal_node: Node) -> void:
 		push_warning("Ignoring goal_enter request because goal sync_id is missing.")
 		return
 
-	_network_client.send_world_event({
-		"action": GameIds.ACTION_GOAL_ENTER,
-		"level_id": _current_level_id,
-		"target_id": target_id,
-	})
+	var payload := _local_player_motion_payload()
+	payload["action"] = GameIds.ACTION_GOAL_ENTER
+	payload["level_id"] = _current_level_id
+	payload["target_id"] = target_id
+	_network_client.send_world_event(payload)
 
 
 func _on_goal_left(body: Node, goal_node: Node) -> void:
@@ -263,11 +263,11 @@ func _on_goal_left(body: Node, goal_node: Node) -> void:
 		push_warning("Ignoring goal_exit request because goal sync_id is missing.")
 		return
 
-	_network_client.send_world_event({
-		"action": GameIds.ACTION_GOAL_EXIT,
-		"level_id": _current_level_id,
-		"target_id": target_id,
-	})
+	var payload := _local_player_motion_payload()
+	payload["action"] = GameIds.ACTION_GOAL_EXIT
+	payload["level_id"] = _current_level_id
+	payload["target_id"] = target_id
+	_network_client.send_world_event(payload)
 
 
 func _on_key_collected(body: Node, key_node: Node) -> void:
@@ -424,6 +424,15 @@ func _node_sync_id(node: Node) -> String:
 
 func _vector_to_packet(value: Vector2) -> Dictionary:
 	return PacketCodec.vector_to_packet(value)
+
+
+func _local_player_motion_payload() -> Dictionary:
+	if _player == null:
+		return {}
+	return {
+		"position": _vector_to_packet(_player.global_position),
+		"velocity": _vector_to_packet(_player.velocity),
+	}
 
 
 func _local_peer_id() -> int:
