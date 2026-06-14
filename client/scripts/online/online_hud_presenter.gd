@@ -268,6 +268,16 @@ func _failure_time_remaining_ms(state: Dictionary) -> int:
 
 	var duration_ms := int(time_limit.get("duration_ms", 0))
 	var started_at_ms := int(time_limit.get("started_at_ms", 0))
+	
+	# Scenario 1: A network state packet from a server room match
+	if _failure_snapshot_ms > 0:
+		# Use the remaining time sent by the server, minus how much local 
+		# engine time has ticked by since we received that specific snapshot.
+		var remaining_at_snapshot := int(time_limit.get("remaining_ms", duration_ms))
+		var ms_since_snapshot := Time.get_ticks_msec() - _failure_snapshot_ms
+		return maxi(remaining_at_snapshot - ms_since_snapshot, 0)
+
+	# Scenario 2: Local fallback rule tracking (Offline play/Testing)
 	if started_at_ms <= 0:
 		return maxi(int(time_limit.get("remaining_ms", 0)), 0)
 
