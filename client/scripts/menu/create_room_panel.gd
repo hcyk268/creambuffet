@@ -95,7 +95,7 @@ func _on_current_room_changed(room: Dictionary) -> void:
 
 	_awaiting_create = false
 	hide()
-	SceneTransition.change_scene("res://scenes/room.tscn")
+	get_node("/root/SceneTransition").change_scene("res://scenes/room.tscn")
 
 
 func set_room_visibility(visibility: String) -> void:

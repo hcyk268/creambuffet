@@ -18,7 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 NetworkClient="*res://scripts/network/network_client.gd"
-SceneTransition="*uid://dg4mtbfkiaa63"
+SceneTransition="*res://scenes/ui/scene_transition.tscn"
 
 [display]
 
