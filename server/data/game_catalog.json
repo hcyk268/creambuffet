@@ -438,8 +438,7 @@
 		"dark_01",
 		"dark_02",
 		"dark_03",
-		"dark_04",
-		"dark_05"
+		"dark_04"
 	  ]
 	}
   },
@@ -4127,7 +4126,7 @@
 	  "failure_rules": [
 		{
 		  "type": "death_limit",
-		  "hearts": 5,
+		  "hearts": 10,
 		  "shared": true
 		}
 	  ],
@@ -6152,139 +6151,6 @@
 		  "kind": "chainsaw",
 		  "state": {},
 		  "transform": {
-			"position": { "x": 307.321, "y": -77.0 }
-		  },
-		  "trigger": {
-			"shape": "rectangle",
-			"offset": { "x": 0.0, "y": 0.0 },
-			"size": { "x": 40.0, "y": 40.0 },
-			"margin": 0.0
-		  }
-		}
-	  },
-	  "completion_rules": [
-		{
-		  "type": "object_state_equals",
-		  "target_id": "dark04_door",
-		  "field": "opened",
-		  "value": true
-		},
-		{
-		  "type": "all_players_at_goal",
-		  "target_id": "dark04_goal"
-		}
-	  ],
-	  "links": []
-	},
-	"dark_05": {
-	  "level_id": "dark_05",
-	  "map_id": "dark",
-	  "index":4,
-	  "scene_path": "res://scenes/online/dark/dark_05.tscn",
-	  "spawn_point": {
-		"x": -379.0,
-		"y": 118.0
-	  },
-	  "failure_rules": [],
-	  "extra_rulesets": [],
-	  "objects": {
-		"dark04_torch": {
-		  "kind": "torch",
-		  "state": {
-			"collected": false,
-			"collector_peer_id": 0
-		  },
-		  "transform": {
-			"position": { "x": -287.0, "y": 140.0 }
-		  },
-		  "trigger": {
-			"shape": "rectangle",
-			"offset": { "x": 0.0, "y": 0.0 },
-			"size": { "x": 10.0, "y": 30.0 },
-			"margin": 2.0
-		  }
-		},
-		"dark04_buff": {
-		  "kind": "buff",
-		  "buff_type": "light_radius",
-		  "value": 40.0,
-		  "state": {
-			"collected": false,
-			"collector_peer_id": 0
-		  },
-		  "transform": {
-			"position": { "x": -378.0, "y": -203.0 }
-		  },
-		  "trigger": {
-			"shape": "rectangle",
-			"offset": { "x": 0.0, "y": 0.0 },
-			"size": { "x": 30.0, "y": 30.0 },
-			"margin": 0.0
-		  }
-		},
-		"dark04_key": {
-		  "kind": "key",
-		  "state": {
-			"collected": false,
-			"collector_peer_id": 0
-		  },
-		  "transform": {
-			"position": { "x": -348.0, "y": -33.0 }
-		  },
-		  "trigger": {
-			"shape": "rectangle",
-			"offset": { "x": 0.0, "y": 0.0 },
-			"size": { "x": 12.0, "y": 24.0 },
-			"margin": 2.0
-		  }
-		},
-		"dark04_door": {
-		  "kind": "door",
-		  "requires": {
-			"scope": "team",
-			"key_ids": ["dark03_key"]
-		  },
-		  "state": { "opened": false },
-		  "transform": {
-			"position": { "x": 648.0, "y": 149.0 }
-		  },
-		  "trigger": {
-			"shape": "rectangle",
-			"offset": { "x": 0.0, "y": 0.0 },
-			"size": { "x": 24.0, "y": 24.0 },
-			"margin": 4.0
-		  }
-		},
-		"dark04_goal": {
-		  "kind": "goal",
-		  "state": { "players_inside": [] },
-		  "transform": {
-			"position": { "x": 648.0, "y": 149.0 }
-		  },
-		  "trigger": {
-			"shape": "rectangle",
-			"offset": { "x": 0.0, "y": 0.0 },
-			"size": { "x": 20.0, "y": 23.0 },
-			"margin": 6.0
-		  }
-		},
-		"dark04_fall_reset": {
-		  "kind": "fall_reset",
-		  "state": {},
-		  "transform": {
-			"position": { "x": -104.0, "y": 242.0 }
-		  },
-		  "trigger": {
-			"shape": "rectangle",
-			"offset": { "x": 0.0, "y": 0.0 },
-			"size": { "x": 136.0, "y": 40.0 },
-			"margin": 4.0
-		  }
-		},
-		"dark_04_chainsaw": {
-		  "kind": "chainsaw",
-		  "state": {},
-		  "transform": {
 			"position": { "x": 305.473, "y": -56.499 }
 		  },
 		  "trigger": {
@@ -6318,10 +6184,8 @@
 		"x": -777.0,
 		"y": 151.0
 	  },
-	  "extra_rulesets": [
-		"button_platform_v1",
-        "moving_platform_v1"
-	],
+	  "failure_rules": [],
+	  "extra_rulesets": [],
 	  "objects": {
 		"dark05_torch": {
 		  "kind": "torch",
