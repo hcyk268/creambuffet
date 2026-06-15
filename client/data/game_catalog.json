@@ -1865,7 +1865,7 @@
 		  "transform": {
 			"position": {
 			  "x": -152.0,
-			  "y": 59.75
+			  "y": 61.75
 			}
 		  }
 		},
@@ -1877,7 +1877,7 @@
 		  "transform": {
 			"position": {
 			  "x": 156.0,
-			  "y": 67.0
+			  "y": 69.0
 			}
 		  }
 		},
@@ -3236,8 +3236,8 @@
 		  },
 		  "transform": {
 			"position": {
-			  "x": -99.0,
-			  "y": -10.0
+			  "x": -102.0,
+			  "y": 7.0
 			}
 		  },
 		  "trigger": {
@@ -6019,7 +6019,7 @@
 		  "kind": "chainsaw",
 		  "state": {},
 		  "transform": {
-			"position": { "x": 275.25, "y": 44.0 }
+			"position": { "x": 320.0, "y": 44.0 }
 		  },
 		  "trigger": {
 			"shape": "rectangle",
