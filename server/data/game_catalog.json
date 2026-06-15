@@ -438,7 +438,8 @@
 		"dark_01",
 		"dark_02",
 		"dark_03",
-		"dark_04"
+		"dark_04",
+		"dark_05"
 	  ]
 	}
   },
@@ -6185,7 +6186,10 @@
 		"y": 151.0
 	  },
 	  "failure_rules": [],
-	  "extra_rulesets": [],
+	  "extra_rulesets": [
+		"button_platform_v1",
+		"moving_platform_v1"
+	  ],
 	  "objects": {
 		"dark05_torch": {
 		  "kind": "torch",
