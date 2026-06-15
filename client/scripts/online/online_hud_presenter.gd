@@ -1,7 +1,7 @@
 extends RefCounted
 class_name OnlineHudPresenter
 
-var _level_label: Label
+var _level_label: RichTextLabel
 var _water_hud: Control
 var _oxygen_bar: ProgressBar
 var _oxygen_label: Label
@@ -15,7 +15,7 @@ var _time_limit_expired_notified := false
 
 
 func setup(
-	level_label: Label,
+	level_label: RichTextLabel,
 	water_hud: Control,
 	oxygen_bar: ProgressBar,
 	oxygen_label: Label,
@@ -255,9 +255,15 @@ func _failure_hearts_text() -> String:
 	if hearts_max <= 0:
 		return ""
 
+	# 1. Define the paths to your PNGs inside the BBCode tags
+	# We use vertical_alignment=center to stop the PNG from looking too big/misaligned
+	var full_heart_tag := "[img=16x16 vertical_alignment=center]res://assets/sprites/heart_full.png[/img]"
+	var empty_heart_tag := "[img=16x16 vertical_alignment=center]res://assets/sprites/heart_empty.png[/img]"
+
 	var hearts := ""
 	for index in range(hearts_max):
-		hearts += "\u2665" if index < hearts_remaining else "\u2661"
+		# 2. Append the PNG tags instead of the text unicode symbols
+		hearts += full_heart_tag if index < hearts_remaining else empty_heart_tag
 	return hearts
 
 

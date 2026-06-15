@@ -5,20 +5,21 @@
 [ext_resource type="PackedScene" uid="uid://dixrvvl3dcxpe" path="res://scenes/online/levels/level_01.tscn" id="3_r8y6r"]
 [ext_resource type="PackedScene" uid="uid://bjrer3ft3jlbv" path="res://scenes/online/levels/level_02.tscn" id="4_qb0pa"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="5_4f5g8"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_03.tscn" id="6_m9dq3"]
+[ext_resource type="PackedScene" uid="uid://ckap45vyxbq2e" path="res://scenes/online/levels/level_03.tscn" id="6_m9dq3"]
 [ext_resource type="PackedScene" uid="uid://d3hwgfhxwxlnt" path="res://scenes/online/levels/level_04.tscn" id="7_n2lbk"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_05.tscn" id="8_yq2ru"]
+[ext_resource type="PackedScene" uid="uid://qan70rpfgg8q" path="res://scenes/online/levels/level_05.tscn" id="8_yq2ru"]
 [ext_resource type="PackedScene" uid="uid://dranb3t8g5fs4" path="res://scenes/online/levels/level_06.tscn" id="9_b2swt"]
 [ext_resource type="PackedScene" uid="uid://cry05uxr78cjc" path="res://scenes/online/levels/level_07.tscn" id="10_ek6uf"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_08.tscn" id="11_h4npa"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_09.tscn" id="12_t8vce"]
-[ext_resource type="PackedScene" path="res://scenes/online/levels/level_10.tscn" id="13_x1mkr"]
+[ext_resource type="PackedScene" uid="uid://coiorkuccn47u" path="res://scenes/online/levels/level_08.tscn" id="11_h4npa"]
+[ext_resource type="PackedScene" uid="uid://djlymhhjux7cl" path="res://scenes/online/levels/level_09.tscn" id="12_t8vce"]
+[ext_resource type="PackedScene" uid="uid://bw6ph1ilqkbcd" path="res://scenes/online/levels/level_10.tscn" id="13_x1mkr"]
 [ext_resource type="Script" uid="uid://c2ejor57101fb" path="res://scripts/online/level_transition.gd" id="14_q4wxa"]
-[ext_resource type="Script" uid="uid://c7go5b5sfc447" path="res://scripts/ui/fps_label.gd" id="15_4jv6p"]
+[ext_resource type="Script" path="res://scripts/ui/fps_label.gd" id="15_4jv6p"]
 
 [node name="OnlineGame" type="Node2D" unique_id=530829054]
 script = ExtResource("1_xeoup")
 levels = Array[PackedScene]([ExtResource("3_r8y6r"), ExtResource("4_qb0pa"), ExtResource("6_m9dq3"), ExtResource("7_n2lbk"), ExtResource("8_yq2ru"), ExtResource("9_b2swt"), ExtResource("10_ek6uf"), ExtResource("11_h4npa"), ExtResource("12_t8vce"), ExtResource("13_x1mkr")])
+start_level_index = null
 
 [node name="LevelContainer" type="Node2D" parent="." unique_id=797247729]
 
@@ -30,13 +31,16 @@ zoom = Vector2(3, 3)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1535871515]
 
-[node name="LevelLabel" type="Label" parent="CanvasLayer" unique_id=1121893242]
+[node name="LevelLabel" type="RichTextLabel" parent="CanvasLayer" unique_id=1227108237]
 offset_left = 10.0
 offset_top = 8.0
 offset_right = 420.0
 offset_bottom = 31.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+bbcode_enabled = true
 text = "Level"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
 
 [node name="FpsLabel" type="Label" parent="CanvasLayer" unique_id=879454921]
 visible = false

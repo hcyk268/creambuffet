@@ -19,7 +19,7 @@ const NETWORK_SEND_INTERVAL := 0.05
 
 @onready var player: CharacterBody2D = $Player
 @onready var level_container: Node2D = $LevelContainer
-@onready var level_label: Label = $CanvasLayer/LevelLabel
+@onready var level_label: RichTextLabel = $CanvasLayer/LevelLabel
 @onready var water_hud: Control = $CanvasLayer/WaterHud
 @onready var oxygen_bar: ProgressBar = $CanvasLayer/WaterHud/OxygenBar
 @onready var oxygen_label: Label = $CanvasLayer/WaterHud/OxygenLabel

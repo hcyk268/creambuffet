@@ -4126,7 +4126,7 @@
 	  "failure_rules": [
 		{
 		  "type": "death_limit",
-		  "hearts": 5,
+		  "hearts": 10,
 		  "shared": true
 		}
 	  ],
