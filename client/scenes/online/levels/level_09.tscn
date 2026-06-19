@@ -51,14 +51,14 @@ sync_id = "level09_fall_reset_01"
 shape = SubResource("RectangleShape2D_t2rq1")
 
 [node name="MovingPlatform" parent="." unique_id=1025752984 instance=ExtResource("7_41lp0")]
-position = Vector2(-152, 61.75)
+position = Vector2(-153, 92.25)
 movement_mode = 1
 diameter = 32.0
 activation = true
 sync_id = "level09_platform_01"
 
 [node name="MovingPlatform3" parent="." unique_id=2083622816 instance=ExtResource("7_41lp0")]
-position = Vector2(156, 69)
+position = Vector2(151, 94.25)
 movement_mode = 1
 diameter = 32.0
 activation = true
@@ -78,4 +78,3 @@ sync_id = "level09_platform_04"
 
 [node name="Level001ParallaxBackground" parent="." unique_id=1197479397 instance=ExtResource("8_42dtb")]
 position = Vector2(-74.99999, -62.999996)
-scale = Vector2(0.5, 0.5)
