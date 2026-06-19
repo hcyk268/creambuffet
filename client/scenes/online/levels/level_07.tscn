@@ -11,7 +11,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_knxqw"]
 size = Vector2(1400, 40)
 
-[node name="Level02" type="Node2D" unique_id=1763812893]
+[node name="Level03" type="Node2D" unique_id=1763812893]
 
 [node name="SpawnPoint" type="Marker2D" parent="." unique_id=1135865853]
 position = Vector2(-272, 76)
@@ -39,10 +39,9 @@ sync_id = "level07_fall_reset_01"
 shape = SubResource("RectangleShape2D_knxqw")
 
 [node name="MovingPlatform" parent="." unique_id=1025752984 instance=ExtResource("6_k24ss")]
-position = Vector2(142.25, 131)
+position = Vector2(4.25, 125)
 diameter = 420.0
 activation = true
 
 [node name="Level001ParallaxBackground" parent="." unique_id=703723318 instance=ExtResource("7_h1rje")]
-position = Vector2(-73, 47.000004)
-scale = Vector2(0.5, 0.5)
+position = Vector2(-92, 82)

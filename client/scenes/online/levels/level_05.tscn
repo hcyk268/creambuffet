@@ -44,4 +44,3 @@ shape = SubResource("RectangleShape2D_836dv")
 
 [node name="Level001ParallaxBackground" parent="." unique_id=316040652 instance=ExtResource("7_himl2")]
 position = Vector2(-64, 8.000004)
-scale = Vector2(0.5, 0.5)
