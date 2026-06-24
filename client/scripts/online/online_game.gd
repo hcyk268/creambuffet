@@ -12,12 +12,13 @@ const OnlineLevelResolver = preload("res://scripts/online/online_level_resolver.
 const OnlineSessionRuntime = preload("res://scripts/online/online_session_runtime.gd")
 const OnlineWorldEventBridge = preload("res://scripts/online/online_world_event_bridge.gd")
 const WorldObjectStateApplier = preload("res://scripts/online/world_object_state_applier.gd")
+const OptionsState = preload("res://scripts/menu/options_state.gd")
 const NETWORK_SEND_INTERVAL := 0.05
 
 @export var levels: Array[PackedScene] = []
 @export var start_level_index := 0
 
-@onready var player: CharacterBody2D = $Player
+@onready var player: PlayerSoda = $Player
 @onready var level_container: Node2D = $LevelContainer
 @onready var level_label: RichTextLabel = $CanvasLayer/LevelLabel
 @onready var water_hud: Control = $CanvasLayer/WaterHud
@@ -48,6 +49,7 @@ var _world_event_bridge: OnlineWorldEventBridge
 
 func _ready() -> void:
 	_network_client = get_node_or_null("/root/NetworkClient")
+	OptionsState.assign_sfx_bus(time_out_player)
 	_is_online_session = _network_client != null and not _network_client.get_current_room().is_empty()
 	_remote_registry = RemotePlayerRegistry.new()
 	_remote_registry.setup(self, player)
@@ -121,16 +123,14 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_send_timer = 0.0
-	if player.has_method("get_network_state"):
-		var state: Dictionary = player.get_network_state(_current_level_index)
-		var pushable_states := _collect_pushable_state_observations()
-		if not pushable_states.is_empty():
-			state["pushable_states"] = pushable_states
-		if player.has_method("consume_push_intents"):
-			var push_intents: Array[Dictionary] = player.consume_push_intents()
-			if not push_intents.is_empty():
-				state["push_intents"] = push_intents
-		_network_client.send_player_state(state)
+	var state: Dictionary = player.get_network_state(_current_level_index)
+	var pushable_states := _collect_pushable_state_observations()
+	if not pushable_states.is_empty():
+		state["pushable_states"] = pushable_states
+	var push_intents: Array[Dictionary] = player.consume_push_intents()
+	if not push_intents.is_empty():
+		state["push_intents"] = push_intents
+	_network_client.send_player_state(state)
 
 
 func _on_time_limit_expired() -> void:
@@ -228,7 +228,7 @@ func _refresh_water_hud_for_level() -> void:
 
 
 func _apply_level_player_defaults() -> void:
-	if player == null or not player.has_method("apply_runtime_state") or _current_level_id.is_empty():
+	if player == null or _current_level_id.is_empty():
 		return
 
 	var level_def := GameCatalog.get_level(_current_level_id)

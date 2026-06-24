@@ -75,9 +75,8 @@ func _on_visibility_down_pressed() -> void:
 	_cycle_room_visibility(-1)
 
 
-func _on_connection_state_changed(_state: String, details: String) -> void:
-	if visible and not _awaiting_create:
-		_set_status(details)
+func _on_connection_state_changed(_state: String, _details: String) -> void:
+	pass
 
 
 func _on_network_error(_code: String, message: String) -> void:
@@ -113,6 +112,7 @@ func _set_status(message: String) -> void:
 		return
 
 	_status_label.text = message
+	_status_label.visible = not message.is_empty()
 
 
 func _visibility_label() -> String:
@@ -122,7 +122,7 @@ func _visibility_label() -> String:
 
 
 func _default_status_message() -> String:
-	return "Ready to create a %s room." % room_visibility
+	return ""
 
 
 func _cycle_room_visibility(_direction: int) -> void:

@@ -18,6 +18,14 @@ func _run() -> void:
 
 	root.add_child(player)
 	await process_frame
+	await process_frame
+
+	if not player is PlayerSoda:
+		failures.append("player_soda root must use PlayerSoda script.")
+
+	var typed_player := player as PlayerSoda
+	if typed_player.get_node_or_null("PlayerSodaHost") == null:
+		failures.append("PlayerSoda is missing PlayerSodaHost.")
 
 	var state_machine := player.get_node_or_null("StateMachine")
 	if state_machine == null:
@@ -28,6 +36,12 @@ func _run() -> void:
 		for child in state_machine.get_children():
 			if child is State and child.get("controller") == null:
 				failures.append("State %s did not receive a PlayerStateController." % child.name)
+
+	if typed_player != null:
+		if typed_player.get_visual_animation() != "idle":
+			failures.append("Expected default visual animation to be idle.")
+		if typed_player.profile == null or typed_player.profile.movement == null:
+			failures.append("PlayerSoda profile or movement config is missing.")
 
 	player.queue_free()
 	await process_frame

@@ -1,6 +1,8 @@
 extends Area2D
 signal player_death(body: Node)
 
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
+
 @export var sync_id := ""
 
 const MAGMA_SURFACE_KILL_PADDING := 0.0
@@ -120,14 +122,12 @@ func _magma_rectangle() -> Rect2:
 func _kill_player(body: Node) -> void:
 	player_death.emit(body)
 	if _is_online_session():
-		if body.has_method("set_input_enabled"):
-			body.set_input_enabled(false)
+		PlayerCapabilities.set_input_enabled(body, false)
 		if body is CharacterBody2D:
 			(body as CharacterBody2D).velocity = Vector2.ZERO
 		return
 
-	if body.has_method("die"):
-		body.die()
+	PlayerCapabilities.die(body)
 
 
 func _is_online_session() -> bool:

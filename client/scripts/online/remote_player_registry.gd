@@ -2,6 +2,7 @@ extends RefCounted
 class_name RemotePlayerRegistry
 
 const PLAYER_SCENE := preload("res://scenes/player_soda.tscn")
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
 
 var _owner: Node
 var _local_player: CharacterBody2D
@@ -58,14 +59,10 @@ func ensure(peer_id: int, player_name: String = "") -> CharacterBody2D:
 	if _remote_container == null:
 		return null
 
-	var remote := PLAYER_SCENE.instantiate() as CharacterBody2D
+	var remote := PLAYER_SCENE.instantiate() as PlayerSoda
 	remote.name = "RemotePlayer_%d" % peer_id
-	if remote.has_method("set_network_identity"):
-		remote.set_network_identity(peer_id, player_name)
-	if remote.has_method("set_network_remote"):
-		remote.set_network_remote(true)
-
 	_remote_container.add_child(remote)
+	PlayerCapabilities.configure_network_player(remote, peer_id, player_name, true)
 	if _local_player != null:
 		remote.global_position = _local_player.spawn_position
 	_remote_players[peer_id] = remote
@@ -77,8 +74,8 @@ func apply_state(peer_id: int, state: Dictionary, current_level_index: int) -> v
 		return
 
 	var remote := ensure(peer_id, String(state.get("display_name", "Guest%d" % peer_id)))
-	if remote != null and remote.has_method("apply_network_state"):
-		remote.apply_network_state(state)
+	if remote is PlayerSoda:
+		PlayerCapabilities.apply_network_state(remote as PlayerSoda, state)
 
 
 func reset_to_spawn() -> void:

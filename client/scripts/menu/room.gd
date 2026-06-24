@@ -4,6 +4,7 @@ const PLAYER_SCENE := preload("res://scenes/player_soda.tscn")
 const CO_OP_MUSIC := preload("res://assets/sound/Co-op background.mp3")
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const GameIds = preload("res://scripts/catalog/game_ids.gd")
+const OptionsState = preload("res://scripts/menu/options_state.gd")
 const BODY_FONT := preload("res://assets/fonts/EXEPixelPerfect.ttf")
 const NETWORK_SEND_INTERVAL := 0.05
 
@@ -14,14 +15,15 @@ const NETWORK_SEND_INTERVAL := 0.05
 @onready var player: CharacterBody2D = $Player
 @onready var player_spawn: Marker2D = $PlayerSpawn
 @onready var host_banner: Label = $HUD/HostBanner
-@onready var player_count_label: Label = $HUD/TopBar/PlayerCount
-@onready var room_title_label: Label = $HUD/TopBar/RoomTitle
-@onready var map_label: Label = $HUD/BottomBar/MapLabel
+@onready var ping_label: Label = $HUD/LeftStatus/PingLabel
+@onready var player_count_label: Label = $HUD/LeftStatus/PlayerRow/PlayerCount
+@onready var room_title_label: Label = $HUD/RoomTitle
+@onready var map_label: Label = $HUD/MapLabel
 @onready var host_controls: HBoxContainer = $HUD/BottomBar/HostControls
 @onready var start_game_button: Button = $HUD/BottomBar/HostControls/StartGameButt
-@onready var lobby_member_list: VBoxContainer = $HUD/MembersPanel/MemberList
 @onready var pause_panel: CanvasLayer = $PausePanel
 @onready var member_list: VBoxContainer = $PausePanel/Panel/MarginContainer/VBoxContainer/MemberList
+@onready var option_panel: Control = $PausePanel/OptionPanel
 @onready var music_player: AudioStreamPlayer = get_node_or_null("MusicPlayer") as AudioStreamPlayer
 
 var _entering_match := false
@@ -48,6 +50,7 @@ func _ready() -> void:
 	_apply_room_state(room)
 	_bind_network_signals()
 	_refresh_hud()
+	_refresh_ping_label()
 	pause_panel.visible = false
 	get_tree().paused = false
 
@@ -70,25 +73,22 @@ func _refresh_hud() -> void:
 	var room_id := String(room.get("room_id", ""))
 	var map_id := String(room.get("map_id", GameCatalog.DEFAULT_MAP_ID))
 	var map_title := GameCatalog.get_map_title(map_id)
-	var level_count := int(room.get("world_count", GameCatalog.get_level_ids(map_id).size()))
 	var room_status := String(room.get("status", ""))
 	var room_full := current_players >= max_players
 
 	room_title_label.text = "ROOM %s" % room_id if not room_id.is_empty() else "ROOM"
 	player_count_label.text = "%d/%d" % [current_players, max_players]
-	map_label.text = "Map: %s (%d levels)" % [map_title, level_count]
+	map_label.text = "Map: %s" % map_title
+	host_banner.visible = false
 
 	if room_status == GameIds.ROOM_STATUS_COMPLETE:
-		host_banner.text = "Match finished. Leave room to host or join a new game."
+		host_banner.text = ""
 		host_controls.visible = false
 	elif is_host:
-		if room_full:
-			host_banner.text = "All players joined. Choose a map, then start the game."
-		else:
-			host_banner.text = "Waiting for players %d/%d before starting." % [current_players, max_players]
+		host_banner.text = ""
 		host_controls.visible = true
 	else:
-		host_banner.text = "Waiting for host to choose a map and start..."
+		host_banner.text = ""
 		host_controls.visible = false
 
 	if start_game_button != null:
@@ -99,8 +99,24 @@ func _refresh_hud() -> void:
 
 func _refresh_member_list() -> void:
 	var room: Dictionary = _network_client().get_current_room()
-	_rebuild_member_list(lobby_member_list, room)
 	_rebuild_member_list(member_list, room)
+
+
+func _refresh_ping_label() -> void:
+	if ping_label == null:
+		return
+	ping_label.text = "Ping: %s" % _ping_value_text()
+
+
+func _ping_text() -> String:
+	return "%s ms" % _ping_value_text()
+
+
+func _ping_value_text() -> String:
+	var ping_ms := -1
+	if _network_client().has_method("get_ping_ms"):
+		ping_ms = int(_network_client().get_ping_ms())
+	return str(ping_ms) if ping_ms >= 0 else "--"
 
 
 func _rebuild_member_list(target_list: VBoxContainer, room: Dictionary) -> void:
@@ -129,10 +145,12 @@ func _rebuild_member_list(target_list: VBoxContainer, room: Dictionary) -> void:
 		var is_local_player := peer_id == local_peer_id
 		var role := "Host" if is_host_player else "Guest"
 		var suffix := " (You)" if is_local_player else ""
-		label.text = "%s%s  |  %s" % [
+		var ping_text := _ping_text() if is_local_player else "-- ms"
+		label.text = "%s%s  |  %s  |  %s" % [
 			String(player.get("display_name", "Guest")),
 			suffix,
 			role,
+			ping_text,
 		]
 		target_list.add_child(label)
 
@@ -176,6 +194,10 @@ func _bind_network_signals() -> void:
 	if not _network_client().error_received.is_connected(on_error):
 		_network_client().error_received.connect(on_error)
 
+	var on_ping := Callable(self, "_on_ping_updated")
+	if not _network_client().ping_updated.is_connected(on_ping):
+		_network_client().ping_updated.connect(on_ping)
+
 
 func _unbind_network_signals() -> void:
 	var on_state := Callable(self, "_on_remote_player_state")
@@ -193,6 +215,10 @@ func _unbind_network_signals() -> void:
 	var on_error := Callable(self, "_on_network_error")
 	if _network_client().error_received.is_connected(on_error):
 		_network_client().error_received.disconnect(on_error)
+
+	var on_ping := Callable(self, "_on_ping_updated")
+	if _network_client().ping_updated.is_connected(on_ping):
+		_network_client().ping_updated.disconnect(on_ping)
 
 
 func _on_current_room_changed(room: Dictionary) -> void:
@@ -214,7 +240,15 @@ func _on_match_started(room: Dictionary) -> void:
 
 
 func _on_network_error(_code: String, message: String) -> void:
+	host_banner.visible = true
 	host_banner.text = message
+
+
+func _on_ping_updated(_ping_ms: int) -> void:
+	_refresh_ping_label()
+	if pause_panel != null and pause_panel.visible:
+		_refresh_member_list()
+	_refresh_member_list()
 
 
 func _on_remote_player_state(peer_id: int, state: Dictionary) -> void:
@@ -253,7 +287,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _toggle_pause_panel() -> void:
 	pause_panel.visible = not pause_panel.visible
+	if not pause_panel.visible and option_panel != null:
+		option_panel.hide()
 	get_tree().paused = pause_panel.visible
+
+
+func _on_pause_butt_pressed() -> void:
+	_toggle_pause_panel()
 
 
 func _on_select_map_pressed() -> void:
@@ -265,13 +305,16 @@ func _on_select_map_pressed() -> void:
 
 func _on_start_game_pressed() -> void:
 	if not _network_client().is_room_host():
+		host_banner.visible = true
 		host_banner.text = "Only the host can start the game."
 		return
 
 	if current_players < max_players:
-		host_banner.text = "Waiting for all players to join before starting."
+		host_banner.visible = true
+		host_banner.text = "Need all players before starting."
 		return
 
+	host_banner.visible = true
 	host_banner.text = "Starting game..."
 	_network_client().start_match()
 
@@ -288,8 +331,18 @@ func _on_exit_butt_pressed() -> void:
 
 
 func _on_cancel_butt_pressed() -> void:
+	if option_panel != null:
+		option_panel.hide()
 	pause_panel.visible = false
 	get_tree().paused = false
+
+
+func _on_option_butt_pressed() -> void:
+	if option_panel == null:
+		return
+	if option_panel.has_method("reload_settings"):
+		option_panel.reload_settings()
+	option_panel.show()
 
 
 func _configure_local_player(room: Dictionary) -> void:
@@ -433,6 +486,7 @@ func _configure_music() -> void:
 	if music_player == null:
 		return
 
+	OptionsState.assign_music_bus(music_player)
 	music_player.stream = CO_OP_MUSIC
 	if not music_player.finished.is_connected(_on_music_finished):
 		music_player.finished.connect(_on_music_finished)

@@ -4,6 +4,7 @@ class_name OnlineSessionRuntime
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const OnlineLevelResolver = preload("res://scripts/online/online_level_resolver.gd")
 const OnlinePushableSync = preload("res://scripts/online/online_pushable_sync.gd")
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
 const RemotePlayerRegistry = preload("res://scripts/online/remote_player_registry.gd")
 
 var _owner
@@ -78,10 +79,9 @@ func unbind_network_signals() -> void:
 func setup_local_network_identity() -> void:
 	var peer_id: int = _owner._network_client.get_local_peer_id()
 	var player_name := player_name_for_peer(peer_id)
-	if _owner.player.has_method("set_network_identity"):
-		_owner.player.set_network_identity(peer_id, player_name)
-	if _owner.player.has_method("set_network_remote"):
-		_owner.player.set_network_remote(false)
+	var typed_player := _owner.player as PlayerSoda
+	if typed_player != null:
+		PlayerCapabilities.configure_network_player(typed_player, peer_id, player_name, false)
 
 
 func connect_player_runtime_events() -> void:

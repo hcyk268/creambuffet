@@ -259,10 +259,26 @@ func set_room_level(peer_id: int, level_index: int) -> Dictionary:
 	if room == null:
 		return _error("not_in_room", "Peer must be in a room before changing levels.")
 
+	if room.host_peer_id != peer_id:
+		return _error("not_host", "Only the host can change the level.")
+
+	if room.status != Room.STATUS_PLAYING:
+		return _error("room_not_playing", "Level can only be changed while the match is playing.")
+
+	if room.level_ids.is_empty():
+		return _error("empty_map", "Room has no playable levels.")
+
+	if level_index < 0 or level_index >= room.level_ids.size():
+		return _error("level_out_of_range", "Level index is outside this map's level list.")
+
+	var from_level_index := room.current_level_index
+	var from_level_id := room.current_level_id
 	room.set_level_index(level_index)
 	return {
 		"ok": true,
 		"room": room,
+		"from_level_index": from_level_index,
+		"from_level_id": from_level_id,
 		"level_index": room.current_level_index,
 	}
 

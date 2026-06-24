@@ -1,6 +1,7 @@
 extends RigidBody2D
 
 const BLOCK_PUSH_SFX := preload("res://assets/sound/block push.wav")
+const OptionsState = preload("res://scripts/menu/options_state.gd")
 
 @export var sync_id := ""
 @export var online_target_speed := 95.0
@@ -19,6 +20,7 @@ func _ready() -> void:
 	add_to_group("pushable")
 	if sfx_player != null:
 		sfx_player.stream = BLOCK_PUSH_SFX
+		OptionsState.assign_sfx_bus(sfx_player)
 
 
 func _physics_process(delta: float) -> void:

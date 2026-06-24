@@ -99,7 +99,6 @@ horizontal_alignment = 1
 
 [node name="PauseMenu" parent="." unique_id=800742663 instance=ExtResource("5_4f5g8")]
 pause_tree_on_open = false
-allow_restart = false
 
 [node name="LevelTransition" type="CanvasLayer" parent="." unique_id=336767746]
 script = ExtResource("14_q4wxa")

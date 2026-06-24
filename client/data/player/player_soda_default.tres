@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PlayerSodaProfile" format=3 uid="uid://k3srccsxx7kf"]
+
+[ext_resource type="Script" uid="uid://duwrihivgtyug" path="res://scripts/player/player_soda_profile.gd" id="1_profile"]
+[ext_resource type="Script" uid="uid://b5pt6mf2mgmeq" path="res://scripts/player/player_movement_config.gd" id="2_movement"]
+
+[sub_resource type="Resource" id="movement"]
+script = ExtResource("2_movement")
+speed = 125.0
+
+[resource]
+script = ExtResource("1_profile")
+movement = SubResource("movement")

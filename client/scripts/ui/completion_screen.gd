@@ -1,5 +1,8 @@
 extends CanvasLayer
 
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
+const OptionsState = preload("res://scripts/menu/options_state.gd")
+
 const LEVEL_COMPLETE_SFX := preload("res://assets/sound/level complete.wav")
 
 @export var main_menu_scene := "res://scenes/start_menu.tscn"
@@ -22,6 +25,7 @@ func _ready() -> void:
 	overlay.visible = false
 	if sfx_player != null:
 		sfx_player.stream = LEVEL_COMPLETE_SFX
+		OptionsState.assign_sfx_bus(sfx_player)
 
 	replay_button.pressed.connect(_on_replay_pressed)
 	main_menu_button.pressed.connect(_on_main_menu_pressed)
@@ -103,8 +107,7 @@ func _set_game_input_enabled(enabled: bool) -> void:
 		return
 
 	var player := game_root.get_node_or_null("Player")
-	if player != null and player.has_method("set_input_enabled"):
-		player.set_input_enabled(enabled)
+	PlayerCapabilities.set_input_enabled(player, enabled)
 
 
 func _change_scene(path: String) -> void:

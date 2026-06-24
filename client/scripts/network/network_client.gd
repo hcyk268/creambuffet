@@ -6,6 +6,7 @@ signal current_room_changed(room)
 signal error_received(code, message)
 signal match_started(room)
 signal remote_player_state(peer_id, state)
+signal ping_updated(ping_ms: int)
 signal pushable_control_received(level_index, controls)
 signal level_transition(from_level_index, to_level_index, match_complete, room)
 signal world_event_received(event)
@@ -24,6 +25,7 @@ const DEFAULT_SERVER_PORT := 7000
 const CONFIG_PATH := "res://config/client_network.cfg"
 const SERVER_PEER_ID := 1
 const MAX_DISPLAY_NAME_LENGTH := 24
+const PING_INTERVAL := 2.0
 
 var server_host := DEFAULT_SERVER_HOST
 var server_port := DEFAULT_SERVER_PORT
@@ -40,9 +42,13 @@ var _peer: ENetMultiplayerPeer
 var _pending_packets: Array[Dictionary] = []
 var _current_room: Dictionary = {}
 var _public_rooms: Array[Dictionary] = []
+var _ping_ms := -1
+var _ping_timer := 0.0
+var _pending_pings: Dictionary = {}
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_load_runtime_config()
 	var initial_display_name := _configured_display_name if not _configured_display_name.is_empty() else _guess_display_name()
 	_display_name = _sanitize_display_name(initial_display_name)
@@ -55,6 +61,18 @@ func _ready() -> void:
 
 	_bind_multiplayer_signals()
 	connection_state_changed.emit(connection_state, connection_details)
+
+
+func _process(delta: float) -> void:
+	if connection_state != STATE_CONNECTED:
+		return
+
+	_ping_timer += delta
+	if _ping_timer < PING_INTERVAL:
+		return
+
+	_ping_timer = 0.0
+	_send_ping()
 
 
 func ensure_connected() -> void:
@@ -119,6 +137,10 @@ func get_max_display_name_length() -> int:
 	return MAX_DISPLAY_NAME_LENGTH
 
 
+func get_ping_ms() -> int:
+	return _ping_ms
+
+
 func set_display_name(requested_name: String) -> void:
 	_display_name = _sanitize_display_name(requested_name)
 
@@ -177,6 +199,16 @@ func set_room_map(map_id: String) -> void:
 
 	_queue_or_send(ProtocolConstants.MESSAGE_SET_ROOM_MAP, {
 		"map_id": normalized,
+	})
+
+
+func set_room_level(level_index: int) -> void:
+	if level_index < 0:
+		error_received.emit("missing_level_index", "Level index is required.")
+		return
+
+	_queue_or_send(ProtocolConstants.MESSAGE_SET_ROOM_LEVEL, {
+		"level_index": level_index,
 	})
 
 
@@ -268,14 +300,15 @@ func _on_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 		error_received.emit(String(decoded.get("code", "bad_packet")), bad_packet_message)
 		return
 
-	var message_type := String(decoded.get("type", ""))
+	var message_type := str(decoded.get("type", "")).strip_edges()
 	var payload: Dictionary = decoded.get("payload", {})
+	var request_id := _optional_string(decoded.get("request_id"))
 
 	match message_type:
 		ProtocolConstants.MESSAGE_WELCOME:
 			_handle_welcome(payload)
 		ProtocolConstants.MESSAGE_PONG:
-			pass
+			_handle_pong(request_id)
 		ProtocolConstants.MESSAGE_ROOM_LIST:
 			_set_public_rooms(payload.get("rooms", []))
 		ProtocolConstants.MESSAGE_ROOM_CREATED, ProtocolConstants.MESSAGE_ROOM_JOINED, ProtocolConstants.MESSAGE_ROOM_UPDATED, ProtocolConstants.MESSAGE_ROOM_MAP_UPDATED:
@@ -309,6 +342,27 @@ func _handle_welcome(payload: Dictionary) -> void:
 
 	var label_name := _display_name if not _display_name.is_empty() else "Player"
 	_set_connection_state(STATE_CONNECTED, "Connected as %s" % label_name)
+	_ping_timer = PING_INTERVAL
+	_send_ping()
+
+
+func _handle_pong(request_id: String) -> void:
+	if request_id.is_empty() or not _pending_pings.has(request_id):
+		return
+
+	var sent_at: int = int(_pending_pings[request_id])
+	_pending_pings.erase(request_id)
+	_ping_ms = maxi(0, Time.get_ticks_msec() - sent_at)
+	ping_updated.emit(_ping_ms)
+
+
+func _send_ping() -> void:
+	if connection_state != STATE_CONNECTED:
+		return
+
+	var request_id := _next_request_id("ping")
+	_pending_pings[request_id] = Time.get_ticks_msec()
+	_send_packet(ProtocolConstants.MESSAGE_PING, {}, request_id)
 
 
 func _handle_match_started(payload: Dictionary) -> void:
@@ -488,7 +542,7 @@ func _decode_packet(packet: PackedByteArray) -> Dictionary:
 		"v": int(version),
 		"type": message_type,
 		"payload": payload,
-		"request_id": decoded.get(ProtocolConstants.FIELD_REQUEST_ID, null),
+		"request_id": _optional_string(decoded.get(ProtocolConstants.FIELD_REQUEST_ID)),
 	}
 
 
@@ -519,6 +573,9 @@ func _set_public_rooms(room_list) -> void:
 
 func _clear_network_state(details: String) -> void:
 	_pending_packets.clear()
+	_pending_pings.clear()
+	_ping_ms = -1
+	_ping_timer = 0.0
 	_peer = null
 	local_peer_id = 0
 	if _scene_multiplayer != null:
@@ -593,6 +650,12 @@ func _sanitize_display_name(requested_name: String) -> String:
 func _next_request_id(prefix: String) -> String:
 	_request_counter += 1
 	return "%s-%d" % [prefix, _request_counter]
+
+
+func _optional_string(value: Variant) -> String:
+	if value == null:
+		return ""
+	return str(value)
 
 
 func _infer_legacy_target_id(action: String, payload: Dictionary) -> String:

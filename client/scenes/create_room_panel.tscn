@@ -34,18 +34,6 @@ region = Rect2(276, 164, 7, 4)
 atlas = ExtResource("5_5o1f4")
 region = Rect2(263, 164, 7, 4)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_p6q2y"]
-atlas = ExtResource("5_5o1f4")
-region = Rect2(292, 166, 8, 8)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_5o1f4"]
-atlas = ExtResource("5_5o1f4")
-region = Rect2(307, 166, 8, 8)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_04shl"]
-atlas = ExtResource("5_5o1f4")
-region = Rect2(307, 166, 8, 8)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
 texture = ExtResource("6_btn")
 region_rect = Rect2(16, 13, 32, 16)
@@ -117,6 +105,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Grid" type="GridContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=36591474]
+custom_minimum_size = Vector2(700, 500)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 3
@@ -196,37 +185,6 @@ texture_pressed = SubResource("AtlasTexture_lemdk")
 texture_hover = SubResource("AtlasTexture_21tnj")
 stretch_mode = 1
 flip_v = true
-
-[node name="RandomizedLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=44432266]
-layout_mode = 2
-text = "Map"
-
-[node name="HBox2" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1571439104]
-layout_mode = 2
-theme_override_constants/separation = 30
-
-[node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2" unique_id=1902175689]
-layout_mode = 2
-theme_override_constants/separation = 30
-
-[node name="RandButt" type="TextureButton" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/HBoxContainer" unique_id=1367275199]
-custom_minimum_size = Vector2(60, 60)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-visible = false
-toggle_mode = true
-texture_normal = SubResource("AtlasTexture_p6q2y")
-texture_pressed = SubResource("AtlasTexture_5o1f4")
-texture_hover = SubResource("AtlasTexture_04shl")
-stretch_mode = 1
-
-[node name="Label2" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid/HBox2/HBoxContainer" unique_id=297316470]
-layout_mode = 2
-text = "Choose in room"
-horizontal_alignment = 1
-vertical_alignment = 1
-justification_flags = 35
 
 [node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=2119153605]
 layout_mode = 2

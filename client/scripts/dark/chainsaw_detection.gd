@@ -2,6 +2,8 @@ extends Area2D
 
 signal player_death(body: Node)
 
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
+
 @export var sync_id : String
 
 func _ready() -> void:
@@ -13,8 +15,8 @@ func _on_body_entered(body: Node) -> void:
 		return
 
 	player_death.emit(body)
-	if not _is_online_session() and body.has_method("die"):
-		body.die()
+	if not _is_online_session():
+		PlayerCapabilities.die(body)
 
 func _is_online_session() -> bool:
 	var network_client: Node = get_node_or_null("/root/NetworkClient")

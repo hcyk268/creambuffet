@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://bgieeqom4m0mw" path="res://prefabs/bubble_effect.tscn" id="10_bubble"]
 [ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="11_name_font"]
 [ext_resource type="Texture2D" uid="uid://brt1a7os4rxf4" path="res://assets/sprites/dark_light_aura.png" id="14_28tdv"]
+[ext_resource type="Resource" path="res://data/player/player_soda_default.tres" id="15_profile"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_08d8h"]
 atlas = ExtResource("1_uw6r1")
@@ -997,7 +998,7 @@ _data = {
 
 [node name="Player" type="CharacterBody2D" unique_id=1419475106]
 script = ExtResource("1_0uk0a")
-SPEED = 125.0
+profile = ExtResource("15_profile")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1476556651]
 visible = false

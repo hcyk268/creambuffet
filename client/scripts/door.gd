@@ -4,6 +4,8 @@ signal door_opened
 signal door_closed
 
 const DOOR_OPEN_SFX := preload("res://assets/sound/open door.wav")
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
+const OptionsState = preload("res://scripts/menu/options_state.gd")
 
 @export var sync_id := ""
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -51,11 +53,10 @@ func _on_detection_area_body_entered(body: Node) -> void:
 	if network_client != null and network_client.has_method("get_current_room"):
 		var current_room: Dictionary = network_client.get_current_room()
 		is_online_session = not current_room.is_empty()
-	if not is_online_session and not (body.has_method("has_key") and body.has_key()):
+	if not is_online_session and not PlayerCapabilities.has_key(body):
 		return
 	if not is_online_session:
-		if body.has_method("use_key"):
-			body.use_key()
+		PlayerCapabilities.use_key(body)
 		open()
 		return
 
@@ -74,6 +75,7 @@ func _apply_state() -> void:
 func _configure_audio() -> void:
 	if sfx_player != null:
 		sfx_player.stream = DOOR_OPEN_SFX
+		OptionsState.assign_sfx_bus(sfx_player)
 
 
 func _play_sfx(stream: AudioStream) -> void:

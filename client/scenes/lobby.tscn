@@ -73,22 +73,67 @@ theme_override_constants/margin_bottom = 40
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer" unique_id=735576400]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
 [node name="Label" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=227637597]
 layout_mode = 2
 theme = SubResource("Theme_q60fs")
 theme_override_fonts/font = ExtResource("2_5gu6x")
 theme_override_font_sizes/font_size = 80
-text = "LOBBY"
+text = "WORLD LOBBY"
 horizontal_alignment = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=1540216876]
+[node name="ContentArea" type="Control" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=1540216876]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
+
+[node name="EmptyStatePanel" type="Control" parent="TextureRect2/MarginContainer/VBoxContainer/ContentArea" unique_id=887868551]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EmptyMessage" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/ContentArea/EmptyStatePanel" unique_id=887868552]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -720.0
+offset_top = -100.0
+offset_right = 720.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("2_q60fs")
+theme_override_font_sizes/font_size = 70
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "No public rooms are available yet.
+Use Host to create one, then come back here."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 0
+
+[node name="RoomsScroll" type="ScrollContainer" parent="TextureRect2/MarginContainer/VBoxContainer/ContentArea" unique_id=1540216877]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 horizontal_scroll_mode = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/ScrollContainer" unique_id=887868550]
+[node name="RoomsList" type="VBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/ContentArea/RoomsScroll" unique_id=887868550]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer" unique_id=923088428]
 layout_mode = 2

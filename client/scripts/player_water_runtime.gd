@@ -205,8 +205,8 @@ func update_oxygen(delta: float, is_remote_player: bool, is_eliminated: bool, on
 				_set_owner_oxygen(next_oxygen)
 				if not is_equal_approx(previous_oxygen, next_oxygen):
 					_emit_oxygen_changed()
-				if _owner != null and _owner.has_method("die"):
-					_owner.call("die")
+				if _owner is PlayerSoda:
+					(_owner as PlayerSoda).die()
 				return
 	else:
 		next_oxygen = minf(previous_oxygen + _oxygen_recovery_rate * delta, _owner_max_oxygen())

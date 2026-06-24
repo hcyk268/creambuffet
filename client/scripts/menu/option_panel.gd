@@ -45,11 +45,13 @@ func _update_displays() -> void:
 func _change_music(delta: int) -> void:
 	music_volume = clampi(music_volume + delta, OptionsState.MIN_VOLUME, OptionsState.MAX_VOLUME)
 	_update_displays()
+	OptionsState.apply_audio(_current_settings())
 
 
 func _change_sfx(delta: int) -> void:
 	sfx_volume = clampi(sfx_volume + delta, OptionsState.MIN_VOLUME, OptionsState.MAX_VOLUME)
 	_update_displays()
+	OptionsState.apply_audio(_current_settings())
 
 
 func _change_window_mode(delta: int) -> void:

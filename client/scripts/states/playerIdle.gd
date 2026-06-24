@@ -1,4 +1,4 @@
-extends State
+extends PlayerGroundedState
 class_name PlayerIdle
 
 
@@ -8,20 +8,15 @@ func enter() -> void:
 
 
 func physics_update(delta: float) -> void:
-	if controller.is_in_water():
-		transitioned.emit(self, "swim")
+	if transition_to_swim_if_in_water():
 		return
 
-	if not controller.is_on_floor():
-		controller.apply_gravity(delta)
-	else:
-		controller.set_vertical_velocity(0.0)
-
+	apply_ground_gravity(delta)
 	controller.set_horizontal_velocity(0.0)
 	controller.move_and_push()
 
-	if not controller.is_on_floor():
-		transitioned.emit(self, "fall")
+	if transition_to_fall_if_airborne():
+		return
 
 	if controller.jump_just_pressed():
 		transitioned.emit(self, "jump")
@@ -30,6 +25,7 @@ func physics_update(delta: float) -> void:
 	var direction := controller.horizontal_input()
 	if not is_zero_approx(direction):
 		transitioned.emit(self, "run")
+		return
 
 	if controller.dash_just_pressed():
 		transitioned.emit(self, "dash")

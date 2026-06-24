@@ -3,13 +3,13 @@ class_name WorldObjectStateApplier
 
 const PacketCodec = preload("res://scripts/network/packet_codec.gd")
 
-var _player: CharacterBody2D
+var _player: PlayerSoda
 var _network_client: Node
 var _synced_nodes
 
 
 func setup(player: CharacterBody2D, network_client: Node, synced_nodes) -> void:
-	_player = player
+	_player = player as PlayerSoda
 	_network_client = network_client
 	_synced_nodes = synced_nodes
 
@@ -23,7 +23,7 @@ func apply_key_collected(sync_id: String, peer_id: int) -> void:
 		_forget_node(sync_id)
 		key_node.queue_free()
 
-	if peer_id == _local_peer_id() and _player != null and _player.has_method("collect_key"):
+	if peer_id == _local_peer_id() and _player != null:
 		_player.collect_key(1, key_color)
 
 func apply_torch_collected(sync_id:String,  collected_player: CharacterBody2D) -> void:
@@ -33,8 +33,8 @@ func apply_torch_collected(sync_id:String,  collected_player: CharacterBody2D) -
 		_forget_node(sync_id)
 		torch_node.queue_free()
 
-	if  collected_player and collected_player.has_method("collect_torch"):
-		collected_player.collect_torch()
+	if collected_player is PlayerSoda:
+		(collected_player as PlayerSoda).collect_torch()
 		
 func apply_buff_collected(sync_id:String, collected_player: CharacterBody2D) -> void:
 	var buff_node := _find_node(sync_id)
@@ -43,8 +43,8 @@ func apply_buff_collected(sync_id:String, collected_player: CharacterBody2D) -> 
 		_forget_node(sync_id)
 		buff_node.queue_free()
 
-	if  collected_player and collected_player.has_method("add_light_buff"):
-		collected_player.add_light_buff()
+	if collected_player is PlayerSoda:
+		(collected_player as PlayerSoda).add_light_buff()
 
 func apply_door_opened(sync_id: String, event_peer_id: int, event: Dictionary = {}) -> void:
 	var door_node := _find_node(sync_id)
@@ -54,7 +54,7 @@ func apply_door_opened(sync_id: String, event_peer_id: int, event: Dictionary = 
 	if apply_player_key_counts(event):
 		return
 
-	if event_peer_id == _local_peer_id() and _player != null and _player.has_method("use_key"):
+	if event_peer_id == _local_peer_id() and _player != null:
 		_player.use_key()
 
 
@@ -64,7 +64,7 @@ func apply_player_key_counts(event: Dictionary) -> bool:
 
 	var local_peer_id := _local_peer_id()
 	var raw_key_counts: Variant = event.get("player_key_counts", {})
-	if typeof(raw_key_counts) == TYPE_DICTIONARY and _player.has_method("set_key_count"):
+	if typeof(raw_key_counts) == TYPE_DICTIONARY and _player != null:
 		var key_counts: Dictionary = raw_key_counts
 		if key_counts.has(str(local_peer_id)):
 			_player.set_key_count(int(key_counts[str(local_peer_id)]))
@@ -83,7 +83,7 @@ func apply_oxygen_collected(sync_id: String, event_peer_id: int, event: Dictiona
 	if event_peer_id != _local_peer_id():
 		return
 
-	if _player != null and _player.has_method("add_oxygen"):
+	if _player != null:
 		_player.add_oxygen(float(event.get("oxygen_amount", event.get("amount", 0.0))))
 
 

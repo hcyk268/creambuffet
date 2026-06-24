@@ -1,57 +1,14 @@
 extends CharacterBody2D
+class_name PlayerSoda
 
 signal died
 signal water_state_changed(in_water: bool)
 signal oxygen_changed(current: float, maximum: float)
 signal oxygen_depleted
 
-const LAND_SPRITE_TEXTURE := preload("res://assets/sprites/Player-Soda.png")
-const SWIM_SPRITE_TEXTURE := preload("res://assets/sprites/playerswim.png")
-const BUBBLE_EFFECT_SCENE := preload("res://prefabs/bubble_effect.tscn")
-const PlayerBubbleEffects = preload("res://scripts/player_bubble_effects.gd")
-const PlayerNetworkRuntime = preload("res://scripts/player_network_runtime.gd")
-const PlayerWaterRuntime = preload("res://scripts/player_water_runtime.gd")
-const JUMP_SFX := preload("res://assets/sound/jump.wav")
-const LAND_SFX := preload("res://assets/sound/land.wav")
-const DEATH_SFX := preload("res://assets/sound/death-fall.wav")
-const RESPAWN_SFX := preload("res://assets/sound/respawn.wav")
-const KEY_PICKUP_SFX := preload("res://assets/sound/key pickup.wav")
-const WALK_RUN_SFX := preload("res://assets/sound/walk-run.wav")
-const LAND_SPRITE_HFRAMES := 5
-const LAND_SPRITE_VFRAMES := 6
-const SWIM_SPRITE_HFRAMES := 4
-const SWIM_SPRITE_VFRAMES := 6
-const LAND_SPRITE_POSITION := Vector2(0, -27)
-const SWIM_SPRITE_POSITION := Vector2(0, -27)
-const LAND_SPRITE_SCALE := Vector2.ONE
-const SWIM_SPRITE_SCALE := Vector2(0.1, 0.1)
-const WATER_JET_BLOCKED_DOT_EPSILON := 0.01
-const NAME_LABEL_OFFSET := Vector2(-120.0, -95.0)
+const DEFAULT_PROFILE := preload("res://data/player/player_soda_default.tres")
 
-@export var SPEED := 150.0
-@export var JUMP_VELOCITY := -300.0
-@export var PUSH_FORCE := 8.0
-@export var carried_key_offset := Vector2(0, -46)
-@export var carried_key_bob_amplitude := 2.0
-@export var carried_key_bob_speed := 5.0
-@export var remote_reconciliation_gain := 14.0
-@export var remote_snap_distance := 48.0
-@export var max_oxygen := 10.0
-@export var oxygen_recovery_rate := 3.0
-@export var default_oxygen_drain_rate := 1.0
-@export var bubble_breath_interval := 0.7
-@export var bubble_swim_interval := 0.16
-@export var bubble_swim_velocity_threshold := 45.0
-@export var bubble_trail_lifetime := 0.75
-@export var water_jet_response := 14.0
-@export var water_jet_cross_drag := 2.5
-@export var water_jet_max_velocity := 760.0
-@export var water_jet_upward_lift_ratio := 0.16
-@export var water_jet_upward_max_lift_speed := 78.0
-@export var water_jet_upward_lift_stop_speed := 45.0
-@export var water_jet_upward_side_ratio := 0.72
-@export var water_jet_upward_side_min_speed := 180.0
-@export var water_jet_upward_side_max_speed := 280.0
+@export var profile: PlayerSodaProfile
 
 @onready var carried_key_sprite: Sprite2D = get_node_or_null("CarriedKey") as Sprite2D
 @onready var bubble_effect: AnimatedSprite2D = get_node_or_null("BubbleEffect") as AnimatedSprite2D
@@ -70,6 +27,7 @@ const NAME_LABEL_OFFSET := Vector2(-120.0, -95.0)
 
 var spawn_position: Vector2
 var oxygen := 10.0
+var max_oxygen := 10.0
 var key_count := 0
 var has_torch := false
 var current_light_scale := 4.0
@@ -78,125 +36,83 @@ var network_peer_id := 0
 var display_name := ""
 var is_remote_player := false
 var input_enabled := true
-var _carried_key_bob_time := 0.0
-var _push_intents: Dictionary = {}
-var _bubble_rng := RandomNumberGenerator.new()
+
+var _host: PlayerSodaHost
 var _is_eliminated := false
-var _bubble_effects: PlayerBubbleEffects
-var _network_runtime: PlayerNetworkRuntime
-var _water_runtime: PlayerWaterRuntime
-var _current_state_name := ""
-var _facing_direction := 1.0
 
 
 func _ready() -> void:
-	if sprite != null:
-		_facing_direction = -1.0 if sprite.flip_h else 1.0
+	if profile == null:
+		profile = DEFAULT_PROFILE.duplicate(true) as PlayerSodaProfile
+	profile.ensure_defaults()
 
-	_bubble_rng.randomize()
-	_bubble_effects = PlayerBubbleEffects.new()
-	_bubble_effects.setup(
-		self,
-		bubble_effect,
-		BUBBLE_EFFECT_SCENE,
-		bubble_breath_interval,
-		bubble_swim_interval,
-		bubble_swim_velocity_threshold,
-		bubble_trail_lifetime
-	)
-	_network_runtime = PlayerNetworkRuntime.new()
-	_network_runtime.setup(
-		self,
-		state_machine,
-		player_collision_shape,
-		sprite,
-		animation_player,
-		remote_snap_distance,
-		remote_reconciliation_gain
-	)
-	_water_runtime = PlayerWaterRuntime.new()
-	_water_runtime.setup(
-		self,
-		Callable(self, "_update_bubble_effect"),
-		default_oxygen_drain_rate,
-		oxygen_recovery_rate,
-		water_jet_response,
-		water_jet_cross_drag,
-		water_jet_max_velocity,
-		water_jet_upward_lift_ratio,
-		water_jet_upward_max_lift_speed,
-		water_jet_upward_lift_stop_speed,
-		water_jet_upward_side_ratio,
-		water_jet_upward_side_min_speed,
-		water_jet_upward_side_max_speed,
-		WATER_JET_BLOCKED_DOT_EPSILON
-	)
-	_water_runtime.set_water_jet_side_sign(_random_water_jet_side_sign())
-	_apply_network_control_mode()
-	_configure_audio_players()
-	if state_machine != null and state_machine.has_signal("state_transitioned"):
-		var transition_callback := Callable(self, "_on_state_transitioned")
-		if not state_machine.is_connected("state_transitioned", transition_callback):
-			state_machine.connect("state_transitioned", transition_callback)
-	if name_label != null:
-		name_label.top_level = true
-	_update_name_label()
-	_update_key_indicator()
-	_update_bubble_effect()
-	spawn_position = global_position
-	oxygen = max_oxygen
-	oxygen_changed.emit(oxygen, max_oxygen)
-	torch_light.enabled = false
+	_host = PlayerSodaHost.new()
+	_host.name = "PlayerSodaHost"
+	add_child(_host)
+	_host.initialize(self, profile, _scene_refs())
+	_sync_host_network_state()
+	_host.on_ready()
 
 
 func _exit_tree() -> void:
-	_stop_all_sfx()
+	if _host != null:
+		_host.on_exit_tree()
 
 
 func _process(delta: float) -> void:
-	_update_oxygen(delta)
-	_process_bubble_effects(delta)
-	_update_name_label_position()
-
-	if carried_key_sprite == null or not carried_key_sprite.visible:
-		return
-
-	_carried_key_bob_time += delta
-	carried_key_sprite.position = carried_key_offset + Vector2(
-		0,
-		sin(_carried_key_bob_time * carried_key_bob_speed) * carried_key_bob_amplitude
-	)
+	if _host != null:
+		_host.process_frame(delta)
 
 
 func _physics_process(delta: float) -> void:
-	if not is_remote_player or _network_runtime == null or not _network_runtime.has_remote_target():
-		return
+	if _host != null:
+		_host.physics_tick(delta)
 
-	_network_runtime.follow_remote_target(delta)
+
+func is_eliminated_flag() -> bool:
+	return _is_eliminated
+
+
+func set_eliminated_flag(value: bool) -> void:
+	_is_eliminated = value
+
+
+var SPEED: float:
+	get:
+		return profile.ensure_defaults().movement.speed
+
+
+var JUMP_VELOCITY: float:
+	get:
+		return profile.ensure_defaults().movement.jump_velocity
+
+
+var PUSH_FORCE: float:
+	get:
+		return profile.ensure_defaults().movement.push_force
 
 
 func set_network_identity(peer_id: int, player_name: String = "") -> void:
 	network_peer_id = peer_id
 	display_name = player_name
-	_update_name_label()
+	if _host != null:
+		_host.set_network_identity(peer_id, player_name)
 
 
 func set_network_remote(remote: bool) -> void:
 	is_remote_player = remote
-	_apply_network_control_mode()
-	_update_name_label()
+	if _host != null:
+		_host.set_network_remote(remote)
 
 
 func set_input_enabled(enabled: bool) -> void:
 	input_enabled = enabled
-	_apply_network_control_mode()
+	if _host != null:
+		_host.set_input_enabled(enabled)
 
 
 func set_eliminated(eliminated: bool) -> void:
-	_is_eliminated = eliminated
-	if eliminated:
-		stop_walk_run_sfx()
-	_update_elimination_state()
+	_host.set_eliminated(eliminated)
 
 
 func is_eliminated() -> bool:
@@ -204,576 +120,172 @@ func is_eliminated() -> bool:
 
 
 func die() -> void:
-	stop_walk_run_sfx()
-	play_death_sfx()
-	died.emit()
-	respawn()
+	_host.die()
 
 
 func respawn() -> void:
-	stop_walk_run_sfx()
-	play_respawn_sfx()
-	_is_eliminated = false
-	_update_elimination_state()
-	global_position = spawn_position
-	velocity = Vector2.ZERO
-	if _water_runtime != null:
-		_water_runtime.set_water_jet_side_sign(_random_water_jet_side_sign())
-	if _bubble_effects != null:
-		_bubble_effects.reset()
-	var was_in_water := _water_runtime.reset_after_respawn() if _water_runtime != null else false
-	if was_in_water:
-		water_state_changed.emit(false)
-	_update_bubble_effect()
-	if _network_runtime != null:
-		_network_runtime.sync_remote_target_with_owner(is_remote_player)
+	_host.respawn()
 
 
 func reset_oxygen() -> void:
-	if _water_runtime != null:
-		_water_runtime.reset_oxygen()
+	_host.reset_oxygen()
 
 
 func enter_water_zone(zone: Area2D) -> void:
-	if _water_runtime != null:
-		_water_runtime.enter_water_zone(zone)
+	_host.enter_water_zone(zone)
 
 
 func exit_water_zone(zone: Area2D) -> void:
-	if _water_runtime != null:
-		_water_runtime.exit_water_zone(zone)
-
-
-func enter_water(zone: Area2D) -> void:
-	enter_water_zone(zone)
-
-
-func exit_water(zone: Area2D) -> void:
-	exit_water_zone(zone)
+	_host.exit_water_zone(zone)
 
 
 func is_in_water() -> bool:
-	return _water_runtime != null and _water_runtime.is_in_water()
+	return _host.is_in_water()
 
 
 func get_water_current_velocity() -> Vector2:
-	return _water_runtime.get_water_current_velocity() if _water_runtime != null else Vector2.ZERO
+	return _host.get_water_current_velocity()
 
 
 func get_water_swim_speed_multiplier() -> float:
-	return _water_runtime.get_water_swim_speed_multiplier() if _water_runtime != null else 1.0
+	return _host.get_water_swim_speed_multiplier()
 
 
 func get_water_oxygen_drain_rate() -> float:
-	return _water_runtime.get_water_oxygen_drain_rate() if _water_runtime != null else 0.0
+	return _host.get_water_oxygen_drain_rate()
 
 
 func add_oxygen(amount: float) -> void:
-	if _water_runtime != null:
-		_water_runtime.add_oxygen(amount)
+	_host.add_oxygen(amount)
 
 
 func apply_water_jet_velocity(jet_velocity: Vector2, delta: float) -> void:
-	if _water_runtime != null:
-		_water_runtime.apply_water_jet_velocity(jet_velocity, is_remote_player)
+	_host.apply_water_jet_velocity(jet_velocity, delta)
 
 
 func consume_water_jet_velocity() -> Vector2:
-	return _water_runtime.consume_water_jet_velocity() if _water_runtime != null else Vector2.ZERO
+	return _host.consume_water_jet_velocity()
 
 
 func move_and_push() -> void:
-	if _water_runtime != null:
-		_water_runtime.prepare_move(get_physics_process_delta_time())
-	move_and_slide()
-	if _uses_network_push_intents():
-		_collect_push_intents()
-	else:
-		apply_push_forces()
-	if _water_runtime != null:
-		_water_runtime.finish_move()
+	_host.move_and_push()
 
 
 func set_key_count(value: int) -> void:
-	key_count = max(value, 0)
-	_update_key_indicator()
+	_host.set_key_count(value)
 
 
 func set_max_oxygen(value: float) -> void:
-	_apply_oxygen_runtime_state(oxygen, value)
+	set_oxygen_state(oxygen, value)
 
 
 func set_oxygen(value: float) -> void:
-	_apply_oxygen_runtime_state(value, max_oxygen)
+	set_oxygen_state(value, max_oxygen)
+
+
+func set_oxygen_state(current: float, maximum: float) -> void:
+	_host.set_oxygen_state(current, maximum)
 
 
 func apply_runtime_state(state: Dictionary) -> void:
-	if state.is_empty():
-		return
-
-	if state.has("key_count"):
-		set_key_count(int(state.get("key_count", key_count)))
-
-	var next_oxygen := oxygen
-	var next_max_oxygen := max_oxygen
-	var has_oxygen_state := false
-	if state.has("oxygen"):
-		next_oxygen = float(state.get("oxygen", oxygen))
-		has_oxygen_state = true
-	if state.has("max_oxygen"):
-		next_max_oxygen = float(state.get("max_oxygen", max_oxygen))
-		has_oxygen_state = true
-	if has_oxygen_state:
-		_apply_oxygen_runtime_state(next_oxygen, next_max_oxygen)
+	_host.apply_runtime_state(state)
 
 
 func collect_key(amount: int = 1, key_color: Color = Color.WHITE) -> void:
-	key_count += amount
-	carried_key_color = key_color
-	_update_key_indicator()
-	play_key_pickup_sfx()
+	_host.collect_key(amount, key_color)
 
-func collect_torch():
-	has_torch = true
-	torch_light.enabled = true
-	
-func add_light_buff():
-	if not has_torch:
-		torch_light.enabled = false
-		return
 
-	torch_light.enabled = true
-	current_light_scale += 3.0
-	torch_light.texture_scale = current_light_scale
+func collect_torch() -> void:
+	_host.collect_torch()
+
+
+func add_light_buff() -> void:
+	_host.add_light_buff()
+
 
 func set_carried_key_color(key_color: Color) -> void:
-	carried_key_color = key_color
-	_update_key_indicator()
+	_host.set_carried_key_color(key_color)
 
 
 func has_key() -> bool:
-	return key_count > 0
+	return _host.has_key()
 
 
 func use_key(amount: int = 1) -> bool:
-	if key_count < amount:
-		return false
-
-	key_count -= amount
-	_update_key_indicator()
-	return true
+	return _host.use_key(amount)
 
 
 func play_player_animation(animation: String) -> void:
-	if animation_player == null or not animation_player.has_animation(animation):
-		return
-
-	_apply_sprite_sheet_for_animation(animation)
-	if animation_player.current_animation != animation or not animation_player.is_playing():
-		animation_player.play(animation)
+	_host.play_player_animation(animation)
 
 
-func play_jump_sfx() -> void:
-	if not _should_play_local_sfx():
-		return
-	_play_one_shot_sfx(jump_sfx)
+func get_visual_animation() -> String:
+	return _host.get_visual_animation()
 
 
-func play_land_sfx() -> void:
-	if not _should_play_local_sfx():
-		return
-	_play_one_shot_sfx(land_sfx)
+func get_visual_flip_h() -> bool:
+	return _host.get_visual_flip_h()
 
 
-func play_death_sfx() -> void:
-	if not _should_play_local_sfx():
-		return
-	_play_one_shot_sfx(death_sfx)
-
-
-func play_respawn_sfx() -> void:
-	if not _should_play_local_sfx():
-		return
-	_play_one_shot_sfx(respawn_sfx)
-
-
-func play_key_pickup_sfx() -> void:
-	if not _should_play_local_sfx():
-		return
-	_play_one_shot_sfx(key_pickup_sfx)
-
-
-func start_walk_run_sfx() -> void:
-	if not _should_play_local_sfx():
-		return
-	_current_state_name = "run"
-	_play_looping_sfx(walk_run_sfx)
-
-
-func stop_walk_run_sfx() -> void:
-	if not _should_play_local_sfx():
-		return
-	if walk_run_sfx != null and walk_run_sfx.playing:
-		walk_run_sfx.stop()
-
-
-func _on_state_transitioned(previous_state_name: StringName, new_state_name: StringName) -> void:
-	_current_state_name = String(new_state_name)
-	if String(new_state_name) == "run":
-		start_walk_run_sfx()
-	else:
-		stop_walk_run_sfx()
-
-	if _is_landing_transition(String(previous_state_name), String(new_state_name)):
-		play_land_sfx()
-
-
-func _is_landing_transition(previous_state_name: String, new_state_name: String) -> bool:
-	if new_state_name != "run" and new_state_name != "idle":
-		return false
-	return previous_state_name == "jump" or previous_state_name == "fall" or previous_state_name == "dash"
-
-
-func _configure_audio_players() -> void:
-	if jump_sfx != null:
-		jump_sfx.stream = JUMP_SFX
-	if land_sfx != null:
-		land_sfx.stream = LAND_SFX
-	if death_sfx != null:
-		death_sfx.stream = DEATH_SFX
-	if respawn_sfx != null:
-		respawn_sfx.stream = RESPAWN_SFX
-	if key_pickup_sfx != null:
-		key_pickup_sfx.stream = KEY_PICKUP_SFX
-	if walk_run_sfx != null:
-		walk_run_sfx.stream = WALK_RUN_SFX
-		if not walk_run_sfx.finished.is_connected(_on_walk_run_finished):
-			walk_run_sfx.finished.connect(_on_walk_run_finished)
-
-
-func _on_walk_run_finished() -> void:
-	if _current_state_name == "run" and walk_run_sfx != null:
-		walk_run_sfx.play()
-
-
-func _play_one_shot_sfx(player: AudioStreamPlayer) -> void:
-	if player == null or player.stream == null:
-		return
-	player.play()
-
-
-func _play_looping_sfx(player: AudioStreamPlayer) -> void:
-	if player == null or player.stream == null:
-		return
-	if not player.playing:
-		player.play()
-
-
-func _stop_all_sfx() -> void:
-	for audio_player in [jump_sfx, land_sfx, death_sfx, respawn_sfx, key_pickup_sfx, walk_run_sfx]:
-		if audio_player != null:
-			audio_player.stop()
-
-
-func _should_play_local_sfx() -> bool:
-	return not is_remote_player and DisplayServer.get_name() != "headless"
+func set_visual_flip_h(flipped: bool) -> void:
+	_host.set_visual_flip_h(flipped)
 
 
 func set_facing_direction(direction: float) -> void:
-	if is_zero_approx(direction):
-		return
-
-	_facing_direction = signf(direction)
-	_apply_visual_facing()
+	_host.set_facing_direction(direction)
 
 
 func get_facing_direction() -> float:
-	if not is_zero_approx(_facing_direction):
-		return _facing_direction
-	if not is_zero_approx(velocity.x):
-		return signf(velocity.x)
-	return 1.0
+	return _host.get_facing_direction()
 
 
 func set_sprite_vertical_flip(flipped: bool) -> void:
-	if sprite != null:
-		sprite.flip_v = flipped
+	_host.set_sprite_vertical_flip(flipped)
+
+
+func apply_remote_kinematics(target_position: Vector2, target_velocity: Vector2) -> void:
+	_host.apply_remote_kinematics(target_position, target_velocity)
 
 
 func consume_push_intents() -> Array[Dictionary]:
-	var intents: Array[Dictionary] = []
-	for raw_value in _push_intents.values():
-		if typeof(raw_value) != TYPE_DICTIONARY:
-			continue
-		intents.append(Dictionary(raw_value).duplicate(true))
-
-	_push_intents.clear()
-	return intents
+	return _host.consume_push_intents()
 
 
 func get_network_state(level_index: int) -> Dictionary:
-	if _network_runtime != null:
-		return _network_runtime.get_network_state(level_index, carried_key_color)
-	return {}
+	return _host.get_network_state(level_index)
 
 
 func apply_network_state(state: Dictionary) -> void:
-	if _network_runtime != null:
-		_network_runtime.apply_network_state(state, is_remote_player, Callable(self, "_update_key_indicator"))
+	_host.apply_network_state(state)
 
-
-func _apply_network_control_mode() -> void:
-	if _network_runtime != null:
-		_network_runtime.apply_control_mode(is_remote_player, input_enabled, Callable(self, "_update_elimination_state"))
-
-
-func _update_elimination_state() -> void:
-	if player_collision_shape != null:
-		player_collision_shape.set_deferred("disabled", _is_eliminated)
-
-	visible = not _is_eliminated
-	if _is_eliminated:
-		velocity = Vector2.ZERO
-
-	_update_bubble_effect()
-
-
-func _update_key_indicator() -> void:
-	if carried_key_sprite == null:
-		return
-
-	var should_show := key_count > 0
-	if should_show and not carried_key_sprite.visible:
-		_carried_key_bob_time = 0.0
-		carried_key_sprite.position = carried_key_offset
-
-	carried_key_sprite.visible = should_show
-	if should_show:
-		carried_key_sprite.modulate = carried_key_color
-	if not should_show:
-		carried_key_sprite.position = carried_key_offset
-		carried_key_sprite.modulate = Color.WHITE
-
-
-func _update_name_label() -> void:
-	if name_label == null:
-		return
-
-	var cleaned_name := display_name.strip_edges()
-	var should_show := _should_show_online_name() and not cleaned_name.is_empty()
-	name_label.visible = should_show
-	if not should_show:
-		name_label.text = ""
-		return
-
-	name_label.text = cleaned_name
-	name_label.modulate = Color(0.82, 0.95, 1.0) if is_remote_player else Color.WHITE
-	_update_name_label_position()
-
-
-func _update_name_label_position() -> void:
-	if name_label == null or not name_label.visible:
-		return
-
-	name_label.global_position = global_position + NAME_LABEL_OFFSET
-
-
-func _update_oxygen(delta: float) -> void:
-	if _water_runtime != null:
-		_water_runtime.update_oxygen(delta, is_remote_player, _is_eliminated, _is_online_session())
-
-
-func _apply_oxygen_runtime_state(current: float, maximum: float) -> void:
-	var safe_maximum := maxf(maximum, 0.0)
-	var safe_current := clampf(current, 0.0, safe_maximum)
-	var changed := not is_equal_approx(max_oxygen, safe_maximum) or not is_equal_approx(oxygen, safe_current)
-	if _water_runtime != null:
-		_water_runtime.sync_oxygen_state(safe_current, safe_maximum)
-	else:
-		max_oxygen = safe_maximum
-		oxygen = safe_current
-	if changed:
-		oxygen_changed.emit(oxygen, max_oxygen)
-
-
-func _update_bubble_effect() -> void:
-	if _bubble_effects != null:
-		_bubble_effects.update_visibility(is_in_water())
-
-
-func _process_bubble_effects(delta: float) -> void:
-	if _bubble_effects != null:
-		_bubble_effects.process(delta, is_in_water(), velocity, get_facing_direction())
-
-
-func _random_water_jet_side_sign() -> float:
-	return -1.0 if _bubble_rng.randi_range(0, 1) == 0 else 1.0
-
-
-func _prune_water_zones() -> void:
-	if _water_runtime != null:
-		_water_runtime.prune_water_zones()
-
-
-func _is_online_session() -> bool:
-	var network_client := get_node_or_null("/root/NetworkClient")
-	if network_client == null or not network_client.has_method("get_current_room"):
-		return false
-
-	var current_room = network_client.get_current_room()
-	return typeof(current_room) == TYPE_DICTIONARY and not current_room.is_empty()
-
-
-func _should_show_online_name() -> bool:
-	var network_client := get_node_or_null("/root/NetworkClient")
-	if network_client == null or not network_client.has_method("get_current_room"):
-		return false
-
-	var current_room = network_client.get_current_room()
-	if typeof(current_room) != TYPE_DICTIONARY or current_room.is_empty():
-		return false
-
-	return String(current_room.get("status", "")) != "playing"
-
-
-func _apply_sprite_sheet_for_animation(animation: String) -> void:
-	if animation.begins_with("swim"):
-		_apply_sprite_sheet(
-			SWIM_SPRITE_TEXTURE,
-			SWIM_SPRITE_HFRAMES,
-			SWIM_SPRITE_VFRAMES,
-			SWIM_SPRITE_POSITION,
-			SWIM_SPRITE_SCALE
-		)
-	else:
-		_apply_sprite_sheet(
-			LAND_SPRITE_TEXTURE,
-			LAND_SPRITE_HFRAMES,
-			LAND_SPRITE_VFRAMES,
-			LAND_SPRITE_POSITION,
-			LAND_SPRITE_SCALE
-		)
-
-	if not is_remote_player:
-		_apply_visual_facing(animation)
-
-
-func _apply_visual_facing(animation_override: String = "") -> void:
-	if sprite == null:
-		return
-
-	var facing_left := _facing_direction < 0.0
-	if _is_using_swim_sprite_sheet():
-		sprite.flip_h = _swim_visual_flip_h(facing_left, animation_override)
-	else:
-		sprite.flip_h = facing_left
-
-
-func _is_using_swim_sprite_sheet() -> bool:
-	return sprite != null and sprite.texture == SWIM_SPRITE_TEXTURE
-
-
-func _swim_visual_flip_h(facing_left: bool, animation_override: String = "") -> bool:
-	var animation := animation_override
-	if animation.is_empty() and animation_player != null:
-		animation = animation_player.current_animation
-
-	# The diagonal swim row is authored with the opposite base facing direction
-	# from the horizontal swim row, so it needs its own flip rule.
-	if animation == "swim_diagonal":
-		return facing_left
-	return not facing_left
-
-
-func _apply_sprite_sheet(
-	texture: Texture2D,
-	hframes: int,
-	vframes: int,
-	sprite_position: Vector2,
-	sprite_scale: Vector2
-) -> void:
-	if sprite == null:
-		return
-
-	sprite.texture = texture
-	sprite.hframes = hframes
-	sprite.vframes = vframes
-	sprite.position = sprite_position
-	sprite.scale = sprite_scale
-
-	var max_frame := hframes * vframes
-	if max_frame > 0 and sprite.frame >= max_frame:
-		sprite.frame = 0
-
-
-func apply_push_forces() -> void:
-	if is_remote_player:
-		return
-
-	for i in range(get_slide_collision_count()):
-		var collision := get_slide_collision(i)
-		if collision == null:
-			continue
-
-		var body := collision.get_collider() as RigidBody2D
-		if body == null or not body.is_in_group("pushable"):
-			continue
-
-		var normal := collision.get_normal()
-		var lateral_push := -normal.x
-		if absf(lateral_push) < 0.01:
-			continue
-
-		var strength := maxf(absf(velocity.x), SPEED * 0.6) * PUSH_FORCE
-		body.apply_central_force(Vector2(lateral_push * strength, 0.0))
-		body.sleeping = false
-
-		var target_x := lateral_push * maxf(absf(velocity.x), SPEED * 0.65)
-		var next_velocity := body.linear_velocity
-		next_velocity.x = lerpf(next_velocity.x, target_x, 0.35)
-		body.linear_velocity = next_velocity
-
-
-func _uses_network_push_intents() -> bool:
-	if is_remote_player:
-		return false
-
-	var network_client := get_node_or_null("/root/NetworkClient")
-	return network_client != null and not network_client.get_current_room().is_empty()
-
-
-func _collect_push_intents() -> void:
-	if is_remote_player:
-		return
-
-	_push_intents.clear()
-	for i in range(get_slide_collision_count()):
-		var collision := get_slide_collision(i)
-		if collision == null:
-			continue
-
-		var body := collision.get_collider() as Node
-		if body == null or not body.is_in_group("pushable"):
-			continue
-
-		var normal := collision.get_normal()
-		var lateral_push := -normal.x
-		if absf(lateral_push) < 0.01:
-			continue
-
-		var target_id := body.name
-		if "sync_id" in body and not String(body.sync_id).strip_edges().is_empty():
-			target_id = String(body.sync_id).strip_edges()
-
-		_push_intents[target_id] = {
-			"target_id": target_id,
-			"node_name": body.name,
-			"direction": signf(lateral_push),
-			"strength": clampf(absf(velocity.x) / maxf(SPEED, 0.001), 0.35, 1.0),
-		}
 
 func turn_off_light() -> void:
-	torch_light.enabled = false
-	has_torch = false
-	current_light_scale = 4.0
-	torch_light.texture_scale = current_light_scale
+	_host.turn_off_light()
+
+
+func _sync_host_network_state() -> void:
+	if _host == null:
+		return
+	if network_peer_id != 0 or not display_name.is_empty():
+		_host.set_network_identity(network_peer_id, display_name)
+	_host.set_network_remote(is_remote_player)
+	_host.set_input_enabled(input_enabled)
+
+
+func _scene_refs() -> Dictionary:
+	return {
+		"sprite": sprite,
+		"animation_player": animation_player,
+		"carried_key_sprite": carried_key_sprite,
+		"torch_light": torch_light,
+		"bubble_effect": bubble_effect,
+		"name_label": name_label,
+		"state_machine": state_machine,
+		"player_collision_shape": player_collision_shape,
+		"jump_sfx": jump_sfx,
+		"land_sfx": land_sfx,
+		"death_sfx": death_sfx,
+		"respawn_sfx": respawn_sfx,
+		"key_pickup_sfx": key_pickup_sfx,
+		"walk_run_sfx": walk_run_sfx,
+	}

@@ -7,8 +7,9 @@ const SyncedNodeRegistry = preload("res://scripts/online/synced_node_registry.gd
 
 const LOCAL_HAZARD_RESPAWN_REARM_MS := 300
 const WATER_01_LEVEL_ID := "water_01"
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
 
-var _player: CharacterBody2D
+var _player: PlayerSoda
 var _network_client: Node
 var _synced_node_registry
 var _world_object_applier
@@ -32,7 +33,7 @@ func setup(
 	will_eliminate_on_next_death: Callable,
 	update_failure_hud: Callable
 ) -> void:
-	_player = player
+	_player = player as PlayerSoda
 	_network_client = network_client
 	_synced_node_registry = synced_node_registry
 	_world_object_applier = world_object_applier
@@ -77,10 +78,9 @@ func on_local_player_oxygen_depleted() -> void:
 
 
 func apply_player_died(event_peer_id: int, eliminated: bool, target_player: CharacterBody2D) -> void:
-	if target_player != null and eliminated and target_player.has_method("set_input_enabled"):
-		target_player.set_input_enabled(false)
-	if target_player != null and eliminated and target_player.has_method("set_eliminated"):
-		target_player.set_eliminated(true)
+	if target_player != null and eliminated:
+		PlayerCapabilities.set_input_enabled(target_player, false)
+		PlayerCapabilities.set_eliminated(target_player, true)
 	if target_player != null:
 		target_player.velocity = Vector2.ZERO
 
@@ -94,7 +94,7 @@ func apply_player_died(event_peer_id: int, eliminated: bool, target_player: Char
 
 	if event_peer_id == _local_peer_id() and _pending_local_elimination:
 		_pending_local_elimination = false
-	if event_peer_id == _local_peer_id() and eliminated and _player != null and _player.has_method("set_input_enabled"):
+	if event_peer_id == _local_peer_id() and eliminated and _player != null:
 		_player.set_input_enabled(false)
 	if event_peer_id == _local_peer_id():
 		if eliminated:
@@ -107,12 +107,9 @@ func apply_player_respawned(event_peer_id: int, target_player: CharacterBody2D) 
 	if target_player == null:
 		return
 
-	if target_player.has_method("respawn"):
-		target_player.respawn()
-	if target_player.has_method("set_input_enabled"):
-		target_player.set_input_enabled(true)
-	if target_player.has_method("set_eliminated"):
-		target_player.set_eliminated(false)
+	PlayerCapabilities.respawn(target_player)
+	PlayerCapabilities.set_input_enabled(target_player, true)
+	PlayerCapabilities.set_eliminated(target_player, false)
 	if event_peer_id == _local_peer_id():
 		_pending_local_death_decrement = false
 		_pending_local_elimination = false
@@ -273,7 +270,7 @@ func _on_goal_left(body: Node, goal_node: Node) -> void:
 func _on_key_collected(body: Node, key_node: Node) -> void:
 	if not _can_send_local_world_event(body):
 		return
-	if _current_level_id == WATER_01_LEVEL_ID and body.has_method("has_key") and body.has_key():
+	if _current_level_id == WATER_01_LEVEL_ID and PlayerCapabilities.has_key(body):
 		return
 
 	var target_id := _node_sync_id(key_node)
@@ -351,7 +348,7 @@ func _on_player_death(body: Node, spike_node: Node) -> void:
 	if _pending_local_death_decrement or _pending_local_elimination:
 		_pending_local_death_decrement = false
 		_pending_local_elimination = false
-	if _player.has_method("is_eliminated") and bool(_player.call("is_eliminated")):
+	if _player != null and _player.is_eliminated():
 		return
 
 	var target_id := _node_sync_id(spike_node)
@@ -366,11 +363,9 @@ func _on_player_death(body: Node, spike_node: Node) -> void:
 	if _decrement_shared_hearts.is_valid():
 		_decrement_shared_hearts.call()
 	if will_eliminate:
-		if _player.has_method("set_eliminated"):
-			_player.set_eliminated(true)
-		if _player.has_method("set_input_enabled"):
-			_player.set_input_enabled(false)
-	elif _player.has_method("respawn"):
+		_player.set_eliminated(true)
+		_player.set_input_enabled(false)
+	else:
 		_player.respawn()
 	if _update_failure_hud.is_valid():
 		_update_failure_hud.call()

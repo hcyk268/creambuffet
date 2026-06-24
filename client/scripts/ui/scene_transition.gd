@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const OptionsState = preload("res://scripts/menu/options_state.gd")
+
 const DURATION = 0.5
 var cover: ColorRect
 var _tween: Tween
@@ -7,6 +9,7 @@ var _tween: Tween
 signal transition_finished
 
 func _ready() -> void:
+	OptionsState.apply_runtime(OptionsState.load_settings())
 	layer = 100
 	cover = ColorRect.new()
 	cover.color = Color(0.0, 0.0, 0.0, 0.0)

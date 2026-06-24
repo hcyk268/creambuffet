@@ -1,29 +1,85 @@
-[gd_scene load_steps=7 format=3 uid="uid://bqj8levelcard01"]
+[gd_scene format=3 uid="uid://bxap5gbynei21"]
 
-[ext_resource type="Script" path="res://scripts/ui/level_card.gd" id="1_lc"]
+[ext_resource type="Script" uid="uid://coe824q7ron18" path="res://scripts/ui/level_card.gd" id="1_lc"]
 [ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="2_font"]
-[ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="3_btn"]
+[ext_resource type="Texture2D" uid="uid://dh5afliym1aox" path="res://assets/sprites/UI-LevelCard.png" id="3_level_card"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBox_normal"]
-texture = ExtResource("3_btn")
-region_rect = Rect2(16, 13, 32, 16)
+[sub_resource type="AtlasTexture" id="AtlasTexture_card_normal"]
+atlas = ExtResource("3_level_card")
+region = Rect2(16, 16, 32, 32)
 
-[sub_resource type="StyleBoxTexture" id="StyleBox_pressed"]
-texture = ExtResource("3_btn")
-region_rect = Rect2(16, 13, 32, 16)
+[sub_resource type="StyleBoxTexture" id="StyleBox_card_normal"]
+texture = SubResource("AtlasTexture_card_normal")
 
-[sub_resource type="StyleBoxTexture" id="StyleBox_hover"]
-texture = ExtResource("3_btn")
-region_rect = Rect2(16, 36, 32, 16)
+[sub_resource type="AtlasTexture" id="AtlasTexture_card_pressed"]
+atlas = ExtResource("3_level_card")
+region = Rect2(16, 16, 32, 32)
 
-[node name="LevelCard" type="Button"]
-custom_minimum_size = Vector2(200, 200)
+[sub_resource type="StyleBoxTexture" id="StyleBox_card_pressed"]
+texture = SubResource("AtlasTexture_card_pressed")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_card_hover"]
+atlas = ExtResource("3_level_card")
+region = Rect2(64, 16, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBox_card_hover"]
+texture = SubResource("AtlasTexture_card_hover")
+
+[node name="LevelCard" type="Button" unique_id=484086957]
+custom_minimum_size = Vector2(280, 280)
+offset_right = 280.0
+offset_bottom = 280.0
+size_flags_horizontal = 0
+size_flags_vertical = 4
+focus_mode = 0
+mouse_filter = 2
+theme_override_styles/normal = SubResource("StyleBox_card_normal")
+theme_override_styles/pressed = SubResource("StyleBox_card_pressed")
+theme_override_styles/hover = SubResource("StyleBox_card_hover")
+theme_override_styles/disabled = SubResource("StyleBox_card_normal")
+theme_override_styles/focus = SubResource("StyleBox_card_normal")
+script = ExtResource("1_lc")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=771959621]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Content" type="Control" parent="MarginContainer" unique_id=1839308647]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Thumbnail" type="TextureRect" parent="MarginContainer/Content" unique_id=2043744882]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="LevelNumber" type="Label" parent="MarginContainer/Content" unique_id=502893536]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 4
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 80
-theme_override_styles/normal = SubResource("StyleBox_normal")
-theme_override_styles/pressed = SubResource("StyleBox_pressed")
-theme_override_styles/hover = SubResource("StyleBox_hover")
-script = ExtResource("1_lc")
+theme_override_font_sizes/font_size = 250
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1

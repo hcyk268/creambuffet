@@ -4,6 +4,7 @@ class_name OnlineLevelLoader
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const OnlineLevelResolver = preload("res://scripts/online/online_level_resolver.gd")
 const OnlinePushableSync = preload("res://scripts/online/online_pushable_sync.gd")
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
 
 
 func configure_online_levels(room: Dictionary) -> Dictionary:
@@ -80,8 +81,9 @@ func finalize_level_spawn(current_level: Node, player: CharacterBody2D, remote_r
 	if not is_instance_valid(current_level):
 		return
 
-	if player != null and player.has_method("respawn"):
-		player.respawn()
+	var typed_player := player as PlayerSoda
+	if typed_player != null:
+		typed_player.respawn()
 	if remote_registry != null:
 		remote_registry.reset_to_spawn()
 
@@ -90,27 +92,24 @@ func _setup_player_spawn(player: CharacterBody2D, level_root: Node) -> void:
 	if player == null:
 		return
 
+	var typed_player := player as PlayerSoda
+	if typed_player == null:
+		return
+
 	var spawn_point := level_root.get_node_or_null("SpawnPoint")
 	if spawn_point is Node2D:
-		player.global_position = spawn_point.global_position
+		typed_player.global_position = spawn_point.global_position
 	else:
-		player.global_position = Vector2.ZERO
+		typed_player.global_position = Vector2.ZERO
 
-	if player.has_method("set_input_enabled"):
-		player.set_input_enabled(true)
-	if player.has_method("set_eliminated"):
-		player.set_eliminated(false)
-	player.velocity = Vector2.ZERO
-	player.spawn_position = player.global_position
-	if player.has_method("reset_oxygen"):
-		player.reset_oxygen()
-	if player.has_method("set_key_count"):
-		player.set_key_count(0)
-	else:
-		player.key_count = 0
-	if player.has_method("turn_off_light"):
-		player.turn_off_light()
-	_turn_off_remote_player_lights(level_root, player)
+	typed_player.set_input_enabled(true)
+	typed_player.set_eliminated(false)
+	typed_player.velocity = Vector2.ZERO
+	typed_player.spawn_position = typed_player.global_position
+	typed_player.reset_oxygen()
+	typed_player.set_key_count(0)
+	typed_player.turn_off_light()
+	_turn_off_remote_player_lights(level_root, typed_player)
 
 func _turn_off_remote_player_lights(level_root: Node, exclude_player: Node) -> void:
 	var online_game_root = level_root.get_parent().get_parent()

@@ -308,6 +308,45 @@ func handle_world_action_request(peer_id: int, request_id, payload: Dictionary, 
 	_coordinator.try_level_transition(room)
 
 
+func handle_set_room_level(peer_id: int, request_id, payload: Dictionary) -> void:
+	var requested_index := int(payload.get("level_index", -1))
+	var result: Dictionary = _room_manager.set_room_level(peer_id, requested_index)
+	if not bool(result.get("ok", false)):
+		_broadcaster.send_error(
+			peer_id,
+			String(result.get("code", "set_level_failed")),
+			String(result.get("message", "Could not change level.")),
+			request_id
+		)
+		return
+
+	var room: Room = result.get("room") as Room
+	if room == null:
+		_broadcaster.send_error(peer_id, "set_level_failed", "Set room level returned no room object.", request_id)
+		return
+
+	var from_level_index := int(result.get("from_level_index", room.current_level_index))
+	var from_level_id := String(result.get("from_level_id", ""))
+	_debug.info("host_level_select peer=%d %s from=%s(%d) to=%s(%d)" % [
+		peer_id,
+		_debug.room_label(room),
+		from_level_id,
+		from_level_index,
+		room.current_level_id,
+		room.current_level_index,
+	])
+
+	_broadcaster.send_room_message(room, ProtocolConstants.MESSAGE_LEVEL_TRANSITION, {
+		"from_level_index": from_level_index,
+		"to_level_index": room.current_level_index,
+		"from_level_id": from_level_id,
+		"to_level_id": room.current_level_id,
+		"match_complete": false,
+		"room": room.snapshot(),
+	}, -1, request_id)
+	_broadcaster.publish_room_snapshot(room)
+
+
 func _infer_legacy_target_id(level_id: String, action: String) -> String:
 	var normalized_action := GameCatalog.normalize_world_action(action)
 	var level_def := GameCatalog.get_level(level_id)
