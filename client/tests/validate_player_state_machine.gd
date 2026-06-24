@@ -48,9 +48,9 @@ func _run() -> void:
 
 	if typed_player != null:
 		if state_machine != null and state_machine.currentState != null:
-			var state_name := state_machine.currentState.name.to_lower()
+			var state_name: String = String(state_machine.currentState.name).to_lower()
 			var expected_animation: String = STATE_ENTER_ANIMATIONS.get(state_name, "")
-			var actual_animation := typed_player.get_visual_animation()
+			var actual_animation: String = typed_player.get_visual_animation()
 			if expected_animation.is_empty():
 				failures.append("No enter animation mapping for state '%s'." % state_name)
 			elif actual_animation != expected_animation:
