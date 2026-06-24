@@ -4,6 +4,7 @@ signal pressed_state_changed(is_pressed: bool)
 
 const BUTTON_PRESS_SFX := preload("res://assets/sound/button press.wav")
 const BUTTON_CLICK_SFX := preload("res://assets/sound/button click.wav")
+const OptionsState = preload("res://scripts/menu/options_state.gd")
 
 enum ActivationMode {
 	PRESS_ONCE,
@@ -114,6 +115,7 @@ func _configure_audio() -> void:
 		return
 
 	sfx_player.stream = BUTTON_PRESS_SFX
+	OptionsState.assign_sfx_bus(sfx_player)
 
 
 func _play_sfx(stream: AudioStream) -> void:

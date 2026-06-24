@@ -16,6 +16,9 @@ const WINDOW_SIZES := [
 	Vector2i(1920, 1080),
 ]
 
+const MUSIC_BUS_NAME := "Music"
+const SFX_BUS_NAME := "SFX"
+
 const DEFAULT_SETTINGS := {
 	"music_volume": 100,
 	"sfx_volume": 100,
@@ -60,6 +63,10 @@ static func apply_runtime(settings: Dictionary) -> void:
 	_apply_display(normalized)
 
 
+static func apply_audio(settings: Dictionary) -> void:
+	_apply_audio(normalize_settings(settings))
+
+
 static func apply_display(settings: Dictionary) -> void:
 	_apply_display(normalize_settings(settings))
 
@@ -92,12 +99,22 @@ static func is_fps_enabled(settings: Dictionary) -> bool:
 	return bool(normalize_settings(settings)["show_fps"])
 
 
-static func _apply_audio(settings: Dictionary) -> void:
-	var master_bus := AudioServer.get_bus_index("Master")
-	if master_bus != -1:
-		AudioServer.set_bus_volume_db(master_bus, _volume_to_db(int(settings["music_volume"])))
+static func assign_music_bus(player: Node) -> void:
+	if player != null and "bus" in player:
+		player.bus = MUSIC_BUS_NAME
 
-	var sfx_bus := AudioServer.get_bus_index("SFX")
+
+static func assign_sfx_bus(player: Node) -> void:
+	if player != null and "bus" in player:
+		player.bus = SFX_BUS_NAME
+
+
+static func _apply_audio(settings: Dictionary) -> void:
+	var music_bus := AudioServer.get_bus_index(MUSIC_BUS_NAME)
+	if music_bus != -1:
+		AudioServer.set_bus_volume_db(music_bus, _volume_to_db(int(settings["music_volume"])))
+
+	var sfx_bus := AudioServer.get_bus_index(SFX_BUS_NAME)
 	if sfx_bus != -1:
 		AudioServer.set_bus_volume_db(sfx_bus, _volume_to_db(int(settings["sfx_volume"])))
 

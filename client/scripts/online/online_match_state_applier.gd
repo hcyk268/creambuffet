@@ -2,18 +2,19 @@ extends RefCounted
 class_name OnlineMatchStateApplier
 
 const GameIds = preload("res://scripts/catalog/game_ids.gd")
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
 
 var _world_object_applier
 var _synced_node_registry
 var _network_client: Node
-var _player: CharacterBody2D
+var _player: PlayerSoda
 
 
 func setup(world_object_applier, synced_node_registry, network_client: Node, player: CharacterBody2D) -> void:
 	_world_object_applier = world_object_applier
 	_synced_node_registry = synced_node_registry
 	_network_client = network_client
-	_player = player
+	_player = player as PlayerSoda
 
 
 func apply(room: Dictionary, current_level: Node, apply_pushable_controls: Callable, update_respawn_budget_hud: Callable) -> void:
@@ -56,11 +57,7 @@ func apply(room: Dictionary, current_level: Node, apply_pushable_controls: Calla
 		var local_peer_id := _local_peer_id()
 		var local_state: Variant = players_state.get(local_peer_id, players_state.get(str(local_peer_id), {}))
 		if typeof(local_state) == TYPE_DICTIONARY and _player != null:
-			var local_state_dict: Dictionary = local_state
-			if _player.has_method("apply_runtime_state"):
-				_player.apply_runtime_state(local_state_dict)
-			elif _player.has_method("set_key_count"):
-				_player.set_key_count(int(local_state_dict.get("key_count", 0)))
+			PlayerCapabilities.apply_runtime_state(_player, local_state)
 
 	var pushables_raw = match_state.get("pushables", [])
 	if typeof(pushables_raw) == TYPE_ARRAY and apply_pushable_controls.is_valid():

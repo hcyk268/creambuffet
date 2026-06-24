@@ -13,12 +13,17 @@ var _controller: PlayerStateController
 
 
 func _ready() -> void:
+	call_deferred("_initialize")
+
+
+func _initialize() -> void:
 	_controller = PlayerStateController.new(get_parent() as CharacterBody2D)
 
 	for child in get_children():
 		if child is State:
 			states[child.name.to_lower()] = child
-			child.transitioned.connect(_state_transition)
+			if not child.transitioned.is_connected(_state_transition):
+				child.transitioned.connect(_state_transition)
 			child.controller = _controller
 
 	var starting_state: State = _resolve_initial_state()

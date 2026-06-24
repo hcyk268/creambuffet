@@ -6,6 +6,10 @@
 [ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="4_font"]
 [ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="4_title_font"]
 [ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="5_btn"]
+[ext_resource type="Texture2D" uid="uid://dpmmu825qehes" path="res://assets/sprites/UI-PlayerIcon.png" id="5_qtoah"]
+[ext_resource type="Texture2D" uid="uid://cqikygosg48vk" path="res://assets/sprites/UI-Option.png" id="7_option"]
+[ext_resource type="Texture2D" uid="uid://0sgewnlb1lgg" path="res://assets/sprites/UI-Pause.png" id="7_qtoah"]
+[ext_resource type="PackedScene" uid="uid://f4fvuapk8vsy" path="res://scenes/option_panel.tscn" id="8_option_panel"]
 
 [sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_floor"]
 
@@ -14,6 +18,27 @@ size = Vector2(32, 560)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lobby_ceiling"]
 size = Vector2(960, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eom3m"]
+atlas = ExtResource("7_qtoah")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_pause_normal"]
+texture = SubResource("AtlasTexture_eom3m")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tk5fv"]
+atlas = ExtResource("7_qtoah")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_pause_pressed"]
+texture = SubResource("AtlasTexture_tk5fv")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w68ji"]
+atlas = ExtResource("7_qtoah")
+region = Rect2(48, 16, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_pause_hover"]
+texture = SubResource("AtlasTexture_w68ji")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
 texture = ExtResource("5_btn")
@@ -26,6 +51,23 @@ region_rect = Rect2(16, 13, 32, 16)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
 texture = ExtResource("5_btn")
 region_rect = Rect2(16, 36, 32, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_option_normal"]
+atlas = ExtResource("7_option")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_option_normal"]
+texture = SubResource("AtlasTexture_option_normal")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_option_pressed"]
+atlas = ExtResource("7_option")
+region = Rect2(48, 16, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_option_pressed"]
+texture = SubResource("AtlasTexture_option_pressed")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_option_hover"]
+texture = SubResource("AtlasTexture_option_pressed")
 
 [node name="Room" type="Node2D" unique_id=1453555618]
 process_mode = 3
@@ -44,7 +86,7 @@ texture = ExtResource("3_bg")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1376450684]
 position = Vector2(0, 50)
-zoom = Vector2(2, 2)
+zoom = Vector2(3, 3)
 
 [node name="Floor" type="StaticBody2D" parent="." unique_id=1034082694]
 
@@ -74,30 +116,73 @@ process_mode = 1
 [node name="HUD" type="CanvasLayer" parent="." unique_id=709634053]
 layer = 10
 
-[node name="TopBar" type="HBoxContainer" parent="HUD" unique_id=2097401882]
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 60.0
-offset_top = 40.0
-offset_right = -60.0
-offset_bottom = 140.0
-grow_horizontal = 2
-theme_override_constants/separation = 80
-alignment = 1
+[node name="LeftStatus" type="VBoxContainer" parent="HUD" unique_id=2097401882]
+offset_left = 50.0
+offset_top = 50.0
+offset_right = 302.0
+offset_bottom = 188.0
+theme_override_constants/separation = 4
 
-[node name="RoomTitle" type="Label" parent="HUD/TopBar" unique_id=264899306]
+[node name="PingLabel" type="Label" parent="HUD/LeftStatus" unique_id=1041349351]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.78, 0.23, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 42
+text = "Ping: --"
+
+[node name="PlayerRow" type="HBoxContainer" parent="HUD/LeftStatus" unique_id=1157350870]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="PlayerCount" type="Label" parent="HUD/LeftStatus/PlayerRow" unique_id=1495788794]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 58
+text = "1/4"
+vertical_alignment = 1
+
+[node name="PlayerIcon" type="TextureRect" parent="HUD/LeftStatus/PlayerRow" unique_id=176018214]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("5_qtoah")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RoomTitle" type="Label" parent="HUD" unique_id=264899306]
+offset_top = 30.0
+offset_right = 1920.0
+offset_bottom = 120.0
 theme_override_fonts/font = ExtResource("4_title_font")
 theme_override_font_sizes/font_size = 70
 text = "ROOM"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="PlayerCount" type="Label" parent="HUD/TopBar" unique_id=1041349351]
-layout_mode = 2
+[node name="MapLabel" type="Label" parent="HUD" unique_id=671428459]
+offset_top = 115.0
+offset_right = 1920.0
+offset_bottom = 185.0
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 70
-text = "1/4"
+theme_override_font_sizes/font_size = 52
+text = "Map: Beginner"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PauseButt" type="Button" parent="HUD" unique_id=514038124]
+custom_minimum_size = Vector2(70, 70)
+offset_left = 1789.0
+offset_top = 43.0
+offset_right = 1859.0
+offset_bottom = 113.0
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxTexture_pause_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_pause_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_pause_hover")
 
 [node name="HostBanner" type="Label" parent="HUD" unique_id=1700953670]
+visible = false
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -115,28 +200,6 @@ text = "Choose a map, then start the game."
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MembersPanel" type="VBoxContainer" parent="HUD" unique_id=839114552]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -520.0
-offset_top = 180.0
-offset_right = -70.0
-offset_bottom = 620.0
-grow_horizontal = 0
-theme_override_constants/separation = 16
-
-[node name="Title" type="Label" parent="HUD/MembersPanel" unique_id=168934411]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 40
-text = "MEMBERS"
-horizontal_alignment = 1
-
-[node name="MemberList" type="VBoxContainer" parent="HUD/MembersPanel" unique_id=1206182544]
-layout_mode = 2
-theme_override_constants/separation = 10
-
 [node name="BottomBar" type="VBoxContainer" parent="HUD" unique_id=336301834]
 anchors_preset = 7
 anchor_left = 0.5
@@ -144,20 +207,13 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -420.0
-offset_top = -360.0
+offset_top = -230.0
 offset_right = 420.0
-offset_bottom = -120.0
+offset_bottom = -80.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 20
 alignment = 1
-
-[node name="MapLabel" type="Label" parent="HUD/BottomBar" unique_id=671428459]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 40
-text = "Map: Beginner (10 levels)"
-horizontal_alignment = 1
 
 [node name="HostControls" type="HBoxContainer" parent="HUD/BottomBar" unique_id=919252597]
 layout_mode = 2
@@ -165,24 +221,24 @@ theme_override_constants/separation = 48
 alignment = 1
 
 [node name="SelectMapButt" type="Button" parent="HUD/BottomBar/HostControls" unique_id=209631607]
-custom_minimum_size = Vector2(300, 100)
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 70
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-text = "Select Map"
+text = "World"
 
 [node name="StartGameButt" type="Button" parent="HUD/BottomBar/HostControls" unique_id=950540055]
-custom_minimum_size = Vector2(300, 100)
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 70
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-text = "Start Game"
+text = "Start"
 
 [node name="PausePanel" type="CanvasLayer" parent="." unique_id=519452682]
 layer = 20
@@ -192,7 +248,7 @@ visible = false
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0, 0, 0, 0.6)
+color = Color(0, 0, 0, 0.5)
 
 [node name="Panel" type="PanelContainer" parent="PausePanel" unique_id=225948383]
 anchors_preset = 8
@@ -200,10 +256,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -480.0
-offset_top = -320.0
-offset_right = 480.0
-offset_bottom = 320.0
+offset_left = -800.0
+offset_top = -500.0
+offset_right = 800.0
+offset_bottom = 500.0
 
 [node name="TextureRect" type="TextureRect" parent="PausePanel/Panel" unique_id=1776070573]
 layout_mode = 2
@@ -222,9 +278,9 @@ theme_override_constants/separation = 30
 
 [node name="Title" type="Label" parent="PausePanel/Panel/MarginContainer/VBoxContainer" unique_id=1009421663]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 70
-text = "MEMBERS"
+theme_override_fonts/font = ExtResource("4_title_font")
+theme_override_font_sizes/font_size = 80
+text = "ROOM INFO"
 horizontal_alignment = 1
 
 [node name="MemberList" type="VBoxContainer" parent="PausePanel/Panel/MarginContainer/VBoxContainer" unique_id=785499155]
@@ -259,7 +315,7 @@ alignment = 1
 custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 70
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
@@ -269,13 +325,29 @@ text = "Exit"
 custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 70
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Cancel"
 
+[node name="OptionButt" type="Button" parent="PausePanel" unique_id=686395123]
+custom_minimum_size = Vector2(70, 70)
+offset_left = 1640.0
+offset_top = 73.0
+offset_right = 1710.0
+offset_bottom = 143.0
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxTexture_option_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_option_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_option_hover")
+
+[node name="OptionPanel" parent="PausePanel" unique_id=423534981 instance=ExtResource("8_option_panel")]
+visible = false
+
+[connection signal="pressed" from="HUD/PauseButt" to="." method="_on_pause_butt_pressed"]
 [connection signal="pressed" from="HUD/BottomBar/HostControls/SelectMapButt" to="." method="_on_select_map_pressed"]
 [connection signal="pressed" from="HUD/BottomBar/HostControls/StartGameButt" to="." method="_on_start_game_pressed"]
 [connection signal="pressed" from="PausePanel/Panel/MarginContainer/VBoxContainer/Buttons/ExitButt" to="." method="_on_exit_butt_pressed"]
 [connection signal="pressed" from="PausePanel/Panel/MarginContainer/VBoxContainer/Buttons/CancelButt" to="." method="_on_cancel_butt_pressed"]
+[connection signal="pressed" from="PausePanel/OptionButt" to="." method="_on_option_butt_pressed"]

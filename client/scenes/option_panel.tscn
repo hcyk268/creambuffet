@@ -121,8 +121,8 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 3
 theme = SubResource("Theme_cj54m")
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 22
+theme_override_constants/h_separation = 50
+theme_override_constants/v_separation = 40
 columns = 2
 
 [node name="MusicLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=491554248]
@@ -280,10 +280,12 @@ vertical_alignment = 1
 justification_flags = 35
 
 [node name="WindowSizeLabel" type="Label" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1470035510]
+visible = false
 layout_mode = 2
 text = "Window size"
 
 [node name="HBox4" type="HBoxContainer" parent="TextureRect2/MarginContainer/VBoxContainer/Grid" unique_id=1831970746]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 30
 

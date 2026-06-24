@@ -1,27 +1,49 @@
-[gd_scene format=3]
+[gd_scene load_steps=12 format=3 uid="uid://pausemenuroomstyle"]
 
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_rx8b2"]
-[ext_resource type="FontFile" path="res://assets/fonts/editundo.ttf" id="2_7lsra"]
-[ext_resource type="FontFile" path="res://assets/fonts/EXEPixelPerfect.ttf" id="3_l3c51"]
+[ext_resource type="Texture2D" uid="uid://6a6s8ki06vcs" path="res://assets/sprites/Menu1.png" id="2_bg"]
+[ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="3_font"]
+[ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="4_title_font"]
+[ext_resource type="Texture2D" uid="uid://defygfjutbuym" path="res://assets/sprites/Buttons.png" id="5_btn"]
+[ext_resource type="Texture2D" uid="uid://cqikygosg48vk" path="res://assets/sprites/UI-Option.png" id="6_option"]
+[ext_resource type="PackedScene" uid="uid://f4fvuapk8vsy" path="res://scenes/option_panel.tscn" id="7_option_panel"]
+[ext_resource type="PackedScene" uid="uid://c74xsgmjmohun" path="res://scenes/level_select.tscn" id="8_level_select"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.12, 0.1, 0.08, 0.92)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.87, 0.76, 0.46, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_normal"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_pressed"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 13, 32, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_btn_hover"]
+texture = ExtResource("5_btn")
+region_rect = Rect2(16, 36, 32, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_option_normal"]
+atlas = ExtResource("6_option")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_option_normal"]
+texture = SubResource("AtlasTexture_option_normal")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_option_pressed"]
+atlas = ExtResource("6_option")
+region = Rect2(48, 16, 16, 16)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_option_pressed"]
+texture = SubResource("AtlasTexture_option_pressed")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_option_hover"]
+texture = SubResource("AtlasTexture_option_pressed")
 
 [node name="PauseMenu" type="CanvasLayer"]
 process_mode = 3
 layer = 20
 script = ExtResource("1_rx8b2")
 
-[node name="Overlay" type="ColorRect" parent="."]
+[node name="Dim" type="ColorRect" parent="."]
 visible = false
 process_mode = 3
 anchors_preset = 15
@@ -29,57 +51,111 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.58)
+color = Color(0, 0, 0, 0.5)
 
-[node name="CenterContainer" type="CenterContainer" parent="Overlay"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="Panel" type="PanelContainer" parent="."]
+visible = false
+process_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -500.0
+offset_right = 800.0
+offset_bottom = 500.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MenuPanel" type="PanelContainer" parent="Overlay/CenterContainer"]
-custom_minimum_size = Vector2(420, 0)
+[node name="TextureRect" type="TextureRect" parent="Panel"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+texture = ExtResource("2_bg")
 
-[node name="MarginContainer" type="MarginContainer" parent="Overlay/CenterContainer/MenuPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 28
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Overlay/CenterContainer/MenuPanel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 30
 
-[node name="TitleLabel" type="Label" parent="Overlay/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
+[node name="Title" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_7lsra")
-theme_override_font_sizes/font_size = 58
-theme_override_colors/font_color = Color(1, 0.91, 0.62, 1)
-text = "Paused"
+theme_override_fonts/font = ExtResource("4_title_font")
+theme_override_font_sizes/font_size = 80
+text = "PAUSE"
 horizontal_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="Overlay/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 58)
+[node name="MemberList" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_l3c51")
-theme_override_font_sizes/font_size = 34
-text = "Resume"
+size_flags_vertical = 3
+theme_override_constants/separation = 12
 
-[node name="RestartButton" type="Button" parent="Overlay/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 58)
+[node name="Buttons" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_l3c51")
-theme_override_font_sizes/font_size = 34
-text = "Restart"
+theme_override_constants/separation = 60
+alignment = 1
 
-[node name="MainMenuButton" type="Button" parent="Overlay/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 58)
+[node name="ExitButt" type="Button" parent="Panel/MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("3_l3c51")
-theme_override_font_sizes/font_size = 34
-text = "Main Menu"
+focus_mode = 0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Exit"
+
+[node name="LevelButt" type="Button" parent="Panel/MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(240, 120)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Levels"
+
+[node name="CancelButt" type="Button" parent="Panel/MarginContainer/VBoxContainer/Buttons"]
+custom_minimum_size = Vector2(240, 120)
+layout_mode = 2
+focus_mode = 0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
+text = "Cancel"
+
+[node name="OptionButt" type="Button" parent="."]
+visible = false
+process_mode = 3
+custom_minimum_size = Vector2(70, 70)
+offset_left = 1640.0
+offset_top = 73.0
+offset_right = 1710.0
+offset_bottom = 143.0
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxTexture_option_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_option_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_option_hover")
+
+[node name="OptionPanel" parent="." instance=ExtResource("7_option_panel")]
+visible = false
+process_mode = 3
+
+[node name="LevelSelectOverlay" parent="." instance=ExtResource("8_level_select")]
+visible = false
+process_mode = 3
+overlay_mode = true
+
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/Buttons/ExitButt" to="." method="_on_exit_butt_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/Buttons/LevelButt" to="." method="_on_level_butt_pressed"]
+[connection signal="pressed" from="Panel/MarginContainer/VBoxContainer/Buttons/CancelButt" to="." method="_on_cancel_butt_pressed"]
+[connection signal="pressed" from="OptionButt" to="." method="_on_option_butt_pressed"]

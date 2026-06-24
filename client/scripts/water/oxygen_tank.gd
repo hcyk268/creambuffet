@@ -3,6 +3,8 @@ class_name OxygenTank
 
 signal collected(body: Node)
 
+const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
+
 @export var oxygen_amount := 5.0
 @export var consume_on_collect := true
 @export var sync_id := ""
@@ -29,8 +31,7 @@ func _on_body_entered(body: Node) -> void:
 			collected.emit(body)
 		return
 
-	if body.has_method("add_oxygen"):
-		body.add_oxygen(oxygen_amount)
+	PlayerCapabilities.add_oxygen(body, oxygen_amount)
 
 	collected.emit(body)
 	if consume_on_collect:

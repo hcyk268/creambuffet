@@ -75,6 +75,8 @@ func handle_peer_packet(peer_id: int, packet: PackedByteArray) -> void:
 			_lobby_handler.handle_start_match(peer_id, request_id)
 		ProtocolConstants.MESSAGE_SET_ROOM_MAP:
 			_lobby_handler.handle_set_room_map(peer_id, request_id, payload)
+		ProtocolConstants.MESSAGE_SET_ROOM_LEVEL:
+			_match_handler.handle_set_room_level(peer_id, request_id, payload)
 		ProtocolConstants.MESSAGE_PLAYER_STATE:
 			_match_handler.handle_player_state(peer_id, payload)
 		ProtocolConstants.MESSAGE_LEVEL_CHANGED:

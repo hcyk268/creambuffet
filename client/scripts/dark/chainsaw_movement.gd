@@ -1,6 +1,8 @@
 @tool
 extends AnimatableBody2D
 
+const OptionsState = preload("res://scripts/menu/options_state.gd")
+
 @export var sync_id := ""
 
 enum MovementMode {
@@ -56,6 +58,7 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	_origin = global_position
+	OptionsState.assign_sfx_bus(sfx)
 	_apply_activation_state()
 	queue_redraw()
 

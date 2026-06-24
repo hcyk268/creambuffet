@@ -1,4 +1,4 @@
-extends State
+extends PlayerGroundedState
 class_name PlayerRun
 
 
@@ -7,8 +7,7 @@ func enter() -> void:
 
 
 func physics_update(delta: float) -> void:
-	if controller.is_in_water():
-		transitioned.emit(self, "swim")
+	if transition_to_swim_if_in_water():
 		return
 
 	if not controller.is_on_floor():
@@ -27,12 +26,12 @@ func physics_update(delta: float) -> void:
 		transitioned.emit(self, "jump")
 		return
 
-	if not controller.is_on_floor():
-		transitioned.emit(self, "fall")
+	if transition_to_fall_if_airborne():
 		return
 
 	if is_zero_approx(direction):
 		transitioned.emit(self, "idle")
+		return
 
 	if controller.dash_just_pressed():
 		transitioned.emit(self, "dash")

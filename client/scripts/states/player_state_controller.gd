@@ -2,10 +2,18 @@ extends RefCounted
 class_name PlayerStateController
 
 var _player: CharacterBody2D
+var _visual: PlayerVisual
+var _movement: PlayerMovement
+var _water: PlayerWaterComponent
 
 
 func _init(player: CharacterBody2D) -> void:
 	_player = player
+	if player != null and player.has_node("PlayerSodaHost"):
+		var host: Node = player.get_node("PlayerSodaHost")
+		_visual = host.get_node_or_null("PlayerVisual") as PlayerVisual
+		_movement = host.get_node_or_null("PlayerMovement") as PlayerMovement
+		_water = host.get_node_or_null("PlayerWater") as PlayerWaterComponent
 
 
 func is_ready() -> bool:
@@ -13,6 +21,8 @@ func is_ready() -> bool:
 
 
 func is_in_water() -> bool:
+	if _water != null:
+		return _water.is_in_water()
 	return is_ready() and _player.has_method("is_in_water") and bool(_player.is_in_water())
 
 
@@ -29,7 +39,9 @@ func apply_gravity(delta: float) -> void:
 
 
 func move_and_push() -> void:
-	if is_ready() and _player.has_method("move_and_push"):
+	if _movement != null:
+		_movement.move_and_push()
+	elif is_ready() and _player.has_method("move_and_push"):
 		_player.move_and_push()
 
 
@@ -67,10 +79,14 @@ func lerp_velocity(target: Vector2, weight: float) -> void:
 
 
 func speed() -> float:
+	if _movement != null:
+		return _movement.get_speed()
 	return float(_player.SPEED) if is_ready() else 0.0
 
 
 func jump_velocity() -> float:
+	if _movement != null:
+		return _movement.get_jump_velocity()
 	return float(_player.JUMP_VELOCITY) if is_ready() else 0.0
 
 
@@ -95,68 +111,45 @@ func down_pressed() -> bool:
 
 
 func play_animation(animation: String) -> void:
-	if is_ready() and _player.has_method("play_player_animation"):
+	if _visual != null:
+		_visual.play_animation(animation)
+	elif is_ready() and _player.has_method("play_player_animation"):
 		_player.play_player_animation(animation)
 
 
-func play_jump_sfx() -> void:
-	if is_ready() and _player.has_method("play_jump_sfx"):
-		_player.play_jump_sfx()
-
-
-func play_land_sfx() -> void:
-	if is_ready() and _player.has_method("play_land_sfx"):
-		_player.play_land_sfx()
-
-
-func play_death_sfx() -> void:
-	if is_ready() and _player.has_method("play_death_sfx"):
-		_player.play_death_sfx()
-
-
-func play_respawn_sfx() -> void:
-	if is_ready() and _player.has_method("play_respawn_sfx"):
-		_player.play_respawn_sfx()
-
-
-func play_key_pickup_sfx() -> void:
-	if is_ready() and _player.has_method("play_key_pickup_sfx"):
-		_player.play_key_pickup_sfx()
-
-
-func start_walk_run_sfx() -> void:
-	if is_ready() and _player.has_method("start_walk_run_sfx"):
-		_player.start_walk_run_sfx()
-
-
-func stop_walk_run_sfx() -> void:
-	if is_ready() and _player.has_method("stop_walk_run_sfx"):
-		_player.stop_walk_run_sfx()
-
-
 func face_direction(direction: float) -> void:
-	if is_ready() and _player.has_method("set_facing_direction"):
+	if _visual != null:
+		_visual.set_facing_direction(direction)
+	elif is_ready() and _player.has_method("set_facing_direction"):
 		_player.set_facing_direction(direction)
 
 
 func facing_direction() -> float:
+	if _visual != null:
+		return _visual.get_facing_direction()
 	if is_ready() and _player.has_method("get_facing_direction"):
 		return float(_player.get_facing_direction())
 	return 1.0
 
 
 func set_vertical_flip(flipped: bool) -> void:
-	if is_ready() and _player.has_method("set_sprite_vertical_flip"):
+	if _visual != null:
+		_visual.set_vertical_flip(flipped)
+	elif is_ready() and _player.has_method("set_sprite_vertical_flip"):
 		_player.set_sprite_vertical_flip(flipped)
 
 
 func water_swim_speed_multiplier() -> float:
+	if _water != null:
+		return _water.get_water_swim_speed_multiplier()
 	if not is_ready() or not _player.has_method("get_water_swim_speed_multiplier"):
 		return 1.0
 	return float(_player.get_water_swim_speed_multiplier())
 
 
 func water_current_velocity() -> Vector2:
+	if _water != null:
+		return _water.get_water_current_velocity()
 	if not is_ready() or not _player.has_method("get_water_current_velocity"):
 		return Vector2.ZERO
 	return _player.get_water_current_velocity()
