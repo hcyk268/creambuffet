@@ -34,19 +34,33 @@ func handle_peer_connected(peer_id: int) -> void:
 
 func handle_peer_disconnected(peer_id: int) -> void:
 	_debug.info("peer_disconnected peer=%d" % peer_id)
-	var result: Dictionary = _room_manager.unregister_peer(peer_id)
+	var result: Dictionary = _room_manager.disconnect_peer(peer_id)
 	_broadcaster.publish_room_change(result)
 
 
 func handle_hello(peer_id: int, request_id, payload: Dictionary) -> void:
 	var player_name := String(payload.get("player_name", ""))
-	var session: PlayerSession = _room_manager.ensure_session(peer_id, player_name)
-	_broadcaster.send_message(peer_id, ProtocolConstants.MESSAGE_WELCOME, {
+	var reconnect_token := String(payload.get("reconnect_token", ""))
+	var result: Dictionary = _room_manager.authenticate_hello(peer_id, player_name, reconnect_token)
+	var session: PlayerSession = result.get("session") as PlayerSession
+	if session == null:
+		_broadcaster.send_error(peer_id, "hello_failed", "Could not establish a player session.", request_id)
+		return
+
+	var welcome_payload := {
 		"peer_id": peer_id,
 		"display_name": session.display_name,
 		"protocol_version": Protocol.SERVER_PROTOCOL_VERSION,
 		"server_port": _port,
-	}, request_id)
+		"reconnect_token": session.reconnect_token,
+		"resumed": bool(result.get("resumed", false)),
+	}
+	var room: Room = result.get("room") as Room
+	if room != null:
+		welcome_payload["room"] = room.snapshot()
+	_broadcaster.send_message(peer_id, ProtocolConstants.MESSAGE_WELCOME, welcome_payload, request_id)
+	if room != null:
+		_broadcaster.publish_room_snapshot(room)
 
 
 func handle_ping(peer_id: int, request_id) -> void:

@@ -19,9 +19,11 @@ const MIN_PLAYERS := 2
 const MAX_PLAYERS := 4
 const MIN_WORLDS := 1
 const MAX_WORLDS := 10
+const RECONNECT_GRACE_MS := 30000
 
 var rooms: Dictionary = {}
 var sessions: Dictionary = {}
+var _disconnected_sessions_by_token: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 
 
@@ -33,11 +35,28 @@ func ensure_session(peer_id: int, requested_name: String = "") -> PlayerSession:
 	var session: PlayerSession = sessions.get(peer_id) as PlayerSession
 	if session == null:
 		session = PlayerSession.new(peer_id, requested_name)
+		session.set_reconnect_token(_create_reconnect_token())
 		sessions[peer_id] = session
 	elif not requested_name.strip_edges().is_empty():
 		session.set_display_name(requested_name)
 
 	return session
+
+
+func authenticate_hello(peer_id: int, requested_name: String, reconnect_token: String = "") -> Dictionary:
+	var requested_token := reconnect_token.strip_edges()
+	if not requested_token.is_empty():
+		var resume_result := _resume_disconnected_session(peer_id, requested_token)
+		if bool(resume_result.get("ok", false)):
+			return resume_result
+
+	var session := ensure_session(peer_id, requested_name)
+	return {
+		"ok": true,
+		"session": session,
+		"room": null,
+		"resumed": false,
+	}
 
 
 func get_session(peer_id: int) -> PlayerSession:
@@ -199,6 +218,66 @@ func unregister_peer(peer_id: int) -> Dictionary:
 	return result
 
 
+func disconnect_peer(peer_id: int, now_ms: int = Time.get_ticks_msec()) -> Dictionary:
+	var session := get_session(peer_id)
+	if session == null:
+		return _error("unknown_peer", "Peer is not registered.")
+
+	var room := get_room_for_peer(peer_id)
+	if room == null or not room.is_playing():
+		return unregister_peer(peer_id)
+
+	var saved_player_state: Dictionary = {}
+	if room.match_state != null:
+		saved_player_state = room.match_state.get_player_state(peer_id)
+
+	var room_id := room.room_id
+	room.remove_player(peer_id)
+	sessions.erase(peer_id)
+	_disconnected_sessions_by_token[session.reconnect_token] = {
+		"session": session,
+		"room_id": room_id,
+		"player_state": saved_player_state,
+		"expires_at_ms": now_ms + RECONNECT_GRACE_MS,
+	}
+
+	return {
+		"ok": true,
+		"room": room,
+		"removed_room_id": "",
+		"removed_room": false,
+		"session": session,
+		"reconnect_pending": true,
+	}
+
+
+func expire_disconnected_sessions(now_ms: int = Time.get_ticks_msec()) -> Array[Dictionary]:
+	var changes: Array[Dictionary] = []
+	for raw_token in _disconnected_sessions_by_token.keys().duplicate():
+		var token := String(raw_token)
+		var raw_record: Variant = _disconnected_sessions_by_token.get(token, {})
+		if typeof(raw_record) != TYPE_DICTIONARY:
+			_disconnected_sessions_by_token.erase(token)
+			continue
+
+		var record: Dictionary = raw_record
+		if now_ms < int(record.get("expires_at_ms", 0)):
+			continue
+
+		_disconnected_sessions_by_token.erase(token)
+		var room := get_room(String(record.get("room_id", "")))
+		if room != null and room.is_empty():
+			rooms.erase(room.room_id)
+			changes.append({
+				"ok": true,
+				"room": null,
+				"removed_room_id": room.room_id,
+				"removed_room": true,
+			})
+
+	return changes
+
+
 func start_match(peer_id: int) -> Dictionary:
 	var room := get_room_for_peer(peer_id)
 	if room == null:
@@ -313,6 +392,65 @@ func _create_unique_room_id() -> String:
 			return candidate
 
 	return ""
+
+
+func _resume_disconnected_session(peer_id: int, reconnect_token: String) -> Dictionary:
+	var raw_record: Variant = _disconnected_sessions_by_token.get(reconnect_token, {})
+	if typeof(raw_record) != TYPE_DICTIONARY:
+		return _error("reconnect_not_found", "Reconnect session was not found.")
+
+	var record: Dictionary = raw_record
+	if Time.get_ticks_msec() >= int(record.get("expires_at_ms", 0)):
+		_disconnected_sessions_by_token.erase(reconnect_token)
+		return _error("reconnect_expired", "Reconnect session has expired.")
+
+	var room := get_room(String(record.get("room_id", "")))
+	var session: PlayerSession = record.get("session") as PlayerSession
+	if room == null or session == null or not room.is_playing():
+		_disconnected_sessions_by_token.erase(reconnect_token)
+		return _error("reconnect_unavailable", "Reconnect session is no longer available.")
+
+	var saved_player_state_raw: Variant = record.get("player_state", {})
+	var saved_player_state: Dictionary = Dictionary(saved_player_state_raw).duplicate(true) if typeof(saved_player_state_raw) == TYPE_DICTIONARY else {}
+	session.set_peer_id(peer_id)
+	var resume_error := room.resume_player(session, saved_player_state)
+	if resume_error != OK:
+		return _error("reconnect_room_full", "Reconnect session could not restore the room slot.")
+
+	sessions.erase(peer_id)
+	sessions[peer_id] = session
+	_disconnected_sessions_by_token.erase(reconnect_token)
+	return {
+		"ok": true,
+		"session": session,
+		"room": room,
+		"resumed": true,
+	}
+
+
+func _create_reconnect_token() -> String:
+	const alphabet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	var token := ""
+	for _attempt in range(32):
+		token = ""
+		for _index in range(32):
+			token += alphabet[_rng.randi_range(0, alphabet.length() - 1)]
+		if not _reconnect_token_in_use(token):
+			return token
+
+	return token
+
+
+func _reconnect_token_in_use(token: String) -> bool:
+	if _disconnected_sessions_by_token.has(token):
+		return true
+
+	for raw_session in sessions.values():
+		var session := raw_session as PlayerSession
+		if session != null and session.reconnect_token == token:
+			return true
+
+	return false
 
 
 func _clamp_int(value, min_value: int, max_value: int) -> int:

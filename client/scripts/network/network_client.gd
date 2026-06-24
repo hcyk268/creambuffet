@@ -26,6 +26,7 @@ const CONFIG_PATH := "res://config/client_network.cfg"
 const SERVER_PEER_ID := 1
 const MAX_DISPLAY_NAME_LENGTH := 24
 const PING_INTERVAL := 2.0
+const RECONNECT_ATTEMPT_INTERVAL := 1.0
 
 var server_host := DEFAULT_SERVER_HOST
 var server_port := DEFAULT_SERVER_PORT
@@ -45,6 +46,9 @@ var _public_rooms: Array[Dictionary] = []
 var _ping_ms := -1
 var _ping_timer := 0.0
 var _pending_pings: Dictionary = {}
+var _reconnect_token := ""
+var _reconnect_pending := false
+var _reconnect_attempt_timer := 0.0
 
 
 func _ready() -> void:
@@ -65,6 +69,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if connection_state != STATE_CONNECTED:
+		_process_reconnect(delta)
 		return
 
 	_ping_timer += delta
@@ -99,6 +104,10 @@ func ensure_connected() -> void:
 
 func disconnect_from_server() -> void:
 	_pending_packets.clear()
+	_pending_pings.clear()
+	_reconnect_pending = false
+	_reconnect_attempt_timer = 0.0
+	_reconnect_token = ""
 	local_peer_id = 0
 
 	if _peer != null:
@@ -272,9 +281,12 @@ func _bind_multiplayer_signals() -> void:
 
 func _on_connected_to_server() -> void:
 	_set_connection_state(STATE_CONNECTED, "Connected")
-	_send_packet(ProtocolConstants.MESSAGE_HELLO, {
+	var hello_payload := {
 		"player_name": _display_name,
-	})
+	}
+	if not _reconnect_token.is_empty():
+		hello_payload["reconnect_token"] = _reconnect_token
+	_send_packet(ProtocolConstants.MESSAGE_HELLO, hello_payload)
 	_flush_pending_packets()
 
 
@@ -286,6 +298,8 @@ func _on_connection_failed() -> void:
 
 func _on_server_disconnected() -> void:
 	var disconnected_message := "Server disconnected."
+	_reconnect_pending = is_match_active() and not _reconnect_token.is_empty()
+	_reconnect_attempt_timer = RECONNECT_ATTEMPT_INTERVAL
 	_clear_network_state(disconnected_message)
 	error_received.emit("server_disconnected", disconnected_message)
 
@@ -339,9 +353,19 @@ func _handle_welcome(payload: Dictionary) -> void:
 
 	if payload.has("display_name"):
 		_display_name = String(payload["display_name"])
+		if payload.has("reconnect_token"):
+			_reconnect_token = String(payload["reconnect_token"])
+		var resumed := bool(payload.get("resumed", false))
+		if _reconnect_pending and not resumed:
+			error_received.emit("reconnect_expired", "Reconnect window expired. Please join a new room.")
+		_reconnect_pending = false
+		_reconnect_attempt_timer = 0.0
+		var resumed_room = payload.get("room", {})
+		if typeof(resumed_room) == TYPE_DICTIONARY:
+			_set_current_room(resumed_room)
 
 	var label_name := _display_name if not _display_name.is_empty() else "Player"
-	_set_connection_state(STATE_CONNECTED, "Connected as %s" % label_name)
+	_set_connection_state(STATE_CONNECTED, "Reconnected as %s" % label_name if bool(payload.get("resumed", false)) else "Connected as %s" % label_name)
 	_ping_timer = PING_INTERVAL
 	_send_ping()
 
@@ -584,6 +608,18 @@ func _clear_network_state(details: String) -> void:
 	_set_current_room({})
 	_set_public_rooms([])
 	_set_connection_state(STATE_DISCONNECTED, details)
+
+
+func _process_reconnect(delta: float) -> void:
+	if not _reconnect_pending or connection_state == STATE_CONNECTING:
+		return
+
+	_reconnect_attempt_timer += delta
+	if _reconnect_attempt_timer < RECONNECT_ATTEMPT_INTERVAL:
+		return
+
+	_reconnect_attempt_timer = 0.0
+	ensure_connected()
 
 
 func _offline_status_text() -> String:

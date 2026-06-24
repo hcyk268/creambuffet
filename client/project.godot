@@ -20,10 +20,6 @@ config/icon="res://icon.svg"
 NetworkClient="*res://scripts/network/network_client.gd"
 SceneTransition="*res://scenes/ui/scene_transition.tscn"
 
-[audio]
-
-buses/default_bus_layout="res://default_bus_layout.tres"
-
 [display]
 
 window/size/viewport_width=1920

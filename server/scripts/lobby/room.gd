@@ -94,6 +94,26 @@ func try_add_player(session: PlayerSession) -> Error:
 	return OK
 
 
+func resume_player(session: PlayerSession, saved_player_state: Dictionary = {}) -> Error:
+	if has_player(session.peer_id):
+		return ERR_ALREADY_EXISTS
+
+	if players.size() >= max_players:
+		return ERR_CANT_ACQUIRE_RESOURCE
+
+	players[session.peer_id] = session
+	session.attach_room(room_id)
+	if match_state != null:
+		match_state.add_player(session.peer_id)
+		if not saved_player_state.is_empty():
+			match_state.set_player_state(session.peer_id, saved_player_state)
+
+	if host_peer_id == 0:
+		host_peer_id = session.peer_id
+
+	return OK
+
+
 func remove_player(peer_id: int) -> bool:
 	if not has_player(peer_id):
 		return false

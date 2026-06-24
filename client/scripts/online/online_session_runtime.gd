@@ -139,6 +139,7 @@ func on_current_room_changed(room: Dictionary) -> void:
 		update_failure_hud()
 		return
 
+	setup_local_network_identity()
 	sync_remote_roster(room)
 	apply_match_state_snapshot(room)
 	_owner._update_level_label(_owner._match_complete)

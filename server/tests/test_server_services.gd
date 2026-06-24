@@ -113,6 +113,7 @@ func _init() -> void:
 	_test_server_config_env_overrides(failures)
 	_test_match_coordinator_level_transition(failures)
 	_test_match_coordinator_match_complete(failures)
+	_test_room_reconnect_restores_player_state(failures)
 	_test_goal_exit_requires_current_goal_occupancy(failures)
 	_test_message_router_peer_connected(failures)
 	_test_message_router_bad_packet(failures)
@@ -204,6 +205,46 @@ func _test_match_coordinator_match_complete(failures: Array[String]) -> void:
 		var payload: Dictionary = broadcaster.room_messages[0].get("payload", {})
 		if not bool(payload.get("match_complete", false)):
 			failures.append("MatchCoordinator.try_level_transition() did not flag match_complete in the final transition.")
+
+
+func _test_room_reconnect_restores_player_state(failures: Array[String]) -> void:
+	var room_manager := RoomManager.new()
+	var create_result: Dictionary = room_manager.create_room(1, "Player1", {
+		"max_players": 2,
+		"map_id": "water",
+		"is_public": false,
+	})
+	if not bool(create_result.get("ok", false)):
+		failures.append("Reconnect setup could not create a room.")
+		return
+
+	var room: Room = create_result.get("room") as Room
+	var join_result: Dictionary = room_manager.join_room(2, "Player2", room.room_id)
+	if not bool(join_result.get("ok", false)) or not bool(room_manager.start_match(1).get("ok", false)):
+		failures.append("Reconnect setup could not start a two-player match.")
+		return
+
+	room.match_state.patch_player_state(1, {
+		"position": {"x": 123.0, "y": 45.0},
+		"key_count": 2,
+	})
+	var reconnect_token := room_manager.get_session(1).reconnect_token
+	var disconnected: Dictionary = room_manager.disconnect_peer(1, Time.get_ticks_msec())
+	if not bool(disconnected.get("reconnect_pending", false)) or room.has_player(1):
+		failures.append("RoomManager.disconnect_peer() did not reserve the disconnected match player for reconnect.")
+		return
+
+	var resumed: Dictionary = room_manager.authenticate_hello(9, "DifferentName", reconnect_token)
+	if not bool(resumed.get("resumed", false)) or not room.has_player(9):
+		failures.append("RoomManager.authenticate_hello() did not restore the disconnected player into the active room.")
+		return
+
+	var restored_state: Dictionary = room.match_state.get_player_state(9)
+	if int(restored_state.get("key_count", 0)) != 2:
+		failures.append("RoomManager reconnect did not restore the player key state.")
+	var position: Dictionary = restored_state.get("position", {})
+	if float(position.get("x", 0.0)) != 123.0 or float(position.get("y", 0.0)) != 45.0:
+		failures.append("RoomManager reconnect did not restore the player position.")
 
 
 func _test_goal_exit_requires_current_goal_occupancy(failures: Array[String]) -> void:
