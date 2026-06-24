@@ -6,6 +6,7 @@ const MAX_NAME_LENGTH := 24
 var peer_id := 0
 var display_name := ""
 var room_id := ""
+var reconnect_token := ""
 
 
 func _init(initial_peer_id: int = 0, initial_name: String = "") -> void:
@@ -15,6 +16,14 @@ func _init(initial_peer_id: int = 0, initial_name: String = "") -> void:
 
 func set_display_name(requested_name: String) -> void:
 	display_name = sanitize_display_name(requested_name, peer_id)
+
+
+func set_peer_id(next_peer_id: int) -> void:
+	peer_id = next_peer_id
+
+
+func set_reconnect_token(next_token: String) -> void:
+	reconnect_token = next_token
 
 
 func attach_room(next_room_id: String) -> void:
