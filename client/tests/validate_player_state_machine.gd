@@ -3,6 +3,15 @@ extends SceneTree
 const PlayerScene = preload("res://scenes/player_soda.tscn")
 const State = preload("res://scripts/states/state.gd")
 
+const STATE_ENTER_ANIMATIONS := {
+	"idle": "idle",
+	"fall": "fall",
+	"run": "run",
+	"jump": "air",
+	"dash": "dash",
+	"swim": "swim_idle",
+}
+
 
 func _init() -> void:
 	call_deferred("_run")
@@ -38,8 +47,17 @@ func _run() -> void:
 				failures.append("State %s did not receive a PlayerStateController." % child.name)
 
 	if typed_player != null:
-		if typed_player.get_visual_animation() != "idle":
-			failures.append("Expected default visual animation to be idle.")
+		if state_machine != null and state_machine.currentState != null:
+			var state_name := state_machine.currentState.name.to_lower()
+			var expected_animation: String = STATE_ENTER_ANIMATIONS.get(state_name, "")
+			var actual_animation := typed_player.get_visual_animation()
+			if expected_animation.is_empty():
+				failures.append("No enter animation mapping for state '%s'." % state_name)
+			elif actual_animation != expected_animation:
+				failures.append(
+					"Expected animation '%s' for state '%s', got '%s'."
+					% [expected_animation, state_name, actual_animation]
+				)
 		if typed_player.profile == null or typed_player.profile.movement == null:
 			failures.append("PlayerSoda profile or movement config is missing.")
 
