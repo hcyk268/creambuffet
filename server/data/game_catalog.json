@@ -468,8 +468,8 @@
           },
           "transform": {
             "position": {
-              "x": 63,
-              "y": -28
+              "x": 73,
+              "y": -26
             }
           },
           "trigger": {
@@ -497,7 +497,7 @@
           "transform": {
             "position": {
               "x": 168,
-              "y": -17
+              "y": -7
             }
           },
           "trigger": {
@@ -521,7 +521,7 @@
           "transform": {
             "position": {
               "x": 168,
-              "y": -17
+              "y": -8
             }
           },
           "trigger": {
@@ -693,7 +693,7 @@
           "state": {},
           "transform": {
             "position": {
-              "x": 88,
+              "x": 85,
               "y": 128
             }
           },
@@ -743,7 +743,7 @@
           },
           "transform": {
             "position": {
-              "x": -36,
+              "x": -35,
               "y": 125
             }
           },
@@ -768,7 +768,7 @@
           "transform": {
             "position": {
               "x": 15,
-              "y": 119
+              "y": 129.75
             }
           }
         }
@@ -1820,7 +1820,7 @@
           "transform": {
             "position": {
               "x": -184,
-              "y": -67
+              "y": -66
             }
           },
           "trigger": {
@@ -1868,7 +1868,7 @@
           "transform": {
             "position": {
               "x": -153,
-              "y": 92.25
+              "y": 73.5
             }
           }
         },
@@ -1880,7 +1880,7 @@
           "transform": {
             "position": {
               "x": 151,
-              "y": 94.25
+              "y": 75.5
             }
           }
         },

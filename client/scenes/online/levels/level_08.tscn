@@ -38,45 +38,45 @@ position = Vector2(0, -4)
 shape = SubResource("RectangleShape2D_4j84j")
 
 [node name="MovingPlatform" parent="." unique_id=1025752984 instance=ExtResource("6_hdaif")]
-position = Vector2(-49, 71)
+position = Vector2(-61, 71)
 diameter = 32.0
 activation = true
 
 [node name="MovingPlatform2" parent="." unique_id=1914383417 instance=ExtResource("6_hdaif")]
-position = Vector2(-6, 53.75)
+position = Vector2(-6, 40.5)
 movement_mode = 1
 activation = true
 
 [node name="MovingPlatform3" parent="." unique_id=1589590639 instance=ExtResource("6_hdaif")]
-position = Vector2(-138, 95.75)
+position = Vector2(-138, 82)
 movement_mode = 1
 diameter = 32.0
 activation = true
 
 [node name="MovingPlatform4" parent="." unique_id=690356766 instance=ExtResource("6_hdaif")]
-position = Vector2(-157, -4.25)
+position = Vector2(-157, -22)
 movement_mode = 1
 diameter = 48.0
 activation = true
 
 [node name="MovingPlatform5" parent="." unique_id=1133397876 instance=ExtResource("6_hdaif")]
-position = Vector2(224, -49.5)
+position = Vector2(224, -17)
 movement_mode = 1
 diameter = 32.0
 activation = true
 
 [node name="MovingPlatform6" parent="." unique_id=812838854 instance=ExtResource("6_hdaif")]
-position = Vector2(85, 47.75)
+position = Vector2(85, 34.5)
 movement_mode = 1
 activation = true
 
 [node name="MovingPlatform7" parent="." unique_id=1943316216 instance=ExtResource("6_hdaif")]
-position = Vector2(117, 72)
+position = Vector2(143, 72)
 diameter = 48.0
 activation = true
 
 [node name="MovingPlatform8" parent="." unique_id=754685765 instance=ExtResource("6_hdaif")]
-position = Vector2(231, 117)
+position = Vector2(231, 103.75)
 movement_mode = 1
 activation = true
 
