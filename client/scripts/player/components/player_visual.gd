@@ -1,10 +1,12 @@
 extends Node
 class_name PlayerVisual
 
-const LAND_SPRITE_TEXTURE := preload("res://assets/sprites/Player-Soda.png")
+const LAND_SPRITE_TEXTURE := preload("res://assets/sprites/Player-sheet.png")
+const DASH_SPRITE_TEXTURE := preload("res://assets/sprites/Player-Soda.png")
 const SWIM_SPRITE_TEXTURE := preload("res://assets/sprites/playerswim.png")
 const LAND_SPRITE_HFRAMES := 5
-const LAND_SPRITE_VFRAMES := 6
+const LAND_SPRITE_VFRAMES := 8
+const DASH_SPRITE_VFRAMES := 6
 const SWIM_SPRITE_HFRAMES := 4
 const SWIM_SPRITE_VFRAMES := 6
 const LAND_SPRITE_POSITION := Vector2(0, -27)
@@ -88,6 +90,14 @@ func _apply_sprite_sheet_for_animation(animation: String) -> void:
 			SWIM_SPRITE_VFRAMES,
 			SWIM_SPRITE_POSITION,
 			SWIM_SPRITE_SCALE
+		)
+	elif animation == "dash":
+		_apply_sprite_sheet(
+			DASH_SPRITE_TEXTURE,
+			LAND_SPRITE_HFRAMES,
+			DASH_SPRITE_VFRAMES,
+			LAND_SPRITE_POSITION,
+			LAND_SPRITE_SCALE
 		)
 	else:
 		_apply_sprite_sheet(

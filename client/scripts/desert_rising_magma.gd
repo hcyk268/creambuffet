@@ -2,6 +2,7 @@ extends Area2D
 signal player_death(body: Node)
 
 const PlayerCapabilities = preload("res://scripts/player/player_capabilities.gd")
+const PlayerCollisionHelper = preload("res://scripts/player/player_collision_helper.gd")
 
 @export var sync_id := ""
 
@@ -116,21 +117,17 @@ func _is_valid_body(body: Node) -> bool:
 
 
 func _body_hits_magma(body: Node2D) -> bool:
-	var player_shape_node := body.get_node_or_null("CollisionShape2D") as CollisionShape2D
-	if player_shape_node == null or player_shape_node.shape == null:
-		return false
-	if not (player_shape_node.shape is CircleShape2D):
+	var player_rect := PlayerCollisionHelper.global_rect_from_body(body)
+	if player_rect.size == Vector2.ZERO:
 		return false
 
 	var magma_rect := _magma_rectangle()
 	if magma_rect.size == Vector2.ZERO:
 		return false
 
-	var circle_shape: CircleShape2D = player_shape_node.shape
-	var circle_center: Vector2 = player_shape_node.global_position
-	var player_bottom := circle_center.y + circle_shape.radius
-	var player_left := circle_center.x - circle_shape.radius
-	var player_right := circle_center.x + circle_shape.radius
+	var player_bottom := player_rect.position.y + player_rect.size.y
+	var player_left := player_rect.position.x
+	var player_right := player_rect.end.x
 	var magma_left := magma_rect.position.x
 	var magma_right := magma_rect.position.x + magma_rect.size.x
 	var magma_top := magma_rect.position.y
@@ -138,7 +135,7 @@ func _body_hits_magma(body: Node2D) -> bool:
 
 	if player_right < magma_left or player_left > magma_right:
 		return false
-	if circle_center.y > magma_bottom:
+	if player_rect.position.y > magma_bottom:
 		return false
 	return player_bottom >= magma_top + MAGMA_SURFACE_KILL_PADDING
 

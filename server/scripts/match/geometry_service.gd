@@ -98,15 +98,17 @@ static func player_bounding_rect_for_position(raw_position: Variant) -> Rect2:
 	if shape.is_empty():
 		return Rect2()
 
-	if String(shape.get("type", "")) != "circle":
-		return Rect2()
-
-	var center: Dictionary = shape.get("center", {})
-	var radius := float(shape.get("radius", 0.0))
-	return Rect2(
-		Vector2(float(center.get("x", 0.0)) - radius, float(center.get("y", 0.0)) - radius),
-		Vector2(radius * 2.0, radius * 2.0)
-	)
+	var shape_type := String(shape.get("type", ""))
+	if shape_type == "rectangle":
+		return shape_rect(shape)
+	if shape_type == "circle":
+		var center: Dictionary = shape.get("center", {})
+		var radius := float(shape.get("radius", 0.0))
+		return Rect2(
+			Vector2(float(center.get("x", 0.0)) - radius, float(center.get("y", 0.0)) - radius),
+			Vector2(radius * 2.0, radius * 2.0)
+		)
+	return Rect2()
 
 
 static func player_shape_for_position(raw_position: Variant) -> Dictionary:
@@ -120,14 +122,19 @@ static func player_shape_for_position(raw_position: Variant) -> Dictionary:
 
 	var base_position: Dictionary = Dictionary(raw_position).duplicate(true)
 	var offset: Dictionary = Dictionary(shape.get("offset", {})).duplicate(true)
-	return {
-		"type": String(shape.get("type", "")),
+	var shape_type := String(shape.get("type", ""))
+	var result := {
+		"type": shape_type,
 		"center": packet_vec(
 			float(base_position.get("x", 0.0)) + float(offset.get("x", 0.0)),
 			float(base_position.get("y", 0.0)) + float(offset.get("y", 0.0))
 		),
-		"radius": float(shape.get("radius", 0.0)),
 	}
+	if shape_type == "rectangle":
+		result["size"] = Dictionary(shape.get("size", {})).duplicate(true)
+	else:
+		result["radius"] = float(shape.get("radius", 0.0))
+	return result
 
 
 static func shape_for_object(match_state, target_id: String, shape_field: String) -> Dictionary:
