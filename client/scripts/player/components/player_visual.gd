@@ -3,22 +3,18 @@ class_name PlayerVisual
 
 const LAND_SPRITE_TEXTURE := preload("res://assets/sprites/Player-sheet.png")
 const DASH_SPRITE_TEXTURE := preload("res://assets/sprites/Player-Soda.png")
-const SWIM_SPRITE_TEXTURE := preload("res://assets/sprites/playerswim.png")
 const LAND_SPRITE_HFRAMES := 5
 const LAND_SPRITE_VFRAMES := 8
 const DASH_SPRITE_VFRAMES := 6
-const SWIM_SPRITE_HFRAMES := 4
-const SWIM_SPRITE_VFRAMES := 6
 const LAND_SPRITE_POSITION := Vector2(0, -27)
-const SWIM_SPRITE_POSITION := Vector2(0, -27)
 const LAND_SPRITE_SCALE := Vector2.ONE
-const SWIM_SPRITE_SCALE := Vector2(0.1, 0.1)
 
 var _owner: CharacterBody2D
 var _sprite: Sprite2D
 var _animation_player: AnimationPlayer
 var _facing_direction := 1.0
 var _mirror_facing_for_remote := false
+var _current_animation := ""
 
 
 func setup(owner: CharacterBody2D, sprite: Sprite2D, animation_player: AnimationPlayer) -> void:
@@ -35,6 +31,12 @@ func set_mirror_facing_for_remote(enabled: bool) -> void:
 
 func play_animation(animation: String) -> void:
 	if _animation_player == null or not _animation_player.has_animation(animation):
+		return
+
+	_current_animation = animation
+
+	if animation.begins_with("swim"):
+		_play_swim_animation()
 		return
 
 	_apply_sprite_sheet_for_animation(animation)
@@ -79,19 +81,23 @@ func set_flip_h(flipped: bool) -> void:
 
 
 func apply_sprite_sheet_for_animation(animation: String) -> void:
+	if animation.begins_with("swim"):
+		_current_animation = animation
+		if not _mirror_facing_for_remote:
+			_apply_visual_facing()
+		return
 	_apply_sprite_sheet_for_animation(animation)
 
 
+func _play_swim_animation() -> void:
+	if _animation_player.current_animation != _current_animation or not _animation_player.is_playing():
+		_animation_player.play(_current_animation)
+	if not _mirror_facing_for_remote:
+		_apply_visual_facing()
+
+
 func _apply_sprite_sheet_for_animation(animation: String) -> void:
-	if animation.begins_with("swim"):
-		_apply_sprite_sheet(
-			SWIM_SPRITE_TEXTURE,
-			SWIM_SPRITE_HFRAMES,
-			SWIM_SPRITE_VFRAMES,
-			SWIM_SPRITE_POSITION,
-			SWIM_SPRITE_SCALE
-		)
-	elif animation == "dash":
+	if animation == "dash":
 		_apply_sprite_sheet(
 			DASH_SPRITE_TEXTURE,
 			LAND_SPRITE_HFRAMES,
@@ -109,32 +115,14 @@ func _apply_sprite_sheet_for_animation(animation: String) -> void:
 		)
 
 	if not _mirror_facing_for_remote:
-		_apply_visual_facing(animation)
+		_apply_visual_facing()
 
 
-func _apply_visual_facing(animation_override: String = "") -> void:
-	if _sprite == null:
+func _apply_visual_facing() -> void:
+	if _sprite == null or _mirror_facing_for_remote:
 		return
 
-	var facing_left := _facing_direction < 0.0
-	if _is_using_swim_sprite_sheet():
-		_sprite.flip_h = _swim_visual_flip_h(facing_left, animation_override)
-	else:
-		_sprite.flip_h = facing_left
-
-
-func _is_using_swim_sprite_sheet() -> bool:
-	return _sprite != null and _sprite.texture == SWIM_SPRITE_TEXTURE
-
-
-func _swim_visual_flip_h(facing_left: bool, animation_override: String = "") -> bool:
-	var animation := animation_override
-	if animation.is_empty() and _animation_player != null:
-		animation = _animation_player.current_animation
-
-	if animation == "swim_diagonal":
-		return facing_left
-	return not facing_left
+	_sprite.flip_h = _facing_direction < 0.0
 
 
 func _apply_sprite_sheet(

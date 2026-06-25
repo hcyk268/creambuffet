@@ -9,7 +9,7 @@ class_name PlayerSwim
 
 func enter() -> void:
 	controller.set_vertical_flip(false)
-	controller.play_animation("swim_idle")
+	controller.play_animation("swim")
 	controller.scale_velocity(0.45)
 
 
@@ -49,27 +49,8 @@ func physics_update(delta: float) -> void:
 	controller.lerp_velocity(desired_velocity, clampf(water_drag * delta, 0.0, 1.0))
 
 	_update_facing(direction)
-	_update_animation(swim_input)
 	controller.move_and_push()
 
 
 func _update_facing(direction: float) -> void:
 	controller.face_direction(direction)
-
-
-func _update_animation(swim_input: Vector2) -> void:
-	if swim_input.length() < 0.1:
-		controller.set_vertical_flip(false)
-		controller.play_animation("swim_idle")
-	elif absf(swim_input.x) > 0.1 and absf(swim_input.y) > 0.1:
-		controller.set_vertical_flip(false)
-		controller.play_animation("swim_diagonal")
-	elif swim_input.y < -0.1:
-		controller.set_vertical_flip(false)
-		controller.play_animation("swim_up")
-	elif swim_input.y > 0.1:
-		controller.set_vertical_flip(true)
-		controller.play_animation("swim_down")
-	else:
-		controller.set_vertical_flip(false)
-		controller.play_animation("swim")
