@@ -19,7 +19,9 @@ func setup(carried_key_sprite: Sprite2D, torch_light: PointLight2D) -> void:
 	_carried_key_sprite = carried_key_sprite
 	_torch_light = torch_light
 	if _torch_light != null:
+		_torch_light.visible = false
 		_torch_light.enabled = false
+		_torch_light.texture_scale = current_light_scale
 
 
 func process(delta: float) -> void:
@@ -65,16 +67,20 @@ func use_key(amount: int = 1) -> bool:
 func collect_torch() -> void:
 	has_torch = true
 	if _torch_light != null:
+		_torch_light.visible = true
 		_torch_light.enabled = true
+		_torch_light.texture_scale = current_light_scale
 
 
 func add_light_buff() -> void:
 	if not has_torch:
 		if _torch_light != null:
+			_torch_light.visible = false
 			_torch_light.enabled = false
 		return
 
 	if _torch_light != null:
+		_torch_light.visible = true
 		_torch_light.enabled = true
 	current_light_scale += 3.0
 	if _torch_light != null:
@@ -85,6 +91,7 @@ func turn_off_light() -> void:
 	has_torch = false
 	current_light_scale = 4.0
 	if _torch_light != null:
+		_torch_light.visible = false
 		_torch_light.enabled = false
 		_torch_light.texture_scale = current_light_scale
 

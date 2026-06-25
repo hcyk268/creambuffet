@@ -36,31 +36,26 @@ func update_level_label(
 	game_complete: bool,
 	current_level_index: int,
 	total_levels: int,
-	is_online_session: bool,
-	room: Dictionary,
-	current_level_id: String
+	_is_online_session: bool,
+	_room: Dictionary,
+	_current_level_id: String
 ) -> void:
 	if _level_label == null:
 		return
 
 	if game_complete:
-		_level_label.text = "All levels cleared!"
+		_level_label.text = "All Cleared!"
 		return
-
-	var suffix := ""
-	if is_online_session:
-		suffix = " | Room %s | %s" % [String(room.get("room_id", "")), current_level_id]
 
 	var hearts_text := _failure_hearts_text()
 	var hearts_suffix := ""
 	if not hearts_text.is_empty():
 		hearts_suffix = " %s" % hearts_text
 
-	_level_label.text = "Level %d / %d%s%s" % [
+	_level_label.text = "%d / %d%s" % [
 		current_level_index + 1,
 		total_levels,
 		hearts_suffix,
-		suffix,
 	]
 
 

@@ -15,6 +15,15 @@
 [ext_resource type="PackedScene" uid="uid://bw6ph1ilqkbcd" path="res://scenes/online/levels/level_10.tscn" id="13_x1mkr"]
 [ext_resource type="Script" uid="uid://c2ejor57101fb" path="res://scripts/online/level_transition.gd" id="14_q4wxa"]
 [ext_resource type="Script" path="res://scripts/ui/fps_label.gd" id="15_4jv6p"]
+[ext_resource type="FontFile" uid="uid://b5wpaindlypla" path="res://assets/fonts/EXEPixelPerfect.ttf" id="17_2ps8r"]
+[ext_resource type="FontFile" uid="uid://fbu6exgiy1cn" path="res://assets/fonts/editundo.ttf" id="18_cmaeh"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_room_info_panel"]
+bg_color = Color(0.145098, 0.141176, 0.247059, 0)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
 
 [node name="OnlineGame" type="Node2D" unique_id=530829054]
 script = ExtResource("1_xeoup")
@@ -31,11 +40,128 @@ zoom = Vector2(3, 3)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1535871515]
 
-[node name="LevelLabel" type="RichTextLabel" parent="CanvasLayer" unique_id=1227108237]
+[node name="RoomInfoPanel" type="PanelContainer" parent="CanvasLayer" unique_id=524061407]
+visible = false
 offset_left = 10.0
 offset_top = 8.0
 offset_right = 420.0
-offset_bottom = 31.0
+offset_bottom = 266.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_room_info_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/RoomInfoPanel" unique_id=1928746707]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="Content" type="VBoxContainer" parent="CanvasLayer/RoomInfoPanel/MarginContainer" unique_id=432186866]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RoomInfoTitle" type="Label" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content" unique_id=618825043]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("18_cmaeh")
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "ROOM INFO"
+
+[node name="RoomCodeLabel" type="Label" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content" unique_id=592002471]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("17_2ps8r")
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "ROOM ----"
+
+[node name="Stats" type="VBoxContainer" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content" unique_id=1217605005]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="MapRow" type="HBoxContainer" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats" unique_id=559688723]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MapKey" type="Label" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/MapRow" unique_id=200553495]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("17_2ps8r")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.83, 0.83, 0.9, 0.78)
+text = "MAP:"
+
+[node name="MapValue" type="Label" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/MapRow" unique_id=1148839263]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("17_2ps8r")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Beginner"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="PlayersRow" type="HBoxContainer" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats" unique_id=2104146880]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PlayersKey" type="Label" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/PlayersRow" unique_id=260273530]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("17_2ps8r")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.83, 0.83, 0.9, 0.78)
+text = "PLAYERS:"
+
+[node name="PlayersCountGroup" type="HBoxContainer" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/PlayersRow" unique_id=1382974208]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="PlayersValue" type="Label" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/PlayersRow/PlayersCountGroup" unique_id=1613711049]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("17_2ps8r")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "1 / 4"
+vertical_alignment = 1
+
+[node name="PlayersSpacer" type="Control" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/PlayersRow" unique_id=1841226121]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PingRow" type="HBoxContainer" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats" unique_id=1430211164]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PingKey" type="Label" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/PingRow" unique_id=1799844537]
+custom_minimum_size = Vector2(66, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("17_2ps8r")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.83, 0.83, 0.9, 0.78)
+text = "PING:"
+
+[node name="PingValue" type="Label" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/PingRow" unique_id=1429906473]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("17_2ps8r")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.42, 0.78, 0.23, 1)
+text = "-- ms"
+
+[node name="LevelSection" type="VBoxContainer" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content" unique_id=2124148264]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="LevelCaption" type="Label" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/LevelSection" unique_id=629329944]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("17_2ps8r")
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(0.83, 0.83, 0.9, 0.68)
+text = "CURRENT LEVEL"
+
+[node name="LevelLabel" type="RichTextLabel" parent="CanvasLayer/RoomInfoPanel/MarginContainer/Content/LevelSection" unique_id=1227108237]
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("17_2ps8r")
+theme_override_font_sizes/normal_font_size = 30
+theme_override_colors/default_color = Color(1, 1, 1, 1)
 bbcode_enabled = true
 text = "Level"
 fit_content = true
@@ -45,9 +171,9 @@ autowrap_mode = 0
 [node name="FpsLabel" type="Label" parent="CanvasLayer" unique_id=879454921]
 visible = false
 offset_left = 10.0
-offset_top = 32.0
+offset_top = 274.0
 offset_right = 180.0
-offset_bottom = 55.0
+offset_bottom = 297.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "FPS: 0"
 script = ExtResource("15_4jv6p")
@@ -56,9 +182,9 @@ script = ExtResource("15_4jv6p")
 layout_mode = 3
 anchors_preset = 0
 offset_left = 10.0
-offset_top = 36.0
+offset_top = 274.0
 offset_right = 280.0
-offset_bottom = 88.0
+offset_bottom = 326.0
 
 [node name="OxygenBar" type="ProgressBar" parent="CanvasLayer/WaterHud" unique_id=2117011984]
 layout_mode = 0

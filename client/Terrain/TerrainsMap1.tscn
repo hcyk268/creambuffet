@@ -2,25 +2,48 @@
 
 [ext_resource type="Texture2D" uid="uid://bl6hijhh16wam" path="res://assets/sprites/Terrain-Map1.png" id="1_q51ur"]
 
+[sub_resource type="TileMapPattern" id="TileMapPattern_q51ur"]
+tile_data = PackedInt32Array(0, 131072, 1, 1, 196608, 1, 2, 262144, 1)
+
+[sub_resource type="TileMapPattern" id="TileMapPattern_3kvgo"]
+tile_data = PackedInt32Array(0, 196608, 5, 1, 327680, 5)
+
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_q51ur"]
 texture = ExtResource("1_q51ur")
 2:1/0 = 0
+2:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-6, -6, -4, -8, 8, -8, 8, 8, -8, 8, -8, -4)
 3:1/0 = 0
+3:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 4:1/0 = 0
+4:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(8, -3.5, 6, -6, 4, -8, -8, -8, -8, 8, 8, 8)
 2:2/0 = 0
+2:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 3:2/0 = 0
+3:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 4:2/0 = 0
+4:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 1:3/0 = 0
+1:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 2:3/0 = 0
+2:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 4:3/0 = 0
+4:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 5:3/0 = 0
+5:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 8, -8, 8)
 1:5/0 = 0
+1:5/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, -4, 4, 0, -4, 0, -8, -4)
 3:5/0 = 0
+3:5/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 0.5, -4, 0, -8, -4)
 4:5/0 = 0
+4:5/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 8, 0, -8, 0)
 5:5/0 = 0
+5:5/0/physics_layer_0/polygon_0/points = PackedVector2Array(-8, -8, 8, -8, 6.5, -2, 4, 0, -8, 0)
 
 [sub_resource type="TileSet" id="TileSet_3kvgo"]
+physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_q51ur")
+pattern_0 = SubResource("TileMapPattern_q51ur")
+pattern_1 = SubResource("TileMapPattern_3kvgo")
 
 [node name="TerrainsMap1" type="TileMapLayer" unique_id=1605998247]
 tile_set = SubResource("TileSet_3kvgo")
