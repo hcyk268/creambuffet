@@ -83,7 +83,15 @@ func apply_sprite_sheet_for_animation(animation: String) -> void:
 
 
 func _apply_sprite_sheet_for_animation(animation: String) -> void:
-	if animation.begins_with("swim"):
+	if animation == "swim":
+		_apply_sprite_sheet(
+			LAND_SPRITE_TEXTURE,
+			LAND_SPRITE_HFRAMES,
+			LAND_SPRITE_VFRAMES,
+			LAND_SPRITE_POSITION,
+			LAND_SPRITE_SCALE
+		)
+	elif animation.begins_with("swim"):
 		_apply_sprite_sheet(
 			SWIM_SPRITE_TEXTURE,
 			SWIM_SPRITE_HFRAMES,

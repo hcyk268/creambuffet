@@ -50,6 +50,10 @@ func bind_network_signals() -> void:
 	if not _owner._network_client.world_event_received.is_connected(on_world_event):
 		_owner._network_client.world_event_received.connect(on_world_event)
 
+	var on_ping := Callable(self, "on_ping_updated")
+	if not _owner._network_client.ping_updated.is_connected(on_ping):
+		_owner._network_client.ping_updated.connect(on_ping)
+
 
 func unbind_network_signals() -> void:
 	if _owner._network_client == null:
@@ -74,6 +78,10 @@ func unbind_network_signals() -> void:
 	var on_world_event := Callable(self, "on_world_event_received")
 	if _owner._network_client.world_event_received.is_connected(on_world_event):
 		_owner._network_client.world_event_received.disconnect(on_world_event)
+
+	var on_ping := Callable(self, "on_ping_updated")
+	if _owner._network_client.ping_updated.is_connected(on_ping):
+		_owner._network_client.ping_updated.disconnect(on_ping)
 
 
 func setup_local_network_identity() -> void:
@@ -135,12 +143,14 @@ func on_remote_player_state(peer_id: int, state: Dictionary) -> void:
 func on_current_room_changed(room: Dictionary) -> void:
 	if room.is_empty():
 		remove_remote_players()
+		_owner._update_room_info_panel({})
 		cache_failure_state({})
 		update_failure_hud()
 		return
 
 	setup_local_network_identity()
 	sync_remote_roster(room)
+	_owner._update_room_info_panel(room)
 	apply_match_state_snapshot(room)
 	_owner._update_level_label(_owner._match_complete)
 	cache_failure_state(room)
@@ -171,6 +181,7 @@ func on_level_transition(from_level_index: int, to_level_index: int, match_compl
 		_owner.load_level(target_index)
 
 	sync_remote_roster(room)
+	_owner._update_room_info_panel(room)
 	apply_match_state_snapshot(room)
 	cache_failure_state(room)
 	update_failure_hud()
@@ -199,6 +210,10 @@ func on_world_event_received(event: Dictionary) -> void:
 		Callable(self, "player_for_peer"),
 		Callable(self, "update_respawn_budget_hud")
 	)
+
+
+func on_ping_updated(_ping_ms: int) -> void:
+	_owner._update_room_ping_label()
 
 
 func decrement_shared_hud_hearts() -> void:
