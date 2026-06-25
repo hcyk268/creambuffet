@@ -58,6 +58,8 @@ func startup_error_message() -> String:
 func process_frame() -> bool:
 	if _match_coordinator == null:
 		return false
+	for room_change in _room_manager.expire_disconnected_sessions():
+		_room_broadcaster.publish_room_change(room_change)
 
 	if _config.exit_after_ms <= 0:
 		_match_coordinator.poll_level_failures()

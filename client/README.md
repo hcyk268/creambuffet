@@ -79,6 +79,8 @@ During an online match:
   `pushable_control`, `room_updated`, and `level_transition` messages.
 - Client-driven `level_changed` and `level_complete` are not part of the active
   online flow; the server advances levels from completion rules.
+- An unexpected disconnect during a match triggers automatic reconnect attempts.
+  The server keeps the player's slot and runtime state for 30 seconds.
 
 ## Catalog And Sync IDs
 
