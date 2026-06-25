@@ -9,7 +9,7 @@ const STATE_ENTER_ANIMATIONS := {
 	"run": "run",
 	"jump": "air",
 	"dash": "dash",
-	"swim": "swim_idle",
+	"swim": "swim",
 }
 
 

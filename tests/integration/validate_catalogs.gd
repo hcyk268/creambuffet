@@ -2,6 +2,8 @@ extends SceneTree
 
 const CLIENT_CATALOG_PATH := "client/data/game_catalog.json"
 const SERVER_CATALOG_PATH := "server/data/game_catalog.json"
+const PLAYER_SCENE_PATH := "client/scenes/player_soda.tscn"
+const PLAYER_COLLISION_SHAPE_ID := "RectangleShape2D_r0uhu"
 const MIRRORED_SCRIPT_PAIRS := [
 	[
 		"client/scripts/catalog/catalog_contract.gd",
@@ -41,6 +43,7 @@ func _init() -> void:
 		errors.append("client/server catalogs differ; keep %s and %s identical." % [CLIENT_CATALOG_PATH, SERVER_CATALOG_PATH])
 	if not catalog.is_empty():
 		_validate_catalog(catalog, errors)
+		_validate_player_template_against_scene(catalog, errors)
 
 	if errors.is_empty():
 		print("Catalog validation passed.")
@@ -356,3 +359,89 @@ func _string_array(raw_values: Variant) -> Array[String]:
 	for raw_value in raw_values:
 		result.append(String(raw_value))
 	return result
+
+
+func _validate_player_template_against_scene(catalog: Dictionary, errors: Array[String]) -> void:
+	var templates_raw: Variant = catalog.get("player_templates", {})
+	if typeof(templates_raw) != TYPE_DICTIONARY:
+		errors.append("Catalog player_templates must be a dictionary.")
+		return
+
+	var default_template := _dictionary_value(templates_raw, "default", "player_templates.default", errors)
+	if default_template.is_empty():
+		errors.append("Catalog player_templates.default is missing.")
+		return
+
+	var shape := _dictionary_value(default_template, "shape", "player_templates.default.shape", errors)
+	if shape.is_empty():
+		return
+
+	if String(shape.get("type", "")) != "rectangle":
+		errors.append("player_templates.default.shape.type must be rectangle.")
+		return
+
+	var catalog_offset := _dictionary_value(shape, "offset", "player_templates.default.shape.offset", errors)
+	var catalog_size := _dictionary_value(shape, "size", "player_templates.default.shape.size", errors)
+	if catalog_offset.is_empty() or catalog_size.is_empty():
+		return
+
+	var scene_text := _read_text(PLAYER_SCENE_PATH, errors)
+	if scene_text.is_empty():
+		return
+
+	var scene_size := _parse_tscn_rect_size(scene_text, PLAYER_COLLISION_SHAPE_ID)
+	var scene_offset := _parse_tscn_collision_position(scene_text)
+	if scene_size.is_empty() or scene_offset.is_empty():
+		errors.append("Could not parse player collision shape from %s." % PLAYER_SCENE_PATH)
+		return
+
+	if not _approx_vec2(catalog_offset, scene_offset):
+		errors.append(
+			"player_templates.default.shape.offset %s does not match %s CollisionShape2D position %s."
+			% [catalog_offset, PLAYER_SCENE_PATH, scene_offset]
+		)
+	if not _approx_vec2(catalog_size, scene_size):
+		errors.append(
+			"player_templates.default.shape.size %s does not match %s collision size %s."
+			% [catalog_size, PLAYER_SCENE_PATH, scene_size]
+		)
+
+
+func _parse_tscn_rect_size(scene_text: String, sub_resource_id: String) -> Dictionary:
+	var pattern := (
+		'\\[sub_resource type="RectangleShape2D" id="%s"\\][\\s\\S]*?size = Vector2\\(([^,]+), ([^)]+)\\)'
+		% sub_resource_id
+	)
+	var regex := RegEx.new()
+	if regex.compile(pattern) != OK:
+		return {}
+	var match_result := regex.search(scene_text)
+	if match_result == null:
+		return {}
+	return {
+		"x": float(match_result.get_string(1)),
+		"y": float(match_result.get_string(2)),
+	}
+
+
+func _parse_tscn_collision_position(scene_text: String) -> Dictionary:
+	var pattern := (
+		'\\[node name="CollisionShape2D" type="CollisionShape2D" parent="\\."[\\s\\S]*?position = Vector2\\(([^,]+), ([^)]+)\\)'
+	)
+	var regex := RegEx.new()
+	if regex.compile(pattern) != OK:
+		return {}
+	var match_result := regex.search(scene_text)
+	if match_result == null:
+		return {}
+	return {
+		"x": float(match_result.get_string(1)),
+		"y": float(match_result.get_string(2)),
+	}
+
+
+func _approx_vec2(left: Dictionary, right: Dictionary, epsilon: float = 0.01) -> bool:
+	return (
+		absf(float(left.get("x", 0.0)) - float(right.get("x", 0.0))) <= epsilon
+		and absf(float(left.get("y", 0.0)) - float(right.get("y", 0.0))) <= epsilon
+	)
