@@ -1,18 +1,21 @@
 [gd_scene format=3 uid="uid://dxrnsj00liyue"]
 
-[ext_resource type="Texture2D" uid="uid://c7aike7ymbsfy" path="res://assets/sprites/IconPackage1.png" id="1_r3xco"]
 [ext_resource type="Script" uid="uid://btktudh8r735b" path="res://scripts/spike.gd" id="2_hnvl1"]
+[ext_resource type="Texture2D" uid="uid://b0gi3ljh4766a" path="res://assets/sprites/Sprite-Spike.png" id="2_i4d64"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i4d64"]
+atlas = ExtResource("2_i4d64")
 
 [node name="Area2D" type="Area2D" unique_id=1523812424]
 script = ExtResource("2_hnvl1")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1459699508]
-position = Vector2(0, -4)
-scale = Vector2(0.5555555, 1)
-texture = ExtResource("1_r3xco")
+position = Vector2(2.9802322e-08, -5)
+scale = Vector2(0.7013889, 0.78571427)
+texture = SubResource("AtlasTexture_i4d64")
 flip_v = true
 region_enabled = true
-region_rect = Rect2(14.334663, 28.951418, 18.576172, 14.720739)
+region_rect = Rect2(0, 0, 16, 14)
 
 [node name="CollisionShape2D" type="CollisionPolygon2D" parent="." unique_id=1943857842]
 position = Vector2(0, -4)

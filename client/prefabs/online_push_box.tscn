@@ -1,20 +1,20 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://duu4mw7b1n40y"]
 
-[ext_resource type="Texture2D" uid="uid://c7aike7ymbsfy" path="res://assets/sprites/IconPackage1.png" id="1_2d4a6"]
-[ext_resource type="Script" path="res://scripts/online_push_box.gd" id="2_olpbox"]
+[ext_resource type="Texture2D" uid="uid://bqu7pteybsirr" path="res://assets/sprites/Map1_Package.png" id="2_mb31k"]
+[ext_resource type="Script" uid="uid://bajf040u8qgrr" path="res://scripts/online_push_box.gd" id="2_olpbox"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_push_box"]
-atlas = ExtResource("1_2d4a6")
-region = Rect2(38, 32, 16, 16)
+[sub_resource type="AtlasTexture" id="AtlasTexture_y62op"]
+atlas = ExtResource("2_mb31k")
+region = Rect2(192, 80, 16, 16)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_push_box"]
 size = Vector2(16, 16)
 
-[node name="OnlinePushBox" type="AnimatableBody2D"]
+[node name="OnlinePushBox" type="AnimatableBody2D" unique_id=454772542]
 script = ExtResource("2_olpbox")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = SubResource("AtlasTexture_push_box")
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1310516184]
+texture = SubResource("AtlasTexture_y62op")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2136919447]
 shape = SubResource("RectangleShape2D_push_box")

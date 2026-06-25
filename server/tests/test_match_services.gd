@@ -286,6 +286,23 @@ func _test_geometry_service(failures: Array[String]) -> void:
 	if not GeometryService.did_player_cross_trigger_since_last_update(match_state, 1, "trigger_a"):
 		failures.append("GeometryService.did_player_cross_trigger_since_last_update() did not detect a trigger crossing.")
 
+	var rectangle_player := {
+		"type": "rectangle",
+		"center": {"x": 0.0, "y": -2.5},
+		"size": {"x": 9.0, "y": 21.0},
+	}
+	var trigger_rect_shape := {
+		"type": "rectangle",
+		"center": {"x": 0.0, "y": 0.0},
+		"size": {"x": 20.0, "y": 20.0},
+		"margin": 0.0,
+	}
+	if not GeometryService.shape_overlap(rectangle_player, trigger_rect_shape):
+		failures.append("GeometryService.shape_overlap() missed a rectangle/rectangle player overlap.")
+	var player_rect := GeometryService.player_bounding_rect_for_position({"x": 0.0, "y": 19.0})
+	if player_rect.size != Vector2(9.0, 21.0):
+		failures.append("GeometryService.player_bounding_rect_for_position() returned the wrong rectangle size for the default player template.")
+
 
 func _test_match_state_contract(failures: Array[String]) -> void:
 	var match_state: Variant = MatchState.new([7], 0, "beginner_01", "beginner")

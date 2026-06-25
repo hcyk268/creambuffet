@@ -1,21 +1,21 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dimd5ud5wmpv8"]
 
-[ext_resource type="Texture2D" uid="uid://c7aike7ymbsfy" path="res://assets/sprites/IconPackage1.png" id="1_hom6m"]
-[ext_resource type="Script" path="res://scripts/door.gd" id="2_6ej7u"]
+[ext_resource type="Script" uid="uid://nvlavu30j2io" path="res://scripts/door.gd" id="2_6ej7u"]
+[ext_resource type="Texture2D" uid="uid://bsbyb0c4wiax" path="res://assets/sprites/Sprite-Door.png" id="2_gx6vt"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_door_closed"]
-atlas = ExtResource("1_hom6m")
-region = Rect2(36, 57, 20, 23)
+[sub_resource type="AtlasTexture" id="AtlasTexture_iv2is"]
+atlas = ExtResource("2_gx6vt")
+region = Rect2(0, 0, 32, 64)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_door_open"]
-atlas = ExtResource("1_hom6m")
-region = Rect2(72, 57, 20, 23)
+[sub_resource type="AtlasTexture" id="AtlasTexture_qfj2i"]
+atlas = ExtResource("2_gx6vt")
+region = Rect2(32, 0, 32, 64)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_door"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_door_closed")
+"texture": SubResource("AtlasTexture_iv2is")
 }],
 "loop": true,
 "name": &"closed",
@@ -23,7 +23,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_door_open")
+"texture": SubResource("AtlasTexture_qfj2i")
 }],
 "loop": true,
 "name": &"open",
@@ -34,22 +34,24 @@ animations = [{
 size = Vector2(20, 23)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_door_detection"]
-size = Vector2(24, 24)
+size = Vector2(22, 25)
 
-[node name="Door" type="StaticBody2D"]
+[node name="Door" type="StaticBody2D" unique_id=2049024527]
 script = ExtResource("2_6ej7u")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1779929702]
+position = Vector2(0, -4)
 sprite_frames = SubResource("SpriteFrames_door")
-animation = &"closed"
+animation = &"open"
 autoplay = "closed"
 
-[node name="SfxPlayer" type="AudioStreamPlayer" parent="."]
+[node name="SfxPlayer" type="AudioStreamPlayer" parent="." unique_id=465891007]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1068307409]
 shape = SubResource("RectangleShape2D_door")
 
-[node name="DetectionArea" type="Area2D" parent="."]
+[node name="DetectionArea" type="Area2D" parent="." unique_id=591560576]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1807874920]
+position = Vector2(0, -0.5)
 shape = SubResource("RectangleShape2D_door_detection")

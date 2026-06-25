@@ -1,20 +1,20 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://hx4bo6e1c50p"]
 
-[ext_resource type="Script" path="res://scripts/level_goal.gd" id="1_jwovk"]
-[ext_resource type="Texture2D" uid="uid://c7aike7ymbsfy" path="res://assets/sprites/IconPackage1.png" id="2_edprb"]
+[ext_resource type="Script" uid="uid://bhodagwgd0a55" path="res://scripts/level_goal.gd" id="1_jwovk"]
+[ext_resource type="Texture2D" uid="uid://bsbyb0c4wiax" path="res://assets/sprites/Sprite-Door.png" id="2_x7ij8"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ruec2"]
-atlas = ExtResource("2_edprb")
-region = Rect2(72, 57, 20, 23)
+atlas = ExtResource("2_x7ij8")
+region = Rect2(38, 24, 20, 24)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_f47rt"]
 size = Vector2(20, 23)
 
-[node name="LevelGoal" type="Area2D"]
+[node name="LevelGoal" type="Area2D" unique_id=910175505]
 script = ExtResource("1_jwovk")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=194052094]
 texture = SubResource("AtlasTexture_ruec2")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1651842566]
 shape = SubResource("RectangleShape2D_f47rt")
