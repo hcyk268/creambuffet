@@ -768,7 +768,7 @@
 		  "transform": {
 			"position": {
 			  "x": 15,
-			  "y": 129.75
+			  "y": 136
 			}
 		  }
 		}
@@ -1214,8 +1214,8 @@
 		  },
 		  "transform": {
 			"position": {
-			  "x": 217,
-			  "y": 116
+			  "x": 219,
+			  "y": 109
 			}
 		  },
 		  "trigger": {
@@ -1238,8 +1238,8 @@
 		  },
 		  "transform": {
 			"position": {
-			  "x": 217,
-			  "y": 116
+			  "x": 219,
+			  "y": 109
 			}
 		  },
 		  "trigger": {
@@ -1281,14 +1281,14 @@
 		  "kind": "push_box",
 		  "state": {
 			"position": {
-			  "x": -94,
-			  "y": 119
+			  "x": -92,
+			  "y": 109
 			}
 		  },
 		  "transform": {
 			"position": {
-			  "x": -94,
-			  "y": 119
+			  "x": -92,
+			  "y": 109
 			}
 		  },
 		  "body": {
