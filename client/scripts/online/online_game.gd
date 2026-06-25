@@ -20,7 +20,12 @@ const NETWORK_SEND_INTERVAL := 0.05
 
 @onready var player: PlayerSoda = $Player
 @onready var level_container: Node2D = $LevelContainer
-@onready var level_label: RichTextLabel = $CanvasLayer/LevelLabel
+@onready var room_info_panel: PanelContainer = $CanvasLayer/RoomInfoPanel
+@onready var room_code_label: Label = $CanvasLayer/RoomInfoPanel/MarginContainer/Content/RoomCodeLabel
+@onready var room_map_value_label: Label = $CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/MapRow/MapValue
+@onready var room_players_value_label: Label = $CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/PlayersRow/PlayersCountGroup/PlayersValue
+@onready var room_ping_value_label: Label = $CanvasLayer/RoomInfoPanel/MarginContainer/Content/Stats/PingRow/PingValue
+@onready var level_label: RichTextLabel = $CanvasLayer/RoomInfoPanel/MarginContainer/Content/LevelSection/LevelLabel
 @onready var water_hud: Control = $CanvasLayer/WaterHud
 @onready var oxygen_bar: ProgressBar = $CanvasLayer/WaterHud/OxygenBar
 @onready var oxygen_label: Label = $CanvasLayer/WaterHud/OxygenLabel
@@ -91,6 +96,7 @@ func _ready() -> void:
 		_setup_local_network_identity()
 		_connect_player_runtime_events()
 		_configure_online_levels()
+	_update_room_info_panel()
 
 	var safe_start_index := clampi(start_level_index, 0, levels.size() - 1)
 	if _is_online_session:
@@ -286,6 +292,49 @@ func _current_room() -> Dictionary:
 	if _is_online_session and _network_client != null:
 		return _network_client.get_current_room()
 	return {}
+
+
+func _update_room_info_panel(room: Dictionary = {}) -> void:
+	if room_info_panel == null:
+		return
+
+	var room_data := room
+	if room_data.is_empty():
+		room_data = _current_room()
+
+	var has_room_info := _is_online_session and not room_data.is_empty()
+	room_info_panel.visible = has_room_info
+	if not has_room_info:
+		return
+
+	var room_id := String(room_data.get("room_id", "")).to_upper()
+	room_code_label.text = "ROOM %s" % room_id if not room_id.is_empty() else "ROOM ----"
+
+	var map_id := String(room_data.get("map_id", GameCatalog.DEFAULT_MAP_ID))
+	room_map_value_label.text = GameCatalog.get_map_title(map_id)
+
+	var max_players := maxi(int(room_data.get("max_players", 1)), 1)
+	var player_count := int(room_data.get("player_count", 0))
+	var players_raw: Variant = room_data.get("players", [])
+	if typeof(players_raw) == TYPE_ARRAY:
+		var players: Array = players_raw
+		player_count = players.size()
+	room_players_value_label.text = "%d / %d" % [player_count, max_players]
+	_update_room_ping_label()
+
+
+func _update_room_ping_label() -> void:
+	if room_ping_value_label == null:
+		return
+
+	if not _is_online_session or _network_client == null:
+		room_ping_value_label.text = "-- ms"
+		return
+
+	var ping_ms := -1
+	if _network_client.has_method("get_ping_ms"):
+		ping_ms = int(_network_client.get_ping_ms())
+	room_ping_value_label.text = "%d ms" % ping_ms if ping_ms >= 0 else "-- ms"
 
 
 func _total_level_count() -> int:
