@@ -87,9 +87,11 @@ func unbind_network_signals() -> void:
 func setup_local_network_identity() -> void:
 	var peer_id: int = _owner._network_client.get_local_peer_id()
 	var player_name := player_name_for_peer(peer_id)
+	var room: Dictionary = _owner._network_client.get_current_room()
 	var typed_player := _owner.player as PlayerSoda
 	if typed_player != null:
 		PlayerCapabilities.configure_network_player(typed_player, peer_id, player_name, false)
+		typed_player.modulate = RemotePlayerRegistry.player_color_for_peer(room, peer_id)
 
 
 func connect_player_runtime_events() -> void:

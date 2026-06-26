@@ -5,6 +5,7 @@ const CO_OP_MUSIC := preload("res://assets/sound/Co-op background.mp3")
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
 const GameIds = preload("res://scripts/catalog/game_ids.gd")
 const OptionsState = preload("res://scripts/menu/options_state.gd")
+const RemotePlayerRegistry = preload("res://scripts/online/remote_player_registry.gd")
 const BODY_FONT := preload("res://assets/fonts/EXEPixelPerfect.ttf")
 const NETWORK_SEND_INTERVAL := 0.05
 
@@ -88,7 +89,8 @@ func _refresh_hud() -> void:
 		host_banner.text = ""
 		host_controls.visible = true
 	else:
-		host_banner.text = ""
+		host_banner.visible = room_status == GameIds.ROOM_STATUS_LOBBY
+		host_banner.text = "Waiting for host to start the game"
 		host_controls.visible = false
 
 	if start_game_button != null:
@@ -112,10 +114,14 @@ func _ping_text() -> String:
 	return "%s ms" % _ping_value_text()
 
 
-func _ping_value_text() -> String:
-	var ping_ms := -1
+func _local_ping_ms() -> int:
 	if _network_client().has_method("get_ping_ms"):
-		ping_ms = int(_network_client().get_ping_ms())
+		return int(_network_client().get_ping_ms())
+	return -1
+
+
+func _ping_value_text() -> String:
+	var ping_ms := _local_ping_ms()
 	return str(ping_ms) if ping_ms >= 0 else "--"
 
 
@@ -137,22 +143,68 @@ func _rebuild_member_list(target_list: VBoxContainer, room: Dictionary) -> void:
 		if typeof(raw_player) != TYPE_DICTIONARY:
 			continue
 		var player: Dictionary = raw_player
-		var label := Label.new()
-		label.add_theme_font_override("font", BODY_FONT)
-		label.add_theme_font_size_override("font_size", 36)
 		var peer_id := int(player.get("peer_id", 0))
 		var is_host_player := peer_id == host_peer_id
 		var is_local_player := peer_id == local_peer_id
 		var role := "Host" if is_host_player else "Guest"
 		var suffix := " (You)" if is_local_player else ""
-		var ping_text := _ping_text() if is_local_player else "-- ms"
-		label.text = "%s%s  |  %s  |  %s" % [
+		var ping_ms := _player_ping_ms(peer_id)
+		var ping_text := _format_ping(ping_ms)
+		_add_member_line(
+			target_list,
 			String(player.get("display_name", "Guest")),
 			suffix,
 			role,
 			ping_text,
-		]
-		target_list.add_child(label)
+			_ping_color(ping_ms),
+			RemotePlayerRegistry.player_color_from_data(player)
+		)
+
+
+func _add_member_line(
+	target_list: VBoxContainer,
+	player_name: String,
+	suffix: String,
+	role: String,
+	ping_text: String,
+	ping_color: Color,
+	base_color: Color
+) -> void:
+	var label := RichTextLabel.new()
+	label.fit_content = true
+	label.scroll_active = false
+	label.bbcode_enabled = false
+	label.add_theme_font_override("normal_font", BODY_FONT)
+	label.add_theme_font_size_override("normal_font_size", 100)
+	label.push_color(base_color)
+	label.append_text("%s%s  |  %s  |  " % [player_name, suffix, role])
+	label.push_color(ping_color)
+	label.append_text(ping_text)
+	label.pop()
+	label.pop()
+	target_list.add_child(label)
+
+
+func _player_ping_ms(peer_id: int) -> int:
+	if _network_client().has_method("get_player_ping_ms"):
+		return int(_network_client().get_player_ping_ms(peer_id))
+	if peer_id == int(_network_client().get_local_peer_id()):
+		return _local_ping_ms()
+	return -1
+
+
+func _format_ping(ping_ms: int) -> String:
+	return "%d ms" % ping_ms if ping_ms >= 0 else "-- ms"
+
+
+func _ping_color(ping_ms: int) -> Color:
+	if ping_ms < 0:
+		return Color(0.78, 0.78, 0.78)
+	if ping_ms < 100:
+		return Color(0.42, 0.78, 0.23)
+	if ping_ms < 200:
+		return Color(1.0, 0.78, 0.2)
+	return Color(1.0, 0.24, 0.18)
 
 
 func _physics_process(delta: float) -> void:
@@ -174,6 +226,7 @@ func _physics_process(delta: float) -> void:
 	if player != null and player.has_method("get_network_state"):
 		var state: Dictionary = player.get_network_state(-1)
 		state["room_status"] = String(room.get("status", GameIds.ROOM_STATUS_LOBBY))
+		state["ping_ms"] = _local_ping_ms()
 		_network_client().send_player_state(state)
 
 
@@ -262,6 +315,8 @@ func _on_remote_player_state(peer_id: int, state: Dictionary) -> void:
 	var remote := _ensure_remote_player(peer_id, _player_name_for_peer(peer_id), room)
 	if remote.has_method("apply_network_state"):
 		remote.apply_network_state(state)
+	if pause_panel != null and pause_panel.visible:
+		_refresh_member_list()
 
 
 func _maybe_enter_match(room: Dictionary) -> void:
@@ -355,6 +410,7 @@ func _configure_local_player(room: Dictionary) -> void:
 		player.set_network_identity(local_peer_id, player_name)
 	if player.has_method("set_network_remote"):
 		player.set_network_remote(false)
+	player.modulate = RemotePlayerRegistry.player_color_for_peer(room, local_peer_id)
 	if player.has_method("set_input_enabled"):
 		player.set_input_enabled(true)
 
@@ -406,17 +462,20 @@ func _sync_remote_roster(room: Dictionary = {}) -> void:
 func _ensure_remote_player(peer_id: int, player_name: String, room: Dictionary) -> CharacterBody2D:
 	var existing = _remote_players.get(peer_id)
 	if is_instance_valid(existing) and existing is CharacterBody2D:
-		return existing as CharacterBody2D
+		var existing_player := existing as CharacterBody2D
+		existing_player.modulate = RemotePlayerRegistry.player_color_for_peer(room, peer_id)
+		return existing_player
 	_remote_players.erase(peer_id)
 
 	var remote := PLAYER_SCENE.instantiate() as CharacterBody2D
 	remote.name = "RemotePlayer_%d" % peer_id
+	_remote_container.add_child(remote)
 	if remote.has_method("set_network_identity"):
 		remote.set_network_identity(peer_id, player_name)
 	if remote.has_method("set_network_remote"):
 		remote.set_network_remote(true)
+	remote.modulate = RemotePlayerRegistry.player_color_for_peer(room, peer_id)
 
-	_remote_container.add_child(remote)
 	var spawn_position := _lobby_spawn_position(room, peer_id)
 	remote.global_position = spawn_position
 	remote.spawn_position = spawn_position

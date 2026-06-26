@@ -21,6 +21,7 @@ const BODY_FONT := preload("res://assets/fonts/EXEPixelPerfect.ttf")
 var _is_open := false
 var _previous_pause_state := false
 var _ping_connected := false
+var _remote_state_connected := false
 var _level_select_open := false
 
 
@@ -139,25 +140,47 @@ func _on_ping_updated(_ping_ms: int) -> void:
 		_refresh_member_list()
 
 
+func _on_remote_player_state(_peer_id: int, _state: Dictionary) -> void:
+	if _is_open:
+		_refresh_member_list()
+
+
 func _bind_ping_signal() -> void:
 	var network_client := _network_client()
 	if network_client == null or _ping_connected:
+		_bind_remote_state_signal()
 		return
 	if network_client.has_signal("ping_updated"):
 		var on_ping := Callable(self, "_on_ping_updated")
 		if not network_client.ping_updated.is_connected(on_ping):
 			network_client.ping_updated.connect(on_ping)
 			_ping_connected = true
+	_bind_remote_state_signal()
+
+
+func _bind_remote_state_signal() -> void:
+	var network_client := _network_client()
+	if network_client == null or _remote_state_connected:
+		return
+	if network_client.has_signal("remote_player_state"):
+		var on_remote_state := Callable(self, "_on_remote_player_state")
+		if not network_client.remote_player_state.is_connected(on_remote_state):
+			network_client.remote_player_state.connect(on_remote_state)
+			_remote_state_connected = true
 
 
 func _unbind_ping_signal() -> void:
 	var network_client := _network_client()
-	if network_client == null or not _ping_connected:
+	if network_client == null:
 		return
 	var on_ping := Callable(self, "_on_ping_updated")
-	if network_client.ping_updated.is_connected(on_ping):
+	if _ping_connected and network_client.ping_updated.is_connected(on_ping):
 		network_client.ping_updated.disconnect(on_ping)
 	_ping_connected = false
+	var on_remote_state := Callable(self, "_on_remote_player_state")
+	if _remote_state_connected and network_client.remote_player_state.is_connected(on_remote_state):
+		network_client.remote_player_state.disconnect(on_remote_state)
+	_remote_state_connected = false
 
 
 func _refresh_member_list() -> void:
@@ -170,12 +193,12 @@ func _refresh_member_list() -> void:
 
 	var network_client := _network_client()
 	if network_client == null or not network_client.has_method("get_current_room"):
-		_add_member_line("Offline")
+		_add_plain_member_line("Offline")
 		return
 
 	var room: Dictionary = network_client.get_current_room()
 	if room.is_empty():
-		_add_member_line("Offline")
+		_add_plain_member_line("Offline")
 		return
 
 	var players_arr = room.get("players", [])
@@ -193,20 +216,41 @@ func _refresh_member_list() -> void:
 		var is_local_player := peer_id == local_peer_id
 		var role := "Host" if is_host_player else "Guest"
 		var suffix := " (You)" if is_local_player else ""
-		var ping_text := _ping_text() if is_local_player else "-- ms"
-		_add_member_line("%s%s  |  %s  |  %s" % [
+		var ping_ms := _player_ping_ms(peer_id)
+		_add_member_line(
 			String(player.get("display_name", "Guest")),
 			suffix,
 			role,
-			ping_text,
-		])
+			_format_ping(ping_ms),
+			_ping_color(ping_ms)
+		)
 
 
-func _add_member_line(text: String) -> void:
+func _add_plain_member_line(text: String) -> void:
 	var label := Label.new()
 	label.text = text
 	label.add_theme_font_override("font", BODY_FONT)
-	label.add_theme_font_size_override("font_size", 36)
+	label.add_theme_font_size_override("font_size", 100)
+	_member_list.add_child(label)
+
+
+func _add_member_line(
+	player_name: String,
+	suffix: String,
+	role: String,
+	ping_text: String,
+	ping_color: Color
+) -> void:
+	var label := RichTextLabel.new()
+	label.fit_content = true
+	label.scroll_active = false
+	label.bbcode_enabled = false
+	label.add_theme_font_override("normal_font", BODY_FONT)
+	label.add_theme_font_size_override("normal_font_size", 100)
+	label.append_text("%s%s  |  %s  |  " % [player_name, suffix, role])
+	label.push_color(ping_color)
+	label.append_text(ping_text)
+	label.pop()
 	_member_list.add_child(label)
 
 
@@ -216,6 +260,31 @@ func _ping_text() -> String:
 		return "-- ms"
 	var ping_ms := int(network_client.get_ping_ms())
 	return "%s ms" % ping_ms if ping_ms >= 0 else "-- ms"
+
+
+func _player_ping_ms(peer_id: int) -> int:
+	var network_client := _network_client()
+	if network_client == null:
+		return -1
+	if network_client.has_method("get_player_ping_ms"):
+		return int(network_client.get_player_ping_ms(peer_id))
+	if network_client.has_method("get_local_peer_id") and peer_id == int(network_client.get_local_peer_id()):
+		return int(network_client.get_ping_ms()) if network_client.has_method("get_ping_ms") else -1
+	return -1
+
+
+func _format_ping(ping_ms: int) -> String:
+	return "%d ms" % ping_ms if ping_ms >= 0 else "-- ms"
+
+
+func _ping_color(ping_ms: int) -> Color:
+	if ping_ms < 0:
+		return Color(0.78, 0.78, 0.78)
+	if ping_ms < 100:
+		return Color(0.42, 0.78, 0.23)
+	if ping_ms < 200:
+		return Color(1.0, 0.78, 0.2)
+	return Color(1.0, 0.24, 0.18)
 
 
 func _exit_scene_path() -> String:

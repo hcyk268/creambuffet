@@ -1,7 +1,5 @@
 extends Control
 
-const ONLINE_NAME_HELP_TEXT := "Enter a name for online rooms."
-
 @onready var online_name_overlay: ColorRect = $OnlineNameOverlay
 @onready var online_name_input: LineEdit = $OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/NameInput
 @onready var online_name_status: Label = $OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/StatusLabel
@@ -11,10 +9,6 @@ func _ready() -> void:
 	online_name_overlay.visible = false
 	if _network_client().has_method("get_max_display_name_length"):
 		online_name_input.max_length = int(_network_client().get_max_display_name_length())
-
-
-func _on_offline_butt_pressed() -> void:
-	SceneTransition.change_scene("res://scenes/offline/offline_game.tscn")
 
 
 func _on_start_butt_pressed() -> void:
@@ -43,7 +37,7 @@ func _show_online_name_prompt() -> void:
 		current_name = String(_network_client().get_display_name())
 
 	online_name_input.text = current_name
-	online_name_status.text = ONLINE_NAME_HELP_TEXT
+	online_name_status.text = ""
 	online_name_overlay.visible = true
 	online_name_input.grab_focus()
 	online_name_input.select_all()
@@ -51,7 +45,7 @@ func _show_online_name_prompt() -> void:
 
 func _hide_online_name_prompt() -> void:
 	online_name_overlay.visible = false
-	online_name_status.text = ONLINE_NAME_HELP_TEXT
+	online_name_status.text = ""
 
 
 func _submit_online_name() -> void:

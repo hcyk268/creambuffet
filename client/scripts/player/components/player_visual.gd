@@ -2,10 +2,8 @@ extends Node
 class_name PlayerVisual
 
 const LAND_SPRITE_TEXTURE := preload("res://assets/sprites/Player-sheet.png")
-const DASH_SPRITE_TEXTURE := preload("res://assets/sprites/Player-Soda.png")
 const LAND_SPRITE_HFRAMES := 5
 const LAND_SPRITE_VFRAMES := 8
-const DASH_SPRITE_VFRAMES := 6
 const LAND_SPRITE_POSITION := Vector2(0, -27)
 const LAND_SPRITE_SCALE := Vector2.ONE
 
@@ -97,22 +95,13 @@ func _play_swim_animation() -> void:
 
 
 func _apply_sprite_sheet_for_animation(animation: String) -> void:
-	if animation == "dash":
-		_apply_sprite_sheet(
-			DASH_SPRITE_TEXTURE,
-			LAND_SPRITE_HFRAMES,
-			DASH_SPRITE_VFRAMES,
-			LAND_SPRITE_POSITION,
-			LAND_SPRITE_SCALE
-		)
-	else:
-		_apply_sprite_sheet(
-			LAND_SPRITE_TEXTURE,
-			LAND_SPRITE_HFRAMES,
-			LAND_SPRITE_VFRAMES,
-			LAND_SPRITE_POSITION,
-			LAND_SPRITE_SCALE
-		)
+	_apply_sprite_sheet(
+		LAND_SPRITE_TEXTURE,
+		LAND_SPRITE_HFRAMES,
+		LAND_SPRITE_VFRAMES,
+		LAND_SPRITE_POSITION,
+		LAND_SPRITE_SCALE
+	)
 
 	if not _mirror_facing_for_remote:
 		_apply_visual_facing()

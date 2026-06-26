@@ -123,7 +123,7 @@ func _on_walk_run_finished() -> void:
 func _is_landing_transition(previous_state_name: String, new_state_name: String) -> bool:
 	if new_state_name != "run" and new_state_name != "idle":
 		return false
-	return previous_state_name == "jump" or previous_state_name == "fall" or previous_state_name == "dash"
+	return previous_state_name == "jump" or previous_state_name == "fall"
 
 
 func _play_one_shot(player: AudioStreamPlayer) -> void:

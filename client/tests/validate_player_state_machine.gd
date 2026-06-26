@@ -8,7 +8,6 @@ const STATE_ENTER_ANIMATIONS := {
 	"fall": "fall",
 	"run": "run",
 	"jump": "air",
-	"dash": "dash",
 	"swim": "swim",
 }
 

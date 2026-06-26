@@ -6,6 +6,12 @@ const CatalogContract = preload("res://scripts/catalog/catalog_contract.gd")
 const DEFAULT_MAP_ID := "beginner"
 const DEFAULT_PLAYER_TEMPLATE_ID := "default"
 const CATALOG_PATH := "res://data/game_catalog.json"
+const DEFAULT_ONLINE_PLAYER_COLORS := [
+	"fff089",
+	"fdc9c9",
+	"97edca",
+	"c9d4fd",
+]
 
 static var _catalog_cache: Dictionary = {}
 static var _catalog_loaded := false
@@ -33,7 +39,7 @@ static func get_map_ids() -> Array[String]:
 	var maps := _maps()
 	var raw_ids := maps.keys()
 	# raw_ids.sort()
-	# No sorting is needed if you want to display in the order: beginner -> ice -> lava -> water -> dark
+	# No sorting is needed if you want to display in the order: beginner -> water -> dark
 	for raw_id in raw_ids:
 		result.append(String(raw_id))
 	return result
@@ -147,6 +153,25 @@ static func get_player_template(template_id: String = DEFAULT_PLAYER_TEMPLATE_ID
 	return Dictionary(templates.get(normalized, {})).duplicate(true)
 
 
+static func get_online_player_color_palette() -> Array[String]:
+	var palette: Array[String] = []
+	var online_raw: Variant = _catalog().get("online", {})
+	if typeof(online_raw) == TYPE_DICTIONARY:
+		var online: Dictionary = online_raw
+		var colors_raw: Variant = online.get("player_colors", [])
+		if typeof(colors_raw) == TYPE_ARRAY:
+			for raw_color in colors_raw:
+				var normalized := _normalize_hex_color(String(raw_color))
+				if not normalized.is_empty() and not palette.has(normalized):
+					palette.append(normalized)
+
+	if palette.is_empty():
+		for color_hex in DEFAULT_ONLINE_PLAYER_COLORS:
+			palette.append(color_hex)
+
+	return palette
+
+
 static func get_global_rulesets() -> Dictionary:
 	var rulesets: Variant = _catalog().get("global_rulesets", {})
 	if typeof(rulesets) != TYPE_DICTIONARY:
@@ -231,6 +256,13 @@ static func _catalog() -> Dictionary:
 
 static func _catalog_file_path() -> String:
 	return CATALOG_PATH
+
+
+static func _normalize_hex_color(color_hex: String) -> String:
+	var normalized := color_hex.strip_edges().trim_prefix("#").to_lower()
+	if normalized.length() != 6:
+		return ""
+	return normalized
 
 
 static func _maps() -> Dictionary:

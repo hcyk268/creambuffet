@@ -31,7 +31,3 @@ func physics_update(delta: float) -> void:
 
 	if is_zero_approx(direction):
 		transitioned.emit(self, "idle")
-		return
-
-	if controller.dash_just_pressed():
-		transitioned.emit(self, "dash")

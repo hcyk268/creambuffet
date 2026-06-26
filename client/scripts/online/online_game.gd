@@ -130,6 +130,8 @@ func _physics_process(delta: float) -> void:
 
 	_send_timer = 0.0
 	var state: Dictionary = player.get_network_state(_current_level_index)
+	if _network_client.has_method("get_ping_ms"):
+		state["ping_ms"] = int(_network_client.get_ping_ms())
 	var pushable_states := _collect_pushable_state_observations()
 	if not pushable_states.is_empty():
 		state["pushable_states"] = pushable_states

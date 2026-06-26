@@ -25,7 +25,3 @@ func physics_update(delta: float) -> void:
 	var direction := controller.horizontal_input()
 	if not is_zero_approx(direction):
 		transitioned.emit(self, "run")
-		return
-
-	if controller.dash_just_pressed():
-		transitioned.emit(self, "dash")

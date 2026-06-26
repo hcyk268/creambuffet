@@ -19,7 +19,3 @@ func physics_update(delta: float) -> void:
 
 	if controller.is_on_floor() and controller.vertical_velocity() >= 0.0:
 		transition_to_grounded_from_air()
-		return
-
-	if controller.dash_just_pressed():
-		transitioned.emit(self, "dash")

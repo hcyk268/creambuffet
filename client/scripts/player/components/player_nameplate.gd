@@ -1,7 +1,7 @@
 extends Node
 class_name PlayerNameplate
 
-const NAME_LABEL_OFFSET := Vector2(-120.0, -95.0)
+const NAME_LABEL_OFFSET := Vector2(-120.0, -80.0)
 
 var display_name := ""
 var is_remote_player := false
@@ -63,4 +63,4 @@ func _should_show_online_name() -> bool:
 	if typeof(current_room) != TYPE_DICTIONARY or current_room.is_empty():
 		return false
 
-	return String(current_room.get("status", "")) != "playing"
+	return true
