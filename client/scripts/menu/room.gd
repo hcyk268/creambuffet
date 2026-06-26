@@ -315,8 +315,6 @@ func _on_remote_player_state(peer_id: int, state: Dictionary) -> void:
 	var remote := _ensure_remote_player(peer_id, _player_name_for_peer(peer_id), room)
 	if remote.has_method("apply_network_state"):
 		remote.apply_network_state(state)
-	if pause_panel != null and pause_panel.visible:
-		_refresh_member_list()
 
 
 func _maybe_enter_match(room: Dictionary) -> void:
