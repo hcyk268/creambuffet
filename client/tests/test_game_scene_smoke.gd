@@ -258,6 +258,8 @@ func _test_online_scene_smoke(failures: Array[String]) -> void:
 		failures.append("OnlineGame did not apply local player oxygen from a match_state snapshot.")
 	if door_node != null and bool(door_node.get("is_open")):
 		failures.append("OnlineGame did not apply synced object state from a match_state snapshot.")
+	if network_client.sent_world_events.size() != 2:
+		failures.append("OnlineGame echoed an open request while applying an authoritative closed-door snapshot.")
 
 	var restart_room := network_client.get_current_room()
 	restart_room["_restart_level"] = true
@@ -397,6 +399,7 @@ func _test_online_map_loading_smoke(failures: Array[String]) -> void:
 			if not is_instance_valid(online_game.get("_current_level")):
 				failures.append("OnlineGame did not instantiate level %s for map %s." % [String(level_ids[index]), map_id])
 				break
+			_assert_overlapping_door_draws_above_goal(online_game.get("_current_level"), String(level_ids[index]), failures)
 
 		if map_id == "water":
 			var water_hud := online_game.get_node_or_null("CanvasLayer/WaterHud") as Control
@@ -427,6 +430,40 @@ func _find_node_by_sync_id(root_node: Node, sync_id: String) -> Node:
 				return match
 
 	return null
+
+
+func _assert_overlapping_door_draws_above_goal(root_node: Node, level_id: String, failures: Array[String]) -> void:
+	if not is_instance_valid(root_node):
+		return
+
+	var doors := _find_nodes_in_group(root_node, "level_door")
+	var goals := _find_nodes_in_group(root_node, "level_goal")
+	for door in doors:
+		if not (door is Node2D):
+			continue
+		for goal in goals:
+			if not (goal is Node2D):
+				continue
+			if not (door as Node2D).global_position.is_equal_approx((goal as Node2D).global_position):
+				continue
+			if int(door.get("z_index")) <= int(goal.get("z_index")):
+				failures.append("Level %s draws an overlapping goal above its door, making the closed door look open." % level_id)
+
+
+func _find_nodes_in_group(root_node: Node, group_name: StringName) -> Array[Node]:
+	var result: Array[Node] = []
+	_collect_nodes_in_group(root_node, group_name, result)
+	return result
+
+
+func _collect_nodes_in_group(node: Node, group_name: StringName, out_nodes: Array[Node]) -> void:
+	if not is_instance_valid(node):
+		return
+	if node.is_in_group(group_name):
+		out_nodes.append(node)
+	for child in node.get_children():
+		if child is Node:
+			_collect_nodes_in_group(child, group_name, out_nodes)
 
 
 func _settle_frames(count: int = 2) -> void:
