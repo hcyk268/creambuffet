@@ -43,7 +43,9 @@ func apply(room: Dictionary, current_level: Node, apply_pushable_controls: Calla
 	else:
 		var is_door_opened := bool(match_state.get("door_opened", false))
 		for node in _find_nodes_in_group(current_level, "level_door"):
-			if node.has_method("set_open"):
+			if node.has_method("apply_server_open_state"):
+				node.apply_server_open_state(is_door_opened)
+			elif node.has_method("set_open"):
 				node.set_open(is_door_opened)
 
 		if bool(match_state.get("key_collected", false)):
@@ -71,7 +73,9 @@ func _apply_object_state(target_id: String, object_data: Dictionary, state: Dict
 				_world_object_applier.remove_collected_key(target_id)
 		GameIds.OBJECT_KIND_DOOR, GameIds.OBJECT_KIND_EXIT_DOOR:
 			var door_node := _find_node_by_sync_id(target_id)
-			if door_node != null and door_node.has_method("set_open"):
+			if door_node != null and door_node.has_method("apply_server_open_state"):
+				door_node.apply_server_open_state(bool(state.get("opened", false)))
+			elif door_node != null and door_node.has_method("set_open"):
 				door_node.set_open(bool(state.get("opened", false)))
 		GameIds.OBJECT_KIND_BUTTON, GameIds.OBJECT_KIND_PRESSURE_PLATE:
 			if _world_object_applier != null:

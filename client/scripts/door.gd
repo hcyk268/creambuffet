@@ -23,17 +23,24 @@ func _ready() -> void:
 	_apply_state()
 
 
-func set_open(value: bool) -> void:
+func set_open(value: bool, emit_signal_on_change := true) -> void:
 	if is_open == value:
 		return
 
 	is_open = value
 	_apply_state()
 
+	if not emit_signal_on_change:
+		return
+
 	if is_open:
 		door_opened.emit()
 	else:
 		door_closed.emit()
+
+
+func apply_server_open_state(value: bool) -> void:
+	set_open(value, false)
 
 
 func open() -> void:

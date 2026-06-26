@@ -48,7 +48,9 @@ func apply_buff_collected(sync_id:String, collected_player: CharacterBody2D) -> 
 
 func apply_door_opened(sync_id: String, event_peer_id: int, event: Dictionary = {}) -> void:
 	var door_node := _find_node(sync_id)
-	if door_node != null and door_node.has_method("open"):
+	if door_node != null and door_node.has_method("apply_server_open_state"):
+		door_node.apply_server_open_state(true)
+	elif door_node != null and door_node.has_method("open"):
 		door_node.open()
 
 	if apply_player_key_counts(event):
@@ -100,10 +102,16 @@ func apply_object_state_changed(sync_id: String, state: Dictionary) -> void:
 
 	if state.has("active") and node.has_method("set_activation"):
 		node.set_activation(bool(state.get("active", false)))
-	if state.has("open") and node.has_method("set_open"):
-		node.set_open(bool(state.get("open", false)))
-	if state.has("opened") and node.has_method("set_open"):
-		node.set_open(bool(state.get("opened", false)))
+	if state.has("open"):
+		if node.has_method("apply_server_open_state"):
+			node.apply_server_open_state(bool(state.get("open", false)))
+		elif node.has_method("set_open"):
+			node.set_open(bool(state.get("open", false)))
+	if state.has("opened"):
+		if node.has_method("apply_server_open_state"):
+			node.apply_server_open_state(bool(state.get("opened", false)))
+		elif node.has_method("set_open"):
+			node.set_open(bool(state.get("opened", false)))
 	if state.has("pressed") and node.has_method("apply_server_pressed"):
 		node.apply_server_pressed(bool(state.get("pressed", false)))
 	if (state.has("remaining_uses") or state.has("claimed_peer_ids")) and node.has_method("apply_server_state"):
