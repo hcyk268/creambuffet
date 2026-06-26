@@ -44,6 +44,7 @@ var _pending_packets: Array[Dictionary] = []
 var _current_room: Dictionary = {}
 var _public_rooms: Array[Dictionary] = []
 var _ping_ms := -1
+var _player_ping_ms: Dictionary = {}
 var _ping_timer := 0.0
 var _pending_pings: Dictionary = {}
 var _reconnect_token := ""
@@ -148,6 +149,12 @@ func get_max_display_name_length() -> int:
 
 func get_ping_ms() -> int:
 	return _ping_ms
+
+
+func get_player_ping_ms(peer_id: int) -> int:
+	if peer_id == local_peer_id:
+		return _ping_ms
+	return int(_player_ping_ms.get(peer_id, -1))
 
 
 func set_display_name(requested_name: String) -> void:
@@ -406,6 +413,9 @@ func _handle_player_state(payload: Dictionary) -> void:
 	if peer_id <= 0 or peer_id == local_peer_id:
 		return
 
+	if state_dict.has("ping_ms"):
+		_player_ping_ms[peer_id] = int(state_dict.get("ping_ms", -1))
+
 	remote_player_state.emit(peer_id, state_dict.duplicate(true))
 
 
@@ -598,6 +608,7 @@ func _set_public_rooms(room_list) -> void:
 func _clear_network_state(details: String) -> void:
 	_pending_packets.clear()
 	_pending_pings.clear()
+	_player_ping_ms.clear()
 	_ping_ms = -1
 	_ping_timer = 0.0
 	_peer = null

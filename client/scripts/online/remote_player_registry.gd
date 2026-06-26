@@ -8,6 +8,7 @@ var _owner: Node
 var _local_player: CharacterBody2D
 var _remote_container: Node2D
 var _remote_players: Dictionary = {}
+var _player_colors: Dictionary = {}
 
 
 func setup(owner: Node, local_player: CharacterBody2D) -> void:
@@ -37,7 +38,10 @@ func sync_roster(room: Dictionary, local_peer_id: int) -> void:
 				continue
 
 			seen[peer_id] = true
-			ensure(peer_id, String(player_data.get("display_name", "Guest%d" % peer_id)))
+			_player_colors[peer_id] = player_color_from_data(player_data)
+			var remote := ensure(peer_id, String(player_data.get("display_name", "Guest%d" % peer_id)))
+			if remote != null:
+				remote.modulate = _player_colors[peer_id]
 
 	for raw_peer_id in _remote_players.keys().duplicate():
 		var peer_id := int(raw_peer_id)
@@ -48,6 +52,7 @@ func sync_roster(room: Dictionary, local_peer_id: int) -> void:
 		if is_instance_valid(remote) and remote is Node:
 			(remote as Node).queue_free()
 		_remote_players.erase(peer_id)
+		_player_colors.erase(peer_id)
 
 
 func ensure(peer_id: int, player_name: String = "") -> CharacterBody2D:
@@ -63,6 +68,8 @@ func ensure(peer_id: int, player_name: String = "") -> CharacterBody2D:
 	remote.name = "RemotePlayer_%d" % peer_id
 	_remote_container.add_child(remote)
 	PlayerCapabilities.configure_network_player(remote, peer_id, player_name, true)
+	var player_color: Color = _player_colors.get(peer_id, Color.WHITE)
+	remote.modulate = player_color
 	if _local_player != null:
 		remote.global_position = _local_player.spawn_position
 	_remote_players[peer_id] = remote
@@ -95,6 +102,7 @@ func remove_all() -> void:
 			var remote := value as Node
 			remote.queue_free()
 	_remote_players.clear()
+	_player_colors.clear()
 
 
 func player_for_peer(peer_id: int, local_peer_id: int, local_player: CharacterBody2D) -> CharacterBody2D:
@@ -106,6 +114,29 @@ func player_for_peer(peer_id: int, local_peer_id: int, local_player: CharacterBo
 		return remote as CharacterBody2D
 	_remote_players.erase(peer_id)
 	return null
+
+
+static func player_color_for_peer(room: Dictionary, peer_id: int, fallback: Color = Color.WHITE) -> Color:
+	var players = room.get("players", [])
+	if typeof(players) != TYPE_ARRAY:
+		return fallback
+
+	for raw_player in players:
+		if typeof(raw_player) != TYPE_DICTIONARY:
+			continue
+
+		var player_data: Dictionary = raw_player
+		if int(player_data.get("peer_id", 0)) == peer_id:
+			return player_color_from_data(player_data, fallback)
+
+	return fallback
+
+
+static func player_color_from_data(player_data: Dictionary, fallback: Color = Color.WHITE) -> Color:
+	var color_hex := String(player_data.get("player_color", "")).strip_edges().trim_prefix("#")
+	if color_hex.length() != 6:
+		return fallback
+	return Color.html("#%s" % color_hex)
 
 
 static func player_name_for_peer(room: Dictionary, peer_id: int, fallback: String = "Player") -> String:

@@ -7,6 +7,7 @@ var peer_id := 0
 var display_name := ""
 var room_id := ""
 var reconnect_token := ""
+var player_color_hex := ""
 
 
 func _init(initial_peer_id: int = 0, initial_name: String = "") -> void:
@@ -26,6 +27,10 @@ func set_reconnect_token(next_token: String) -> void:
 	reconnect_token = next_token
 
 
+func set_player_color_hex(next_color_hex: String) -> void:
+	player_color_hex = next_color_hex.strip_edges().trim_prefix("#").to_lower()
+
+
 func attach_room(next_room_id: String) -> void:
 	room_id = next_room_id
 
@@ -39,6 +44,7 @@ func snapshot() -> Dictionary:
 		"peer_id": peer_id,
 		"display_name": display_name,
 		"room_id": room_id,
+		"player_color": player_color_hex,
 	}
 
 

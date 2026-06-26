@@ -23,6 +23,7 @@ var current_level_index := 0
 var current_level_id := ""
 var players: Dictionary = {}
 var match_state: MatchState
+var _rng := RandomNumberGenerator.new()
 
 
 func _init(
@@ -35,6 +36,7 @@ func _init(
 	initial_map_id: String = GameCatalog.DEFAULT_MAP_ID,
 	initial_level_ids: Array[String] = []
 ) -> void:
+	_rng.randomize()
 	room_id = initial_room_id
 	host_peer_id = initial_host_peer_id
 	is_public = initial_is_public
@@ -83,6 +85,7 @@ func try_add_player(session: PlayerSession) -> Error:
 	if not can_accept_players():
 		return ERR_CANT_ACQUIRE_RESOURCE
 
+	_assign_available_player_color(session)
 	players[session.peer_id] = session
 	session.attach_room(room_id)
 	if match_state != null:
@@ -101,6 +104,7 @@ func resume_player(session: PlayerSession, saved_player_state: Dictionary = {}) 
 	if players.size() >= max_players:
 		return ERR_CANT_ACQUIRE_RESOURCE
 
+	_assign_available_player_color(session)
 	players[session.peer_id] = session
 	session.attach_room(room_id)
 	if match_state != null:
@@ -206,6 +210,37 @@ func snapshot() -> Dictionary:
 		"players": player_snapshots(),
 		"match_state": match_state.snapshot() if match_state != null else {},
 	}
+
+
+func _assign_available_player_color(session: PlayerSession) -> void:
+	if session == null:
+		return
+
+	var palette := GameCatalog.get_online_player_color_palette()
+	if palette.is_empty():
+		return
+
+	var used_colors: Dictionary = {}
+	for raw_player in players.values():
+		var player := raw_player as PlayerSession
+		if player == null or player.player_color_hex.is_empty():
+			continue
+		used_colors[player.player_color_hex] = true
+
+	var current_color := session.player_color_hex
+	if not current_color.is_empty() and palette.has(current_color) and not used_colors.has(current_color):
+		return
+
+	var available_colors: Array[String] = []
+	for color_hex in palette:
+		if not used_colors.has(color_hex):
+			available_colors.append(color_hex)
+
+	if available_colors.is_empty():
+		session.set_player_color_hex(palette[_rng.randi_range(0, palette.size() - 1)])
+		return
+
+	session.set_player_color_hex(available_colors[_rng.randi_range(0, available_colors.size() - 1)])
 
 
 func _level_id_for_index(level_index: int) -> String:

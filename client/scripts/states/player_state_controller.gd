@@ -101,11 +101,6 @@ func jump_pressed() -> bool:
 func jump_just_pressed() -> bool:
 	return Input.is_action_just_pressed("jump")
 
-
-func dash_just_pressed() -> bool:
-	return Input.is_action_just_pressed("dash")
-
-
 func down_pressed() -> bool:
 	return InputMap.has_action("down") and Input.is_action_pressed("down")
 

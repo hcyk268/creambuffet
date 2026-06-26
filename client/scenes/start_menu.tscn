@@ -90,7 +90,7 @@ offset_right = 1920.0
 offset_bottom = 675.0
 theme_override_fonts/font = ExtResource("3_4v6gu")
 theme_override_font_sizes/font_size = 200
-text = "Euclidean
+text = "Cream Buffet
 "
 horizontal_alignment = 1
 vertical_alignment = 2
@@ -117,17 +117,6 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Online
-"
-
-[node name="OfflineButt" type="Button" parent="CenterContainer/MainButtons" unique_id=353140996]
-custom_minimum_size = Vector2(240, 120)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_nxjfj")
-theme_override_font_sizes/font_size = 70
-theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
-text = "Offline
 "
 
 [node name="QuitButt" type="Button" parent="CenterContainer/MainButtons" unique_id=500722691]
@@ -177,14 +166,6 @@ theme_override_constants/margin_bottom = 38
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="Eyebrow" type="Label" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=394920511]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.73, 0.73, 0.78, 1)
-theme_override_fonts/font = ExtResource("4_nxjfj")
-theme_override_font_sizes/font_size = 20
-text = "PLAYER PROFILE"
-horizontal_alignment = 1
-
 [node name="Title" type="Label" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer" unique_id=672872653]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_4v6gu")
@@ -222,7 +203,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.74, 0.74, 0.79, 1)
 theme_override_fonts/font = ExtResource("4_nxjfj")
 theme_override_font_sizes/font_size = 22
-text = "Enter a name for online rooms."
+text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -232,27 +213,26 @@ theme_override_constants/separation = 42
 alignment = 1
 
 [node name="CancelButt" type="Button" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/Buttons" unique_id=1698159592]
-custom_minimum_size = Vector2(240, 108)
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_nxjfj")
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 70
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Back"
 
 [node name="ConfirmButt" type="Button" parent="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/Buttons" unique_id=1476886699]
-custom_minimum_size = Vector2(240, 108)
+custom_minimum_size = Vector2(240, 120)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("4_nxjfj")
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 70
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 text = "Continue"
 
 [connection signal="pressed" from="CenterContainer/MainButtons/StartButt" to="." method="_on_start_butt_pressed"]
-[connection signal="pressed" from="CenterContainer/MainButtons/OfflineButt" to="." method="_on_offline_butt_pressed"]
 [connection signal="pressed" from="CenterContainer/MainButtons/QuitButt" to="." method="_on_quit_butt_pressed"]
 [connection signal="text_submitted" from="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/NameInput" to="." method="_on_name_input_text_submitted"]
 [connection signal="pressed" from="OnlineNameOverlay/PromptPanel/MarginContainer/VBoxContainer/Buttons/CancelButt" to="." method="_on_name_cancel_pressed"]

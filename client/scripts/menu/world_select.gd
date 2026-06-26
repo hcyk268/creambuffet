@@ -1,10 +1,9 @@
 extends Control
 
 const GameCatalog = preload("res://scripts/catalog/game_catalog.gd")
-const DISPLAY_MAP_IDS := ["beginner", "ice", "water", "dark", "lava"]
+const DISPLAY_MAP_IDS := ["beginner", "water", "dark"]
 const MAP_BACKGROUNDS := {
 	"beginner": preload("res://assets/sprites/UI-BackgroundMap1.png"),
-	"ice": preload("res://assets/sprites/UI-BackgroundMap2.png"),
 	"water": preload("res://assets/sprites/UI-BackgroundMap3.png"),
 	"dark": preload("res://assets/sprites/UI-BackgroundMap4.png"),
 }
