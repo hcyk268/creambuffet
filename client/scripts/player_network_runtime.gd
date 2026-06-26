@@ -60,14 +60,12 @@ func apply_control_mode(is_remote_player: bool, input_enabled: bool, update_elim
 		_has_remote_target = true
 		_owner.collision_layer = 1
 		_owner.collision_mask = 1
-		_owner.modulate = Color(0.65, 0.9, 1.0, 0.85)
 		if _visual != null:
 			_visual.set_mirror_facing_for_remote(true)
 	else:
 		_has_remote_target = false
 		_owner.collision_layer = 1
 		_owner.collision_mask = 1
-		_owner.modulate = Color.WHITE
 		if _visual != null:
 			_visual.set_mirror_facing_for_remote(false)
 
