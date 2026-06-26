@@ -110,14 +110,13 @@ offset_right = 720.0
 offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_q60fs")
 theme_override_font_sizes/font_size = 70
-theme_override_colors/font_color = Color(1, 1, 1, 1)
 text = "No public rooms are available yet.
 Use Host to create one, then come back here."
 horizontal_alignment = 1
 vertical_alignment = 1
-autowrap_mode = 0
 
 [node name="RoomsScroll" type="ScrollContainer" parent="TextureRect2/MarginContainer/VBoxContainer/ContentArea" unique_id=1540216877]
 visible = false

@@ -9,6 +9,7 @@ static func apply_links_for_source(match_state, peer_id: int, source_target_id: 
 	if typeof(raw_links) != TYPE_ARRAY:
 		return events
 
+	var now_ms := Time.get_ticks_msec()
 	for raw_link in raw_links:
 		if typeof(raw_link) != TYPE_DICTIONARY:
 			continue
@@ -31,6 +32,7 @@ static func apply_links_for_source(match_state, peer_id: int, source_target_id: 
 		if target_field.is_empty():
 			continue
 
+		var was_active := bool(target_state.get("active", false))
 		var operation := String(link.get("target_operation", link.get("operation", "set"))).strip_edges().to_lower()
 		match operation:
 			"toggle":
@@ -42,12 +44,21 @@ static func apply_links_for_source(match_state, peer_id: int, source_target_id: 
 			_:
 				target_state[target_field] = link.get("target_value", true)
 
+		if target_field == "active":
+			var is_active := bool(target_state.get("active", false))
+			if is_active and (not was_active or not target_state.has("active_started_at_ms")):
+				target_state["active_started_at_ms"] = now_ms
+			elif not is_active:
+				target_state.erase("active_started_at_ms")
+			target_state["updated_at_ms"] = now_ms
+
 		target["state"] = target_state
 		match_state.set_object_data(target_id, target)
 		events.append(match_state.event(GameIds.EVENT_OBJECT_STATE_CHANGED, "linked_state", peer_id, target_id, {
 			"state": target_state.duplicate(true),
 			"operation": operation,
 			"source_target_id": source_target_id,
+			"server_time_ms": now_ms,
 		}))
 
 	return events

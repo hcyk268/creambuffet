@@ -4,6 +4,7 @@ const GameIds = preload("res://scripts/catalog/game_ids.gd")
 const FailureRuleService = preload("res://scripts/match/failure_rule_service.gd")
 const GeometryService = preload("res://scripts/match/geometry_service.gd")
 const KeyDoorMechanic = preload("res://scripts/match/mechanics/key_door_mechanic.gd")
+const LevelStateFactory = preload("res://scripts/match/level_state_factory.gd")
 const LinkApplier = preload("res://scripts/match/link_applier.gd")
 const MechanicRegistry = preload("res://scripts/match/mechanic_registry.gd")
 const MatchState = preload("res://scripts/match/match_state.gd")
@@ -67,6 +68,7 @@ func _init() -> void:
 	_test_key_door_mechanic(failures)
 	_test_mechanic_registry_hooks(failures)
 	_test_match_state_contract(failures)
+	_test_level_state_factory(failures)
 	_test_geometry_service(failures)
 	_test_failure_rule_service(failures)
 	_test_timed_object_service(failures)
@@ -138,6 +140,8 @@ func _test_link_applier(failures: Array[String]) -> void:
 		failures.append("LinkApplier.apply_links_for_source() did not apply the set operation.")
 	if not bool(match_state.get_object_data("lamp_a").get("state", {}).get("active", false)):
 		failures.append("LinkApplier.apply_links_for_source() did not apply the toggle operation.")
+	if not match_state.get_object_data("lamp_a").get("state", {}).has("active_started_at_ms"):
+		failures.append("LinkApplier.apply_links_for_source() did not stamp active_started_at_ms when activating a target.")
 	if int(match_state.get_object_data("counter_up").get("state", {}).get("value", -1)) != 7:
 		failures.append("LinkApplier.apply_links_for_source() did not apply the increment operation.")
 	if int(match_state.get_object_data("counter_down").get("state", {}).get("value", -1)) != 5:
@@ -146,6 +150,9 @@ func _test_link_applier(failures: Array[String]) -> void:
 	for event in events:
 		if String(event.get("kind", "")) != GameIds.EVENT_OBJECT_STATE_CHANGED:
 			failures.append("LinkApplier.apply_links_for_source() emitted an unexpected event kind.")
+			break
+		if not event.has("server_time_ms"):
+			failures.append("LinkApplier.apply_links_for_source() emitted an object-state event without server_time_ms.")
 			break
 
 	var ignored_events: Array = LinkApplier.apply_links_for_source(match_state, 7, "button_a", "pressed", false)
@@ -360,6 +367,21 @@ func _test_match_state_contract(failures: Array[String]) -> void:
 		var player_position: Dictionary = player_state.get("position", {})
 		if float(player_position.get("x", 0.0)) != 24.0 or float(player_position.get("y", 0.0)) != -8.0:
 			failures.append("MatchState.snapshot() did not preserve patched player runtime state.")
+
+
+func _test_level_state_factory(failures: Array[String]) -> void:
+	var objects := LevelStateFactory.build_objects({
+		"objects": {
+			"platform_a": {
+				"kind": GameIds.OBJECT_KIND_MOVING_PLATFORM,
+				"state": {"active": true},
+			},
+		},
+	})
+	var platform: Dictionary = objects.get("platform_a", {})
+	var state: Dictionary = platform.get("state", {})
+	if not state.has("active_started_at_ms"):
+		failures.append("LevelStateFactory did not stamp active_started_at_ms for initially active moving platforms.")
 
 
 func _test_mechanic_registry_hooks(failures: Array[String]) -> void:

@@ -15,6 +15,7 @@ static func build(match_state) -> Dictionary:
 		"map_id": match_state.map_id,
 		"current_level": match_state.current_level,
 		"current_level_id": match_state.current_level_id,
+		"server_time_ms": Time.get_ticks_msec(),
 		"level_definition": match_state.level_definition.duplicate(true),
 		"completion_rules": completion_rules,
 		"failure_state": match_state.failure_state_snapshot(),

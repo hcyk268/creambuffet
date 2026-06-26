@@ -179,12 +179,14 @@ func on_level_transition(from_level_index: int, to_level_index: int, match_compl
 		to_level_index,
 		_owner._current_room()
 	)
-	if bool(room.get("_restart_level", false)) or target_index != _owner._current_level_index or from_level_index == to_level_index:
-		_owner.load_level(target_index)
+	var should_reload: bool = bool(room.get("_restart_level", false)) or target_index != int(_owner._current_level_index) or from_level_index == to_level_index
+	if should_reload:
+		_owner.load_level(target_index, room)
 
 	sync_remote_roster(room)
 	_owner._update_room_info_panel(room)
-	apply_match_state_snapshot(room)
+	if not should_reload:
+		apply_match_state_snapshot(room)
 	cache_failure_state(room)
 	update_failure_hud()
 

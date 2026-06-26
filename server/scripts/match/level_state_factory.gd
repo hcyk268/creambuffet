@@ -76,6 +76,11 @@ static func _seed_object_state(object_def: Dictionary, state: Dictionary) -> voi
 		GameIds.OBJECT_KIND_WATER_JET_NOZZLE, GameIds.OBJECT_KIND_WATER_JET:
 			if not state.has("active"):
 				state["active"] = bool(object_def.get("active", true))
+		GameIds.OBJECT_KIND_MOVING_PLATFORM:
+			if bool(state.get("active", false)) and not state.has("active_started_at_ms"):
+				var now_ms := Time.get_ticks_msec()
+				state["active_started_at_ms"] = now_ms
+				state["updated_at_ms"] = now_ms
 		GameIds.OBJECT_KIND_EXTENDABLE_BARRIER, GameIds.OBJECT_KIND_WATER_BARRIER, GameIds.OBJECT_KIND_BARRIER:
 			if not state.has("open"):
 				state["open"] = bool(object_def.get("open", false))

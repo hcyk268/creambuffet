@@ -50,6 +50,7 @@ var _level_loader: OnlineLevelLoader
 var _match_state_applier: OnlineMatchStateApplier
 var _session_runtime: OnlineSessionRuntime
 var _world_event_bridge: OnlineWorldEventBridge
+var _pending_level_snapshot_room: Dictionary = {}
 
 
 func _ready() -> void:
@@ -103,7 +104,7 @@ func _ready() -> void:
 		var room: Dictionary = _network_client.get_current_room()
 		safe_start_index = clampi(int(room.get("current_level_index", safe_start_index)), 0, levels.size() - 1)
 
-	load_level(safe_start_index)
+	load_level(safe_start_index, _current_room() if _is_online_session else {})
 	_sync_remote_roster()
 	if _is_online_session:
 		_cache_failure_state(_network_client.get_current_room())
@@ -147,7 +148,9 @@ func _on_time_limit_expired() -> void:
 	time_out_player.play()
 
 
-func load_level(index: int) -> void:
+func load_level(index: int, room_after_load: Dictionary = {}) -> void:
+	if not room_after_load.is_empty():
+		_pending_level_snapshot_room = room_after_load.duplicate(true)
 	if level_transition != null:
 		level_transition.transition(func(): _do_load_level(index))
 	else:
@@ -180,6 +183,7 @@ func _do_load_level(index: int) -> void:
 
 	if _world_event_bridge != null:
 		_world_event_bridge.connect_level(_current_level)
+	_apply_pending_level_snapshot()
 	_refresh_hud_failure_fallback_state()
 	_update_level_label(false)
 	_refresh_water_hud_for_level()
@@ -211,6 +215,15 @@ func restart_level() -> void:
 
 func _finalize_level_spawn() -> void:
 	_level_loader.finalize_level_spawn(_current_level, player, _remote_registry)
+
+
+func _apply_pending_level_snapshot() -> void:
+	if _pending_level_snapshot_room.is_empty() or _session_runtime == null:
+		return
+
+	var room := _pending_level_snapshot_room.duplicate(true)
+	_pending_level_snapshot_room.clear()
+	_session_runtime.apply_match_state_snapshot(room)
 
 
 func _update_level_label(game_complete: bool) -> void:

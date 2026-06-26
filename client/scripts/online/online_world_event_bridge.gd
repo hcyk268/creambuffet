@@ -132,7 +132,9 @@ func apply_remote_world_event(
 	var event_state: Dictionary = {}
 	var raw_event_state = event.get("state", {})
 	if typeof(raw_event_state) == TYPE_DICTIONARY:
-		event_state = raw_event_state
+		event_state = Dictionary(raw_event_state).duplicate(true)
+	if event.has("server_time_ms") and not event_state.has("server_time_ms"):
+		event_state["server_time_ms"] = int(event.get("server_time_ms", 0))
 
 	match String(event.get("kind", "")):
 		GameIds.EVENT_KEY_COLLECTED:

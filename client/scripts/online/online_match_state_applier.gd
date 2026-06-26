@@ -29,6 +29,7 @@ func apply(room: Dictionary, current_level: Node, apply_pushable_controls: Calla
 	var objects_raw = match_state.get("objects", {})
 	if typeof(objects_raw) == TYPE_DICTIONARY:
 		var object_states: Dictionary = objects_raw
+		var snapshot_server_time_ms := int(match_state.get("server_time_ms", 0))
 		for raw_target_id in object_states.keys():
 			var target_id := String(raw_target_id)
 			var object_raw: Variant = object_states.get(target_id, {})
@@ -38,7 +39,9 @@ func apply(room: Dictionary, current_level: Node, apply_pushable_controls: Calla
 			var state_raw: Variant = object_data.get("state", {})
 			var state: Dictionary = {}
 			if typeof(state_raw) == TYPE_DICTIONARY:
-				state = state_raw
+				state = Dictionary(state_raw).duplicate(true)
+			if snapshot_server_time_ms > 0 and not state.has("server_time_ms"):
+				state["server_time_ms"] = snapshot_server_time_ms
 			_apply_object_state(target_id, object_data, state, update_respawn_budget_hud)
 	else:
 		var is_door_opened := bool(match_state.get("door_opened", false))

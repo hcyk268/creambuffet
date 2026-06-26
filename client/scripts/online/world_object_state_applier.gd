@@ -100,8 +100,11 @@ func apply_object_state_changed(sync_id: String, state: Dictionary) -> void:
 	if node == null:
 		return
 
-	if state.has("active") and node.has_method("set_activation"):
-		node.set_activation(bool(state.get("active", false)))
+	if state.has("active"):
+		if node.has_method("apply_server_state"):
+			node.apply_server_state(state)
+		elif node.has_method("set_activation"):
+			node.set_activation(bool(state.get("active", false)))
 	if state.has("open"):
 		if node.has_method("apply_server_open_state"):
 			node.apply_server_open_state(bool(state.get("open", false)))

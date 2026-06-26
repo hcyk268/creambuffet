@@ -42,6 +42,9 @@ var _diameter := 64.0
 var _activation := false
 var _origin := Vector2.ZERO
 var _travel_direction := 1.0
+var _server_elapsed_at_sync := 0.0
+var _local_sync_time_ms := 0
+var _has_server_phase := false
 
 
 func _enter_tree() -> void:
@@ -66,10 +69,17 @@ func _physics_process(delta: float) -> void:
 	if not activation:
 		_origin = global_position
 		_travel_direction = 1.0
+		_has_server_phase = false
+		return
+
+	if _has_server_phase:
+		var elapsed := _server_elapsed_at_sync + maxf(float(Time.get_ticks_msec() - _local_sync_time_ms) / 1000.0, 0.0)
+		_seek_to_elapsed(elapsed)
+		queue_redraw()
 		return
 
 	var axis := _movement_axis()
-	var half_range := maxf(diameter, 0.0) * 0.5 * scale.x
+	var half_range := _scaled_half_range()
 	var offset_along_axis := (global_position - _origin).dot(axis)
 	var next_offset := offset_along_axis + (_travel_direction * MOVE_SPEED * delta)
 	if next_offset > half_range:
@@ -87,8 +97,64 @@ func set_activation(enabled: bool) -> void:
 	activation = enabled
 
 
+func apply_server_state(state: Dictionary) -> void:
+	var next_activation := bool(state.get("active", activation))
+	if not next_activation:
+		_has_server_phase = false
+		set_activation(false)
+		return
+
+	set_activation(true)
+	var started_at_ms := _numeric_state_value(state, "active_started_at_ms", -1)
+	var server_time_ms := _numeric_state_value(state, "server_time_ms", -1)
+	if started_at_ms < 0 or server_time_ms < 0:
+		return
+
+	_server_elapsed_at_sync = maxf(float(server_time_ms - started_at_ms) / 1000.0, 0.0)
+	_local_sync_time_ms = Time.get_ticks_msec()
+	_has_server_phase = true
+	_seek_to_elapsed(_server_elapsed_at_sync)
+
+
 func _movement_axis() -> Vector2:
 	return Vector2.RIGHT if movement_mode == MovementMode.HORIZONTAL else Vector2.DOWN
+
+
+func _scaled_half_range() -> float:
+	var axis_scale := absf(scale.x) if movement_mode == MovementMode.HORIZONTAL else absf(scale.y)
+	return maxf(diameter, 0.0) * 0.5 * axis_scale
+
+
+func _seek_to_elapsed(elapsed: float) -> void:
+	var axis := _movement_axis()
+	var half_range := _scaled_half_range()
+	if half_range <= 0.0:
+		global_position = _origin
+		_travel_direction = 1.0
+		return
+
+	var distance := maxf(elapsed, 0.0) * MOVE_SPEED
+	var offset := 0.0
+	if distance <= half_range:
+		offset = distance
+		_travel_direction = 1.0
+	else:
+		var cycle_distance := fmod(distance - half_range, half_range * 4.0)
+		if cycle_distance <= half_range * 2.0:
+			offset = half_range - cycle_distance
+			_travel_direction = -1.0
+		else:
+			offset = -half_range + (cycle_distance - half_range * 2.0)
+			_travel_direction = 1.0
+
+	global_position = _origin + (axis * offset)
+
+
+func _numeric_state_value(state: Dictionary, key: String, fallback: int) -> int:
+	var raw_value: Variant = state.get(key, fallback)
+	if typeof(raw_value) == TYPE_INT or typeof(raw_value) == TYPE_FLOAT:
+		return int(raw_value)
+	return fallback
 
 
 func _apply_activation_state() -> void:

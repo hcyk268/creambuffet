@@ -5,6 +5,7 @@ const GameIds = preload("res://scripts/catalog/game_ids.gd")
 const CreateRoomPanelScene = preload("res://scenes/create_room_panel.tscn")
 const OfflineGameScene = preload("res://scenes/offline/offline_game.tscn")
 const OnlineGameScene = preload("res://scenes/online/online_game.tscn")
+const MovingPlatformScene = preload("res://prefabs/moving_platform.tscn")
 
 
 class StubNetworkClient:
@@ -59,8 +60,10 @@ func _run() -> void:
 	var failures: Array[String] = []
 	await _test_offline_scene_smoke(failures)
 	await _test_online_scene_smoke(failures)
+	await _test_online_replay_applies_snapshot_after_reload(failures)
 	await _test_create_room_panel_private_smoke(failures)
 	await _test_online_map_loading_smoke(failures)
+	await _test_moving_platform_server_phase(failures)
 
 	if failures.is_empty():
 		print("Game scene smoke tests passed.")
@@ -359,6 +362,69 @@ func _test_create_room_panel_private_smoke(failures: Array[String]) -> void:
 	await _dispose_node(network_client)
 
 
+func _test_online_replay_applies_snapshot_after_reload(failures: Array[String]) -> void:
+	var room := {
+		"map_id": "water",
+		"status": "playing",
+		"current_level_index": 2,
+		"current_level_id": "water_03",
+		"level_ids": ["water_01", "water_02", "water_03"],
+		"players": [
+			{"peer_id": 1, "display_name": "Local"},
+		],
+		"match_state": {
+			"current_level_id": "water_03",
+			"server_time_ms": 2000,
+			"objects": {
+				"water03_exit_platform": {
+					"kind": "moving_platform",
+					"state": {
+						"active": true,
+						"active_started_at_ms": 1000,
+					},
+				},
+				"water03_mid_platform": {
+					"kind": "moving_platform",
+					"state": {
+						"active": true,
+						"active_started_at_ms": 1000,
+					},
+				},
+			},
+			"players": {},
+			"pushables": [],
+		},
+	}
+	var network_client := await _install_stub_network_client(room)
+	var online_game := OnlineGameScene.instantiate()
+	root.add_child(online_game)
+	await _settle_frames()
+
+	var current_level: Node = online_game.get("_current_level") as Node
+	var initial_platform := _find_node_by_sync_id(current_level, "water03_exit_platform")
+	if initial_platform == null or not bool(initial_platform.get("activation")):
+		failures.append("OnlineGame did not apply water_03 moving-platform state on initial load.")
+
+	var replay_room := room.duplicate(true)
+	network_client._current_room = replay_room.duplicate(true)
+	network_client.level_transition.emit(2, 2, false, replay_room)
+	await _settle_frames()
+
+	var replayed_level: Node = online_game.get("_current_level") as Node
+	var exit_platform := _find_node_by_sync_id(replayed_level, "water03_exit_platform")
+	var mid_platform := _find_node_by_sync_id(replayed_level, "water03_mid_platform")
+	if exit_platform == null or mid_platform == null:
+		failures.append("OnlineGame replay smoke could not find water_03 moving platforms after reload.")
+	else:
+		if not bool(exit_platform.get("activation")):
+			failures.append("OnlineGame did not reapply water03_exit_platform activation after a same-level replay.")
+		if not bool(mid_platform.get("activation")):
+			failures.append("OnlineGame did not reapply water03_mid_platform activation after a same-level replay.")
+
+	await _dispose_node(online_game)
+	await _dispose_node(network_client)
+
+
 func _test_online_map_loading_smoke(failures: Array[String]) -> void:
 	for map_id in GameCatalog.get_map_ids():
 		var level_ids := GameCatalog.get_level_ids(map_id)
@@ -415,6 +481,30 @@ func _test_online_map_loading_smoke(failures: Array[String]) -> void:
 
 		await _dispose_node(online_game)
 		await _dispose_node(network_client)
+
+
+func _test_moving_platform_server_phase(failures: Array[String]) -> void:
+	var platform := MovingPlatformScene.instantiate() as AnimatableBody2D
+	platform.position = Vector2(10.0, 20.0)
+	platform.scale = Vector2(1.0, 2.0)
+	platform.set("movement_mode", 1)
+	root.add_child(platform)
+	await _settle_frames()
+
+	platform.call("apply_server_state", {
+		"active": true,
+		"active_started_at_ms": 1000,
+		"server_time_ms": 2000,
+	})
+
+	var expected := Vector2(10.0, 65.0)
+	if not platform.global_position.is_equal_approx(expected):
+		failures.append(
+			"MovingPlatform did not seek to the server-authoritative active phase: scene=%s expected=%s." %
+			[platform.global_position, expected]
+		)
+
+	await _dispose_node(platform)
 
 
 func _find_node_by_sync_id(root_node: Node, sync_id: String) -> Node:
